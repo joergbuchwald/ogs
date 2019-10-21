@@ -106,8 +106,6 @@ public:
         auto const& medium =
             *process_data.media_map->getMedium(this->_element.getID());
         auto const& liquid_phase = medium.phase("AqueousLiquid");
-        auto const& solid_phase = medium.phase("Solid");
-
         auto const& b = process_data.specific_body_force;
 
         GlobalDimMatrixType const& I(
