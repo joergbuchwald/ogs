@@ -226,5 +226,6 @@ void HTProcess::postTimestepConcreteProcess(std::vector<GlobalVector*> const& x,
     _surfaceflux->integrate(x, t, *this, process_id, _integration_order, _mesh,
                             pv.getActiveElementIDs());
 }
+
 }  // namespace HT
 }  // namespace ProcessLib
