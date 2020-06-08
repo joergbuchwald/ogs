@@ -58,11 +58,6 @@
                     <type>Solid</type>
                     <properties>
                         <property>
-                            <name>bulk_modulus</name>
-                            <type>Constant</type>
-                            <value>160e300</value>
-                        </property>
-                        <property>
                             <name>biot_coefficient</name>
                             <type>Constant</type>
                             <value>0</value>
@@ -163,7 +158,7 @@
         </processes>
         <output>
             <type>VTK</type>
-            <prefix>RichardsFlow_2d_quasinewton</prefix>
+            <prefix>RichardsFlow_2d_quasinewton_pcs_{:process_id}</prefix>
             <timesteps>
                 <pair>
                     <repeat>9</repeat>
@@ -183,6 +178,7 @@
                 <variable>velocity</variable>
                 <variable>saturation</variable>
             </variables>
+            <suffix>_ts_{:timestep}_t_{:time}</suffix>
         </output>
     </time_loop>
     <parameters>
@@ -190,7 +186,7 @@
         <parameter>
             <name>E</name>
             <type>Constant</type>
-            <value>5e9</value>
+            <value>384e300</value>
         </parameter>
         <parameter>
             <name>nu</name>
@@ -298,4 +294,60 @@
             </eigen>
         </linear_solver>
     </linear_solvers>
+    <test_definition>
+        <vtkdiff>
+            <regex>RichardsFlow_2d_quasinewton_pcs_0_ts_.*.vtu</regex>
+            <field>displacement</field>
+            <absolute_tolerance>2e-14</absolute_tolerance>
+            <relative_tolerance>0</relative_tolerance>
+        </vtkdiff>
+        <vtkdiff>
+            <regex>RichardsFlow_2d_quasinewton_pcs_0_ts_.*.vtu</regex>
+            <field>sigma</field>
+            <absolute_tolerance>1e-8</absolute_tolerance>
+            <relative_tolerance>0</relative_tolerance>
+        </vtkdiff>
+        <vtkdiff>
+            <regex>RichardsFlow_2d_quasinewton_pcs_0_ts_.*.vtu</regex>
+            <field>epsilon</field>
+            <absolute_tolerance>1e-15</absolute_tolerance>
+            <relative_tolerance>0</relative_tolerance>
+        </vtkdiff>
+        <vtkdiff>
+            <regex>RichardsFlow_2d_quasinewton_pcs_0_ts_.*.vtu</regex>
+            <field>pressure</field>
+            <absolute_tolerance>3e-9</absolute_tolerance>
+            <relative_tolerance>1e-15</relative_tolerance>
+        </vtkdiff>
+        <vtkdiff>
+            <regex>RichardsFlow_2d_quasinewton_pcs_0_ts_.*.vtu</regex>
+            <field>saturation</field>
+            <absolute_tolerance>6e-13</absolute_tolerance>
+            <relative_tolerance>1e-15</relative_tolerance>
+        </vtkdiff>
+        <vtkdiff>
+            <regex>RichardsFlow_2d_quasinewton_pcs_0_ts_.*.vtu</regex>
+            <field>saturation_avg</field>
+            <absolute_tolerance>4e-13</absolute_tolerance>
+            <relative_tolerance>1e-15</relative_tolerance>
+        </vtkdiff>
+        <vtkdiff>
+            <regex>RichardsFlow_2d_quasinewton_pcs_0_ts_.*.vtu</regex>
+            <field>velocity</field>
+            <absolute_tolerance>1e-15</absolute_tolerance>
+            <relative_tolerance>1e-15</relative_tolerance>
+        </vtkdiff>
+        <vtkdiff>
+            <regex>RichardsFlow_2d_quasinewton_pcs_0_ts_.*.vtu</regex>
+            <field>HydraulicFlow</field>
+            <absolute_tolerance>1e-15</absolute_tolerance>
+            <relative_tolerance>0</relative_tolerance>
+        </vtkdiff>
+        <vtkdiff>
+            <regex>RichardsFlow_2d_quasinewton_pcs_0_ts_.*.vtu</regex>
+            <field>NodalForces</field>
+            <absolute_tolerance>1e-15</absolute_tolerance>
+            <relative_tolerance>0</relative_tolerance>
+        </vtkdiff>
+    </test_definition>
 </OpenGeoSysProject>

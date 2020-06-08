@@ -41,8 +41,7 @@
 #include "BaseLib/StringTools.h"
 #include "GeoLib/Raster.h"
 
-vtkImageAlgorithm* VtkRaster::loadImage(const std::string &fileName,
-                                        double& x0, double& y0, double& delta)
+vtkImageAlgorithm* VtkRaster::loadImage(const std::string &fileName)
 {
     QFileInfo fileInfo(QString::fromStdString(fileName));
 
@@ -65,11 +64,8 @@ vtkImageAlgorithm* VtkRaster::loadImage(const std::string &fileName,
         (fileInfo.suffix().toLower() == "tiff"))
     {
 #ifdef GEOTIFF_FOUND
-        return loadImageFromTIFF(fileName, x0, y0, delta);
+        return loadImageFromTIFF(fileName);
 #else
-        (void)x0;
-        (void)y0;
-        (void)delta;
         ERR("VtkRaster::loadImage(): GeoTiff file format not supported in this "
             "version! Trying to parse as Tiff-file.");
         return loadImageFromFile(fileName);
@@ -114,9 +110,7 @@ vtkImageImport* VtkRaster::loadImageFromArray(double const*const data_array, Geo
 }
 
 #ifdef GEOTIFF_FOUND
-vtkImageAlgorithm* VtkRaster::loadImageFromTIFF(const std::string& fileName,
-                                                double& x0, double& y0,
-                                                double& cellsize)
+vtkImageAlgorithm* VtkRaster::loadImageFromTIFF(const std::string& fileName)
 {
     TIFF* tiff = XTIFFOpen(fileName.c_str(), "r");
 
@@ -133,6 +127,9 @@ vtkImageAlgorithm* VtkRaster::loadImageFromTIFF(const std::string& fileName,
 
         if (geoTiff)
         {
+            double x0 = 0.0;
+            double y0 = 0.0;
+            double cellsize = 1.0;
             int imgWidth = 0;
             int imgHeight = 0;
             int nImages = 0;
@@ -312,19 +309,18 @@ std::string VtkRaster::findWorldFile(std::string const& filename)
 {
     std::string const no_ext = BaseLib::dropFileExtension(filename);
 
-    std::vector<std::string> const supported_extensions =
-    { ".pgw", ".pngw", ".pgwx",
-      ".jgw", ".jpgw", ".jgwx",
-      ".tfw", ".tifw", ".tfwx",
-      ".bpw", ".bmpw", ".bpwx",
-      ".wld" };
+    constexpr std::array supported_extensions = {
+        ".pgw",  ".pngw", ".pgwx", ".jgw",  ".jpgw", ".jgwx", ".tfw",
+        ".tifw", ".tfwx", ".bpw",  ".bmpw", ".bpwx", ".wld"};
 
-    for (auto& ext : supported_extensions)
+    auto const res =
+        std::find_if(supported_extensions.begin(), supported_extensions.end(),
+                     [&no_ext](auto const& ext) -> bool {
+                         return BaseLib::IsFileExisting(no_ext + ext);
+                     });
+    if (res != supported_extensions.end())
     {
-        if (BaseLib::IsFileExisting(no_ext + ext))
-        {
-            return no_ext + ext;
-        }
+        return no_ext + *res;
     }
 
     // no world file found
@@ -391,14 +387,4 @@ bool VtkRaster::readWorldFile(std::string const& filename,
     double const vtk_y0 = y0 + (extent[1] * delta_y);
     image->SetDataOrigin(x0, vtk_y0, 0);
     return true;
-}
-
-void VtkRaster::uint32toRGBA(const unsigned int s, int* p)
-{
-    p[3]   = s / (256 * 256 * 256);
-    int r  = s % (256 * 256 * 256);
-    p[2]   = r / (256 * 256);
-    r     %= (256 * 256);
-    p[1]   = r / 256;
-    p[0]   = r % 256;
 }

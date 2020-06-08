@@ -155,12 +155,6 @@ public:
             new MaterialStateVariables};
     }
 
-    double getBulkModulus(double const t,
-                          ParameterLib::SpatialPosition const& x) const override
-    {
-        return _mp.KM0(t, x)[0];
-    }
-
 public:
     static int const KelvinVectorSize =
         MathLib::KelvinVector::KelvinVectorDimensions<DisplacementDim>::value;
@@ -229,6 +223,13 @@ public:
                eps_K.dot(sigma - eta_K * (eps_K - eps_K_prev) / dt) / 2;
     }
 
+    double getBulkModulus(double const t,
+                          ParameterLib::SpatialPosition const& x,
+                          KelvinMatrix const* const /*C*/) const override
+    {
+        return _mp.KM0(t, x)[0];
+    }
+
     std::optional<std::tuple<KelvinVector,
                              std::unique_ptr<typename MechanicsBase<
                                  DisplacementDim>::MaterialStateVariables>,
@@ -249,9 +250,9 @@ private:
         const KelvinVector& strain_t,
         const KelvinVector& stress_curr,
         const KelvinVector& stress_t,
-        KelvinVector& strain_Kel_curr,
+        const KelvinVector& strain_Kel_curr,
         const KelvinVector& strain_Kel_t,
-        KelvinVector& strain_Max_curr,
+        const KelvinVector& strain_Max_curr,
         const KelvinVector& strain_Max_t,
         ResidualVector& res,
         detail::LocalLubby2Properties<DisplacementDim> const& properties) const;

@@ -110,6 +110,7 @@ private:
 
 private:
     std::vector<GlobalVector*> _process_solutions;
+    std::vector<GlobalVector*> _process_solutions_prev;
     std::unique_ptr<Output> _output;
     std::vector<std::unique_ptr<ProcessData>> _per_process_data;
 
@@ -124,7 +125,8 @@ private:
     std::vector<std::unique_ptr<NumLib::ConvergenceCriterion>>
         _global_coupling_conv_crit;
 
-    std::unique_ptr<ChemistryLib::ChemicalSolverInterface> _chemical_system;
+    std::unique_ptr<ChemistryLib::ChemicalSolverInterface>
+        _chemical_solver_interface;
 
     /// Solutions of the previous coupling iteration for the convergence
     /// criteria of the coupling iteration.

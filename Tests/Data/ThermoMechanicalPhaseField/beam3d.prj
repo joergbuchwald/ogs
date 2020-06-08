@@ -137,6 +137,7 @@
         <output>
             <type>VTK</type>
             <prefix>beam3d</prefix>
+            <suffix>_ts_{:timestep}_t_{:time}</suffix>
             <timesteps>
                 <pair>
                     <repeat>1</repeat>

@@ -319,6 +319,18 @@ void RichardsMechanicsProcess<DisplacementDim>::initializeConcreteProcess(
 
     add_secondary_variable("transport_porosity", 1,
                            &LocalAssemblerIF::getIntPtTransportPorosity);
+
+    add_secondary_variable("dry_density_solid", 1,
+                           &LocalAssemblerIF::getIntPtDryDensitySolid);
+
+    add_secondary_variable(
+        "dry_density_pellet_saturated", 1,
+        &LocalAssemblerIF::getIntPtDryDensityPelletSaturated);
+
+    add_secondary_variable(
+        "dry_density_pellet_unsaturated", 1,
+        &LocalAssemblerIF::getIntPtDryDensityPelletUnsaturated);
+
     //
     // enable output of internal variables defined by material models
     //
@@ -569,17 +581,18 @@ void RichardsMechanicsProcess<
 }
 
 template <int DisplacementDim>
-void RichardsMechanicsProcess<
-    DisplacementDim>::computeSecondaryVariableConcrete(const double t,
-                                                       GlobalVector const& x,
-                                                       int const process_id)
+void RichardsMechanicsProcess<DisplacementDim>::
+    computeSecondaryVariableConcrete(const double t, const double dt,
+                                     GlobalVector const& x,
+                                     GlobalVector const& x_dot,
+                                     int const process_id)
 {
     DBUG("Compute the secondary variables for RichardsMechanicsProcess.");
     ProcessLib::ProcessVariable const& pv = getProcessVariables(process_id)[0];
 
     GlobalExecutor::executeSelectedMemberOnDereferenced(
         &LocalAssemblerIF::computeSecondaryVariable, _local_assemblers,
-        pv.getActiveElementIDs(), getDOFTable(process_id), t, x,
+        pv.getActiveElementIDs(), getDOFTable(process_id), t, dt, x, x_dot,
         _coupled_solutions);
 }
 

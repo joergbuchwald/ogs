@@ -34,26 +34,26 @@ class Component;
 class SaturationDependentSwelling final : public Property
 {
 private:
-    Phase* _phase = nullptr;
     /// Maximum swelling pressures, one for each spatial dimension.
-    std::array<double, 3> const _p;
+    std::array<double, 3> const p_;
     /// Exponents, one for each spatial dimension.
-    std::array<double, 3> const _lambda;
-    double const _S_min;  //< Lower saturation limit.
-    double const _S_max;  //< Upper saturation limit.
-    ParameterLib::CoordinateSystem const* const _local_coordinate_system;
+    std::array<double, 3> const lambda_;
+    double const S_min_;  //< Lower saturation limit.
+    double const S_max_;  //< Upper saturation limit.
+    ParameterLib::CoordinateSystem const* const local_coordinate_system_;
 
 public:
     SaturationDependentSwelling(
-        std::array<double, 3> swelling_pressures,
+        std::string name,
+        std::array<double, 3>
+            swelling_pressures,
         std::array<double, 3>
             exponents,
         double const lower_saturation_limit,
         double const upper_saturation_limit,
         ParameterLib::CoordinateSystem const* const local_coordinate_system);
 
-    void setScale(
-        std::variant<Medium*, Phase*, Component*> scale_pointer) override;
+    void checkScale() const override;
 
     PropertyDataType value(VariableArray const& variable_array,
                            ParameterLib::SpatialPosition const& pos,

@@ -12,11 +12,13 @@
  *
  */
 
+#include <unordered_map>
+#include <typeindex>
+
 #include "FileTools.h"
 #include "Error.h"
-#include "StringTools.h"
+#include "filesystem.h"
 
-#include <sys/stat.h>
 #include <boost/algorithm/string.hpp>
 
 namespace
@@ -35,8 +37,107 @@ namespace BaseLib
  */
 bool IsFileExisting(const std::string &strFilename)
 {
-    struct stat buffer {};
-    return (stat (strFilename.c_str(), &buffer) == 0);
+    return fs::exists(fs::path(strFilename));
+}
+
+std::tuple<std::string, std::string::size_type, std::string::size_type>
+getParenthesizedString(std::string const& in,
+                       char const open_char,
+                       char const close_char,
+                       std::string::size_type pos)
+{
+    auto const pos_curly_brace_open = in.find_first_of(open_char, pos);
+    if (pos_curly_brace_open == std::string::npos)
+    {
+        return std::make_tuple("", std::string::npos, std::string::npos);
+    }
+    auto const pos_curly_brace_close =
+        in.find_first_of(close_char, pos_curly_brace_open);
+    if (pos_curly_brace_close == std::string::npos)
+    {
+        return std::make_tuple("", std::string::npos, std::string::npos);
+    }
+    return std::make_tuple(
+        in.substr(pos_curly_brace_open + 1,
+                  pos_curly_brace_close - (pos_curly_brace_open + 1)),
+        pos_curly_brace_open, pos_curly_brace_close);
+}
+
+std::string containsKeyword(std::string const& str, std::string const& keyword)
+{
+    auto const position = str.find(keyword);
+    if (position != std::string::npos)
+    {
+        return str.substr(0, position);
+    }
+    return "";
+}
+
+template <typename T>
+bool substituteKeyword(std::string& result, std::string& parenthesized_string,
+                       std::string::size_type begin, std::string::size_type end,
+                       std::string const& keyword, T& data)
+{
+    std::string precision_specification =
+        containsKeyword(parenthesized_string, keyword);
+
+    if (precision_specification.empty())
+    {
+        return false;
+    }
+
+    std::unordered_map<std::type_index, char> type_specification;
+    type_specification[std::type_index(typeid(int))] = 'd';
+    type_specification[std::type_index(typeid(double))] = 'f'; // default
+    type_specification[std::type_index(typeid(std::string))] = 's';
+
+    auto const& b = precision_specification.back();
+    // see https://fmt.dev/latest/syntax.html#formatspec
+    if (b == 'e' || b == 'E' || b == 'f' || b == 'F' || b == 'g' || b == 'G')
+    {
+        type_specification[std::type_index(typeid(double))] = b;
+        precision_specification = precision_specification.substr(
+            0, precision_specification.length() - 1);
+    }
+
+    std::string const generated_fmt_string =
+        "{" + precision_specification +
+        type_specification[std::type_index(typeid(data))] + "}";
+    result = result.substr(0, begin) + fmt::format(generated_fmt_string, data) +
+             result.substr(end + 1, result.length() - (end + 1));
+    return true;
+}
+
+std::string constructFormattedFileName(std::string const& format_specification,
+                                       std::string const& mesh_name,
+                                       int const process_id,
+                                       int const timestep,
+                                       double const t)
+{
+    char const open_char = '{';
+    char const close_char = '}';
+    std::string::size_type begin = 0;
+    std::string::size_type end = std::string::npos;
+    std::string result = format_specification;
+
+    while (begin != std::string::npos)
+    {
+        auto length_before_substitution = result.length();
+        // find next parenthesized string
+        std::string str = "";
+        std::tie(str, begin, end) =
+            getParenthesizedString(result, open_char, close_char, begin);
+        if (!substituteKeyword(result, str, begin, end, "timestep", timestep) &&
+            !substituteKeyword(result, str, begin, end, "time", t) &&
+            !substituteKeyword(result, str, begin, end, "process_id",
+                               process_id))
+        {
+            substituteKeyword(result, str, begin, end, "meshname", mesh_name);
+        }
+        begin = end - (length_before_substitution - result.length());
+    }
+
+    return result;
 }
 
 double swapEndianness(double const& v)
@@ -61,57 +162,15 @@ double swapEndianness(double const& v)
     return b.v;
 }
 
-namespace
-{
-
-/** Finds the position of last file path separator.
- * Checks for unix or windows file path separators in given path and returns the
- * position of the last one or std::string::npos if no file path separator was
- * found.
- */
-
-std::string::size_type findLastPathSeparator(std::string const& path)
-{
-    return path.find_last_of("/\\");
-}
-
-/** Finds the position of last dot.
- * This could be used to extract file extension.
- */
-
-std::string::size_type findLastDot(std::string const& path)
-{
-    return path.find_last_of('.');
-}
-} // end namespace
-
 std::string dropFileExtension(std::string const& filename)
 {
-    // Look for dots in filename.
-    auto const p = findLastDot(filename);
-    if (p == std::string::npos)
-    {
-        return filename;
-    }
-
-    // Check position of the last path separator.
-    auto const s = findLastPathSeparator(filename);
-    if (s != std::string::npos && p < s)
-    {
-        return filename;
-    }
-
-    return filename.substr(0, p);
+    auto const filename_path = fs::path(filename);
+    return (filename_path.parent_path() / filename_path.stem()).string();
 }
 
 std::string extractBaseName(std::string const& pathname)
 {
-    auto const p = findLastPathSeparator(pathname);
-    if (p == std::string::npos)
-    {
-        return pathname;
-    }
-    return pathname.substr(p + 1);
+    return fs::path(pathname).filename().string();
 }
 
 std::string extractBaseNameWithoutExtension(std::string const& pathname)
@@ -122,13 +181,7 @@ std::string extractBaseNameWithoutExtension(std::string const& pathname)
 
 std::string getFileExtension(const std::string &path)
 {
-    const std::string str = extractBaseName(path);
-    auto const p = findLastDot(str);
-    if (p == std::string::npos)
-    {
-        return std::string();
-    }
-    return str.substr(p + 1);
+    return fs::path(path).extension().string();
 }
 
 bool hasFileExtension(std::string const& extension, std::string const& filename)
@@ -136,70 +189,25 @@ bool hasFileExtension(std::string const& extension, std::string const& filename)
     return boost::iequals(extension, getFileExtension(filename));
 }
 
-static const char pathSeparator =
-#ifdef _WIN32
-                            '\\';
-#else
-                            '/';
-#endif
-
 std::string copyPathToFileName(const std::string &file_name,
                                const std::string &source)
 {
-    // check if file_name already contains a full path
-    auto const pos = findLastPathSeparator(file_name);
-    if (pos != std::string::npos)
+    auto filePath = fs::path(file_name);
+    if(filePath.has_parent_path())
     {
-        return file_name;
+        return filePath.string();
     }
-
-    if (source.empty())
-    {
-        return file_name;
-    }
-    if (source.back() != pathSeparator)
-    {
-        return BaseLib::extractPath(source + pathSeparator).append(file_name);
-    }
-    return BaseLib::extractPath(source).append(file_name);
+    return (fs::path(source) /= filePath).string();
 }
 
 std::string extractPath(std::string const& pathname)
 {
-    auto const pos = findLastPathSeparator(pathname);
-    if (pos == std::string::npos)
-    {
-        return "";
-    }
-    return pathname.substr(0, pos + 1);
-}
-
-std::string appendPathSeparator(std::string const& path)
-{
-    if (findLastPathSeparator(path) == path.length() - 1)
-    {
-        return path;
-    }
-    return path + pathSeparator;
+    return fs::path(pathname).parent_path().string();
 }
 
 std::string joinPaths(std::string const& pathA, std::string const& pathB)
 {
-    if (pathA.empty())
-    {
-        return pathB;
-    }
-
-    if (pathB.empty())
-    {
-        return pathA;
-    }
-
-    if (pathB.front() == pathSeparator) {
-        auto const tmpB = pathB.substr(1);
-        return appendPathSeparator(pathA) + tmpB;
-    }
-    return appendPathSeparator(pathA) + pathB;
+    return (fs::path(pathA) /= fs::path(pathB)).string();
 }
 
 std::string const& getProjectDirectory()
@@ -225,20 +233,10 @@ void removeFiles(std::vector<std::string> const& files)
 {
     for (auto const& file : files)
     {
-        int const success = std::remove(file.c_str());
-        if (success == 0)
+        bool const success = fs::remove(fs::path(file));
+        if (success)
         {
             DBUG("Removed '{:s}'", file);
-        }
-        else
-        {
-            if (errno == ENOENT)  // File does not exists
-            {
-                continue;
-            }
-            ERR("Removing file '{:s}' failed with error {:d}.", file, errno);
-            std::perror("Error: ");
-            OGS_FATAL("Unrecoverable error happened while removing a file.");
         }
     }
 }

@@ -13,9 +13,10 @@
 namespace MaterialPropertyLib
 {
 DupuitPermeability::DupuitPermeability(
-    ParameterLib::Parameter<double> const& parameter)
-    : _parameter(parameter)
+    std::string name, ParameterLib::Parameter<double> const& parameter)
+    : parameter_(parameter)
 {
+    name_ = std::move(name);
 }
 
 PropertyDataType DupuitPermeability::value(
@@ -25,16 +26,20 @@ PropertyDataType DupuitPermeability::value(
 {
     double const pressure = std::get<double>(variable_array[static_cast<int>(
         MaterialPropertyLib::Variable::phase_pressure)]);
-    auto const& permeability_values = _parameter(t, pos);
+    auto const& permeability_values = parameter_(t, pos);
 
     auto const& permeability_variant = fromVector(permeability_values);
     PropertyDataType dupuit_permeability = std::visit(
         [&pressure](auto const& permeability_variant) -> PropertyDataType {
             using T = std::decay_t<decltype(permeability_variant)>;
             if constexpr (std::is_same_v<T, double>)
+            {
                 return pressure * permeability_variant;
+            }
             else
+            {
                 return (pressure * permeability_variant).eval();
+            }
         },
         permeability_variant);
 

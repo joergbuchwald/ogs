@@ -20,6 +20,7 @@
 #include <string>
 #include <utility>
 
+#include "Applications/FileIO/AsciiRasterInterface.h"
 #include "BaseLib/FileTools.h"
 #include "BaseLib/Logging.h"
 #include "GeoLib/Raster.h"
@@ -30,7 +31,16 @@
 
 using namespace netCDF;
 
-const double no_data = -9999;
+static const double no_data_output = -9999;
+static double no_data_input = -9999;
+
+enum class OutputType
+{
+    INVALID,
+    IMAGES,
+    SINGLEMESH,
+    MULTIMESH
+};
 
 static void checkExit(std::string const& str)
 {
@@ -154,34 +164,38 @@ static std::pair<double, double> getBoundaries(NcVar const& var)
 }
 
 static MathLib::Point3d getOrigin(NcFile const& dataset, NcVar const& var,
-                           std::vector<std::size_t> const& dim_idx_map,
-                           bool is_time_dep)
+                                  std::vector<std::size_t> const& dim_idx_map,
+                                  std::size_t const time_offset)
 {
-    std::size_t const temp_offset = (is_time_dep) ? 1 : 0;
     MathLib::Point3d origin(MathLib::ORIGIN);
     std::size_t const n_dims = var.getDimCount();
-    for (std::size_t i = temp_offset; i < n_dims; ++i)
+    for (std::size_t i = time_offset; i < n_dims; ++i)
     {
         NcVar const& dim = getDimVar(dataset, var, dim_idx_map[i]);
         auto const bounds = (dim.isNull()) ? getDimLength(var, dim_idx_map[i])
                                            : getBoundaries(dim);
-        origin[i - temp_offset] =
+        origin[i - time_offset] =
             (bounds.first < bounds.second) ? bounds.first : bounds.second;
     }
     return origin;
 }
 
-static void flipRaster(std::vector<double>& data, std::size_t const width,
-                std::size_t const height)
+static void flipRaster(std::vector<double>& data, std::size_t const layers,
+                       std::size_t const width, std::size_t const height)
 {
     std::size_t const length(data.size());
-    std::vector<double> tmp_vec(length);
-    for (std::size_t i = 0; i < height; i++)
+    std::vector<double> tmp_vec;
+    tmp_vec.reserve(length);
+    for (std::size_t k = 0; k < layers; k++)
     {
-        std::size_t const line_idx(length - (width * (i + 1)));
-        for (std::size_t j = 0; j < width; j++)
+        std::size_t const layer_end = (k+1) * height * width;
+        for (std::size_t i = 0; i < height; i++)
         {
-            tmp_vec.push_back(data[line_idx + j]);
+            std::size_t const line_idx(layer_end - (width * (i + 1)));
+            for (std::size_t j = 0; j < width; j++)
+            {
+                tmp_vec.push_back(data[line_idx + j]);
+            }
         }
     }
     std::copy(tmp_vec.cbegin(), tmp_vec.cend(), data.begin());
@@ -332,18 +346,31 @@ static MeshLib::MeshElemType elemSelectionLoop(std::size_t const dim)
     return t;
 }
 
-static bool multFilesSelectionLoop(
+static OutputType multFilesSelectionLoop(
     std::pair<std::size_t, std::size_t> const& time_bounds)
 {
-    std::size_t const n_time_steps(time_bounds.second - time_bounds.first + 1);
-    std::cout << "\nThe selection includes " << n_time_steps
-              << " time steps.\n";
-    std::cout << "0. Save data in " << n_time_steps
-              << " mesh files with one scalar array each.\n";
-    std::cout << "1. Save data in one mesh file with " << n_time_steps
-              << " scalar arrays.\n";
-    std::size_t ret = parseInput("Select preferred method: ", 2, false);
-    return (ret != 0);
+    OutputType t = OutputType::INVALID;
+    while (t == OutputType::INVALID)
+    {
+        std::size_t const n_time_steps(time_bounds.second - time_bounds.first + 1);
+        std::cout << "\nThe selection includes " << n_time_steps
+                  << " time steps.\n";
+        std::cout << "0. Save data in " << n_time_steps
+                  << " mesh files with one scalar array each.\n";
+        std::cout << "1. Save data in one mesh file with " << n_time_steps
+                  << " scalar arrays.\n";
+        std::cout << "2. Save data as " << n_time_steps << " ASC images.\n";
+
+        std::size_t const ret = parseInput("Select preferred method: ", 3, false);
+
+        if (ret == 0)
+            t = OutputType::MULTIMESH;
+        else if (ret == 1)
+            t = OutputType::SINGLEMESH;
+        else if (ret == 2)
+            t = OutputType::IMAGES;
+    }
+    return t;
 }
 
 static std::string getIterationString(std::size_t i, std::size_t max)
@@ -371,25 +398,24 @@ static double getResolution(NcFile const& dataset, NcVar const& var)
 static GeoLib::RasterHeader createRasterHeader(
     NcFile const& dataset, NcVar const& var,
     std::vector<std::size_t> const& dim_idx_map,
-    std::vector<std::size_t> const& length, bool is_time_dep)
+    std::vector<std::size_t> const& length, std::size_t const time_offset)
 {
-    MathLib::Point3d const origin = getOrigin(dataset, var, dim_idx_map, is_time_dep);
+    MathLib::Point3d const origin =
+        getOrigin(dataset, var, dim_idx_map, time_offset);
     double const res = getResolution(dataset, var);
     std::size_t n_dims = var.getDimCount();
-    std::size_t temp_offset = (is_time_dep) ? 1 : 0;
     std::size_t z_length =
-        (n_dims - temp_offset == 3) ? length[dim_idx_map.back()] : 1;
-    return {length[dim_idx_map[0 + temp_offset]],
-            length[dim_idx_map[1 + temp_offset]],
-            z_length, origin, res, no_data};
+        (n_dims - time_offset == 3) ? length[dim_idx_map.back()] : 1;
+    return {length[dim_idx_map[0 + time_offset]],
+            length[dim_idx_map[1 + time_offset]],
+            z_length, origin, res, no_data_output};
 }
 
-static std::vector<std::size_t> getLength(NcVar const& var, bool const is_time_dep)
+static std::vector<std::size_t> getLength(NcVar const& var, std::size_t const time_offset)
 {
-    std::size_t const temp_offset = (is_time_dep) ? 1 : 0;
     std::size_t const n_dims = (var.getDimCount());
     std::vector<std::size_t> length(n_dims, 1);
-    for (std::size_t i = temp_offset; i < n_dims; ++i)
+    for (std::size_t i = time_offset; i < n_dims; ++i)
     {
         length[i] = var.getDim(i).getSize();
     }
@@ -406,16 +432,11 @@ static std::vector<double> getData(NcFile const& dataset, NcVar const& var,
     offset[0] = time_step;
     std::vector<double> data_vec(total_length, 0);
     var.getVar(offset, length, data_vec.data());
-    std::replace_if(data_vec.begin(), data_vec.end(),
-                    [](double& x) { return x <= no_data; }, no_data);
 
-    // reverse lines in vertical direction if the original file has its origin
-    // in the northwest corner
-    NcVar const dim_var (getDimVar(dataset, var, n_dims - 1));
-    auto const bounds = (dim_var.isNull()) ? getDimLength(var, n_dims - 1)
-                                           : getBoundaries(dim_var);
-    if (bounds.first > bounds.second)
-        flipRaster(data_vec, length[n_dims - 2], length[n_dims - 1]);
+    std::replace_if(
+        data_vec.begin(), data_vec.end(),
+        [](double const& x) { return x == no_data_input; }, no_data_output);
+
     return data_vec;
 }
 
@@ -508,14 +529,15 @@ static MeshLib::MeshElemType assignElemType(
 }
 
 static bool convert(NcFile const& dataset, NcVar const& var,
-             std::string const& output_name,
-             std::vector<std::size_t> const& dim_idx_map,
-             bool const is_time_dep,
-             std::pair<std::size_t, std::size_t> const& time_bounds,
-             bool const use_single_file, MeshLib::MeshElemType const elem_type)
+                    std::string const& output_name,
+                    std::vector<std::size_t> const& dim_idx_map,
+                    std::size_t const time_offset,
+                    std::pair<std::size_t, std::size_t> const& time_bounds,
+                    OutputType const output,
+                    MeshLib::MeshElemType const elem_type)
 {
     std::unique_ptr<MeshLib::Mesh> mesh;
-    std::vector<std::size_t> const length = getLength(var, is_time_dep);
+    std::vector<std::size_t> const length = getLength(var, time_offset);
     std::size_t const array_length = std::accumulate(
         length.cbegin(), length.cend(), 1, std::multiplies<std::size_t>());
     for (std::size_t i = time_bounds.first; i <= time_bounds.second; ++i)
@@ -523,14 +545,27 @@ static bool convert(NcFile const& dataset, NcVar const& var,
         std::string const step_str = (time_bounds.first != time_bounds.second)
                 ? std::string(" time step " + std::to_string(i)) : "";
         std::cout << "Converting" << step_str << "...\n";
-        std::vector<double> const data_vec =
+        std::vector<double> data_vec =
             getData(dataset, var, array_length, i, length);
 
+        // reverse lines in vertical direction if file has its origin in the
+        // northwest corner
+        std::size_t const n_dims = length.size();
+        NcVar const dim_var(getDimVar(dataset, var, n_dims - 2));
+        auto const bounds = (dim_var.isNull()) ? getDimLength(var, n_dims - 2)
+                                               : getBoundaries(dim_var);
+        if (bounds.first > bounds.second)
+        {
+            std::size_t n_layers =
+                (length.size() - time_offset == 3) ? length[n_dims - 3] : 1;
+            flipRaster(data_vec, n_layers, length[n_dims - 1], length[n_dims - 2]);
+        }
+
         GeoLib::RasterHeader const header =
-            createRasterHeader(dataset, var, dim_idx_map, length, is_time_dep);
+            createRasterHeader(dataset, var, dim_idx_map, length, time_offset);
         MeshLib::UseIntensityAs const useIntensity =
             MeshLib::UseIntensityAs::DATAVECTOR;
-        if (!use_single_file)
+        if (output == OutputType::MULTIMESH)
         {
             mesh.reset(MeshLib::RasterToMesh::convert(
                 data_vec.data(), header, elem_type, useIntensity,
@@ -541,7 +576,7 @@ static bool convert(NcFile const& dataset, NcVar const& var,
             MeshLib::IO::VtuInterface vtu(mesh.get());
             vtu.writeToFile(output_file_name);
         }
-        else
+        else if (output == OutputType::SINGLEMESH)
         {
             std::string array_name(var.getName());
             if (time_bounds.first != time_bounds.second)
@@ -566,8 +601,21 @@ static bool convert(NcFile const& dataset, NcVar const& var,
             if (i == time_bounds.second)
             {
                 MeshLib::IO::VtuInterface vtu(mesh.get());
-                vtu.writeToFile(output_name);
+                std::string const output_file_name =
+                    (BaseLib::getFileExtension(output_name) == ".vtu")
+                        ? output_name : output_name + ".vtu";
+                vtu.writeToFile(output_file_name);
             }
+        }
+        else //OutputType::IMAGES
+        {
+            GeoLib::Raster const raster(
+                header, data_vec.data(),
+                data_vec.data() + header.n_cols * header.n_rows * header.n_depth);
+            std::string const output_file_name(
+                BaseLib::dropFileExtension(output_name) +
+                getIterationString(i, time_bounds.second) + ".asc");
+            FileIO::AsciiRasterInterface::writeRasterAsASC(raster, output_file_name);
         }
     }
     return true;
@@ -584,12 +632,28 @@ int main(int argc, char* argv[])
             "(http://www.opengeosys.org)",
         ' ', GitInfoLib::GitInfo::ogs_version);
 
+    TCLAP::ValueArg<int> arg_nodata(
+        "n", "nodata",
+        "explicitly specifies the no data value used in the dataset (usually it is not necessary to set this)",
+        false, no_data_input, "integer specifying no data value");
+    cmd.add(arg_nodata);
+
     std::vector<std::string> allowed_elems{"tri", "quad", "prism", "hex"};
     TCLAP::ValuesConstraint<std::string> allowed_elem_vals(allowed_elems);
     TCLAP::ValueArg<std::string> arg_elem_type(
         "e", "elem-type", "the element type used in the resulting OGS mesh",
         false, "", &allowed_elem_vals);
     cmd.add(arg_elem_type);
+
+    TCLAP::SwitchArg arg_images(
+        "", "images",
+        "if set, all time steps will be written as ESRI image files (*.asc)");
+    cmd.add(arg_images);
+
+    TCLAP::SwitchArg arg_multi_files(
+        "", "multi-file",
+        "if set, each time step will be written to a separate mesh file");
+    cmd.add(arg_multi_files);
 
     TCLAP::SwitchArg arg_single_file(
         "", "single-file",
@@ -659,6 +723,15 @@ int main(int argc, char* argv[])
         return -1;
     }
 
+    std::size_t const mutex =
+        arg_single_file.isSet() + arg_multi_files.isSet() + arg_images.isSet();
+    if (mutex > 1)
+    {
+        ERR("Only one output format can be specified (single-file, multi-file, "
+            "or images)");
+        return EXIT_FAILURE;
+    }
+
     std::cout << "OpenGeoSys NetCDF Converter\n";
     if (!arg_varname.isSet())
     {
@@ -698,25 +771,45 @@ int main(int argc, char* argv[])
                                    arg_time_start, arg_time_end)
                 : timestepSelectionLoop(var, dim_idx_map[0]);
 
-    bool use_single_file(true);
-    if (arg_time_start.isSet() && time_bounds.first != time_bounds.second)
+    OutputType output = OutputType::INVALID;
+    if (arg_images.isSet())
     {
-        use_single_file = arg_single_file.isSet();
+        output = OutputType::IMAGES;
+    }
+    else if (arg_multi_files.isSet())
+    {
+        output = OutputType::MULTIMESH;
+    }
+    else if (arg_single_file.isSet() || !is_time_dep ||
+        time_bounds.first == time_bounds.second)
+    {
+        output = OutputType::SINGLEMESH;
     }
     else
     {
-        if (is_time_dep && time_bounds.first != time_bounds.second)
-            use_single_file = multFilesSelectionLoop(time_bounds);
+        output = multFilesSelectionLoop(time_bounds);
     }
 
     std::size_t const temp_offset = (is_time_dep) ? 1 : 0;
     std::size_t const n_dims = (var.getDimCount());
-    MeshLib::MeshElemType const elem_type = (arg_elem_type.isSet())
-                            ? assignElemType(arg_elem_type)
-                            : elemSelectionLoop(n_dims - temp_offset);
+    MeshLib::MeshElemType elem_type = MeshLib::MeshElemType::INVALID;
+
+    if (output != OutputType::IMAGES)
+    {
+        elem_type = (arg_elem_type.isSet())
+                        ? assignElemType(arg_elem_type)
+                        : elemSelectionLoop(n_dims - temp_offset);
+        if (elem_type == MeshLib::MeshElemType::INVALID)
+            elemSelectionLoop(n_dims - temp_offset);
+    }
+
+    if (arg_nodata.isSet())
+    {
+        no_data_input = arg_nodata.getValue();
+    }
 
     if (!convert(dataset, var, output_name, dim_idx_map, is_time_dep,
-                 time_bounds, use_single_file, elem_type))
+                 time_bounds, output, elem_type))
         return EXIT_FAILURE;
 
     std::cout << "Conversion finished successfully.\n";

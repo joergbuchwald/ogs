@@ -51,18 +51,21 @@ public:
     /// A get-function for retrieving the number of components in this phase.
     std::size_t numberOfComponents() const;
 
+    /// Short description of the phase with its name.
+    std::string description() const;
+
 public:
     std::string const name;
 
 private:
-    std::vector<std::unique_ptr<Component>> const _components;
+    std::vector<std::unique_ptr<Component>> const components_;
 
     /// Here, all for all properties listed in the Properties enumerator are
     /// initialized by mole average functions of value zero. However,
     /// 'special-default' properties are allowed to be set.
     ///
     /// After this, other special properties can be set as exceptional defaults.
-    PropertyArray _properties;
+    PropertyArray properties_;
 };
 
 template <typename Container>

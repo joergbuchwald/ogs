@@ -14,6 +14,10 @@
 
 #include <string>
 
+#include "Component.h"
+#include "Medium.h"
+#include "Phase.h"
+
 namespace MaterialPropertyLib
 {
 PropertyDataType fromVector(std::vector<double> const& values)
@@ -67,7 +71,7 @@ PropertyDataType Property::initialValue(
 
 PropertyDataType Property::value() const
 {
-    return _value;
+    return value_;
 }
 
 /// The default implementation of this method only returns the property value
@@ -76,7 +80,7 @@ PropertyDataType Property::value(VariableArray const& /*variable_array*/,
                                  ParameterLib::SpatialPosition const& /*pos*/,
                                  double const /*t*/, double const /*dt*/) const
 {
-    return _value;
+    return value_;
 }
 
 /// The default implementation of this method only returns the
@@ -86,7 +90,7 @@ PropertyDataType Property::dValue(VariableArray const& /*variable_array*/,
                                   ParameterLib::SpatialPosition const& /*pos*/,
                                   double const /*t*/, double const /*dt*/) const
 {
-    return _dvalue;
+    return dvalue_;
 }
 
 /// Default implementation: 2nd derivative of any constant property is zero.
@@ -98,5 +102,13 @@ PropertyDataType Property::d2Value(VariableArray const& /*variable_array*/,
                                    double const /*dt*/) const
 {
     return 0.0;
+}
+
+std::string Property::description() const
+{
+    return "property '" + name_ + "' defined for " +
+           std::visit(
+               [](auto&& scale) -> std::string { return scale->description(); },
+               scale_);
 }
 }  // namespace MaterialPropertyLib

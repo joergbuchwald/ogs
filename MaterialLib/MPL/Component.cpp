@@ -26,17 +26,22 @@ Component::Component(std::string const& component_name,
 {
     if (properties)
     {
-        overwriteExistingProperties(_properties, *properties, this);
+        overwriteExistingProperties(properties_, *properties, this);
     }
 }
 
 Property const& Component::property(PropertyType const& p) const
 {
-    return *_properties[p];
+    return *properties_[p];
 }
 
 bool Component::hasProperty(PropertyType const& p) const
 {
-    return _properties[p] != nullptr;
+    return properties_[p] != nullptr;
+}
+
+std::string Component::description() const
+{
+    return "component '" + name + "'";
 }
 }  // namespace MaterialPropertyLib

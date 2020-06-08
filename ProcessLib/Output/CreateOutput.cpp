@@ -36,7 +36,13 @@ std::unique_ptr<Output> createOutput(
 
     auto const prefix =
         //! \ogs_file_param{prj__time_loop__output__prefix}
-        config.getConfigParameter<std::string>("prefix");
+        config.getConfigParameter<std::string>("prefix",
+                                               "{:meshname}{:process_id}");
+
+    auto const suffix =
+        //! \ogs_file_param{prj__time_loop__output__suffix}
+        config.getConfigParameter<std::string>("suffix",
+                                               "ts_{:timestep}_t_{:time}");
 
     auto const compress_output =
         //! \ogs_file_param{prj__time_loop__output__compress_output}
@@ -101,12 +107,22 @@ std::unique_ptr<Output> createOutput(
     bool const output_residuals = config.getConfigParameter<bool>(
         "output_extrapolation_residuals", false);
 
-    ProcessOutput process_output{output_variables, output_residuals};
+    OutputDataSpecification output_data_specification{output_variables,
+                                                      output_residuals};
 
     std::vector<std::string> mesh_names_for_output;
     //! \ogs_file_param{prj__time_loop__output__meshes}
     if (auto const meshes_config = config.getConfigSubtreeOptional("meshes"))
     {
+        if(prefix.find("{:meshname}") == std::string::npos)
+        {
+            OGS_FATAL(
+                "There are multiple meshes defined in the output section of "
+                "the project file, but the prefix doesn't contain "
+                "'{:meshname}'. Thus the names for the files, the simulation "
+                "results should be written to, would not be distinguishable "
+                "for different meshes.");
+        }
         //! \ogs_file_param{prj__time_loop__output__meshes__mesh}
         for (auto mesh_config : meshes_config->getConfigParameterList("mesh"))
         {
@@ -133,9 +149,9 @@ std::unique_ptr<Output> createOutput(
         config.getConfigParameter<bool>("output_iteration_results", false);
 
     return std::make_unique<Output>(
-        output_directory, prefix, compress_output, data_mode,
+        output_directory, prefix, suffix, compress_output, data_mode,
         output_iteration_results, std::move(repeats_each_steps),
-        std::move(fixed_output_times), std::move(process_output),
+        std::move(fixed_output_times), std::move(output_data_specification),
         std::move(mesh_names_for_output), meshes);
 }
 

@@ -71,18 +71,16 @@ void NetCdfConfigureDialog::reject()
     this->done(QDialog::Rejected);
 }
 
-void NetCdfConfigureDialog::on_comboBoxVariable_currentIndexChanged(int id)
+void NetCdfConfigureDialog::on_comboBoxVariable_currentIndexChanged(int /*id*/)
 {
-    Q_UNUSED(id);
     std::string const var_name = comboBoxVariable->currentText().toStdString();
     _currentVar = _currentFile.getVar(var_name);
     setDimensionSelect();
 }
 
 //set up x-axis/lat
-void NetCdfConfigureDialog::on_comboBoxDim1_currentIndexChanged(int id)
+void NetCdfConfigureDialog::on_comboBoxDim1_currentIndexChanged(int /*id*/)
 {
-    if (id == -1) id = 0;
     double firstValue=0, lastValue=0;
     unsigned size = 0;
     getDimEdges(comboBoxDim1->currentText().toStdString(), size, firstValue, lastValue);
@@ -92,11 +90,10 @@ void NetCdfConfigureDialog::on_comboBoxDim1_currentIndexChanged(int id)
 }
 
 //set up y-axis/lon
-void NetCdfConfigureDialog::on_comboBoxDim2_currentIndexChanged(int id)
+void NetCdfConfigureDialog::on_comboBoxDim2_currentIndexChanged(int /*id*/)
 {
     if (_currentVar.getDimCount() > 1)
     {
-        if (id == -1) id = 0;
         double firstValue=0, lastValue=0;
         unsigned size = 0;
         getDimEdges(comboBoxDim2->currentText().toStdString(), size, firstValue, lastValue);
@@ -106,11 +103,10 @@ void NetCdfConfigureDialog::on_comboBoxDim2_currentIndexChanged(int id)
 }
 
 //set up time
-void NetCdfConfigureDialog::on_comboBoxDim3_currentIndexChanged(int id)
+void NetCdfConfigureDialog::on_comboBoxDim3_currentIndexChanged(int /*id*/)
 {
     if (_currentVar.getDimCount() > 2)
     {
-        if (id == -1) id = 0;
         double firstValue=0, lastValue=0;
         unsigned size = 0;
         getDimEdges(comboBoxDim3->currentText().toStdString(), size, firstValue, lastValue);
@@ -122,9 +118,8 @@ void NetCdfConfigureDialog::on_comboBoxDim3_currentIndexChanged(int id)
 }
 
 //set up additional dimension
-void NetCdfConfigureDialog::on_comboBoxDim4_currentIndexChanged(int id)
+void NetCdfConfigureDialog::on_comboBoxDim4_currentIndexChanged(int /*id*/)
 {
-    Q_UNUSED(id);
     if (_currentVar.getDimCount() > 3)
     {
         double firstValue=0, lastValue=0;
@@ -293,8 +288,9 @@ void NetCdfConfigureDialog::createDataObject()
     data_length.push_back(sizeLon);
     _currentVar.getVar(data_origin, data_length, data_array.data());
 
-    std::replace_if(data_array.begin(), data_array.end(),
-                    [](double& x) { return x <= -9999; }, -9999);
+    std::replace_if(
+        data_array.begin(), data_array.end(),
+        [](double const& x) { return x <= -9999; }, -9999);
 
     double origin_x = (originLon < lastLon) ? originLon : lastLon;
     double origin_y = (originLat < lastLat) ? originLat : lastLat;
@@ -329,7 +325,7 @@ void NetCdfConfigureDialog::createDataObject()
     {
         vtkImageImport* image = VtkRaster::loadImageFromArray(data_array.data(), header);
         _currentRaster = VtkGeoImageSource::New();
-        _currentRaster->setImage(image, QString::fromStdString(this->getName()), origin[0], origin[1], resolution);
+        _currentRaster->setImage(image, QString::fromStdString(this->getName()));
     }
 }
 

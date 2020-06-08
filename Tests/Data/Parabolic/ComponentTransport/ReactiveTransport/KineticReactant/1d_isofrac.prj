@@ -252,10 +252,11 @@
                     </timesteps>
                 </time_stepping>
             </process>
-       </processes>
+        </processes>
         <output>
             <type>VTK</type>
             <prefix>1d_isofrac</prefix>
+            <suffix>_ts_{:timestep}_t_{:time}</suffix>
             <timesteps>
                 <pair>
                     <repeat>5</repeat>
@@ -455,7 +456,7 @@
                 </boundary_condition>
             </boundary_conditions>
         </process_variable>
-   </process_variables>
+    </process_variables>
     <nonlinear_solvers>
         <nonlinear_solver>
             <name>basic_picard</name>

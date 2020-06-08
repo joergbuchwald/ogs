@@ -98,6 +98,7 @@
         <output>
             <type>VTK</type>
             <prefix>2D_StaticCrack</prefix>
+            <suffix>_ts_{:timestep}_t_{:time}</suffix>
             <timesteps>
                 <pair>
                     <repeat>10</repeat>

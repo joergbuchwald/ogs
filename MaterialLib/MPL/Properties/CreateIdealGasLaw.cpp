@@ -20,7 +20,13 @@ std::unique_ptr<IdealGasLaw> createIdealGasLaw(
 {
     //! \ogs_file_param{properties__property__type}
     config.checkConfigParameter("type", "IdealGasLaw");
-    DBUG("Create IdealGasLaw medium property");
-    return std::make_unique<IdealGasLaw>();
+
+    // Second access for storage.
+    //! \ogs_file_param{properties__property__name}
+    auto property_name = config.peekConfigParameter<std::string>("name");
+
+    DBUG("Create IdealGasLaw medium property {:s}.", property_name);
+    //! \ogs_file_param_special{properties__property__IdealGasLaw}
+    return std::make_unique<IdealGasLaw>(std::move(property_name));
 }
 }  // namespace MaterialPropertyLib

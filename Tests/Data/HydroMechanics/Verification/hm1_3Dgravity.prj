@@ -37,7 +37,7 @@
         </process>
     </processes>
     <media>
-        <medium id = "0,1,2,3">
+        <medium id="0,1,2,3">
             <phases>
                 <phase>
                     <type>Gas</type>
@@ -162,6 +162,7 @@
         <output>
             <type>VTK</type>
             <prefix>hm1_3Dgravity</prefix>
+            <suffix>_ts_{:timestep}_t_{:time}</suffix>
             <compress_output>false</compress_output>
             <timesteps>
                 <pair>

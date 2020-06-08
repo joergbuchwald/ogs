@@ -42,27 +42,29 @@ using Tensor = std::array<double, 9>;
 /// is missing, simply add it somewhere at the list, but above the last entry.
 enum class Variable : int
 {
-    concentration,
-    phase_pressure,
-    effective_pore_pressure_rate,
     capillary_pressure,
+    concentration,
     density,
-    temperature,
+    displacement,
+    effective_pore_pressure_rate,
+    grain_compressibility,
     liquid_saturation,
     liquid_saturation_rate,
+    phase_pressure,
     porosity,
-    transport_porosity,
-    displacement,
     strain,
     stress,
+    temperature,
+    transport_porosity,
     volumetric_strain_rate,
     number_of_variables
 };
 
 /// Data type for primary variables, designed to contain both scalar and vector
 /// data.
-using VariableType = std::variant<double, Vector, Eigen::Matrix<double, 4, 1>,
-                                  Eigen::Matrix<double, 6, 1>>;
+using VariableType =
+    std::variant<std::monostate, double, Vector, Eigen::Matrix<double, 4, 1>,
+                 Eigen::Matrix<double, 6, 1>>;
 
 /// The VariableArray is a std::array of fixed size. Its size is determined by
 /// the Variable enumerator list. Data type of that array is defined by the

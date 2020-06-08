@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <OpenGeoSysProject>
-    <mesh>Richards_2d.vtu</mesh>
-    <geometry>Richards_2d.gml</geometry>
+    <mesh>RichardsFlow_2d_small.vtu</mesh>
+    <geometry>RichardsFlow_2d_small.gml</geometry>
     <processes>
         <process>
             <name>RM</name>
@@ -56,11 +56,6 @@
                             <name>density</name>
                             <type>Constant</type>
                             <value>1</value>
-                        </property>
-                        <property>
-                            <name>bulk_modulus</name>
-                            <type>Constant</type>
-                            <value>160e300</value>
                         </property>
                         <property>
                             <name>biot_coefficient</name>
@@ -158,10 +153,11 @@
         </processes>
         <output>
             <type>VTK</type>
-            <prefix>RichardsFlow_2d_small</prefix>
+            <!--prefix>RichardsFlow_2d_small_pcs_{:process_id}</prefix-->
+            <prefix>{:meshname}_pcs_{:process_id}</prefix>
             <meshes>
-                <mesh>Richards_2d</mesh>
-                <mesh>Richards_2d_geometry_OBSERVATION_POINT</mesh>
+                <mesh>RichardsFlow_2d_small</mesh>
+                <mesh>RichardsFlow_2d_geometry_OBSERVATION_POINT</mesh>
             </meshes>
             <timesteps>
                 <pair>
@@ -182,6 +178,7 @@
                 <variable>velocity</variable>
                 <variable>saturation</variable>
             </variables>
+            <suffix>_ts_{:timestep}_t_{:time}</suffix>
         </output>
     </time_loop>
     <parameters>
@@ -189,7 +186,7 @@
         <parameter>
             <name>E</name>
             <type>Constant</type>
-            <value>5e9</value>
+            <value>384e300</value>
         </parameter>
         <parameter>
             <name>nu</name>
@@ -226,28 +223,28 @@
             <initial_condition>displacement0</initial_condition>
             <boundary_conditions>
                 <boundary_condition>
-                    <geometrical_set>Richards_2d_geometry</geometrical_set>
+                    <geometrical_set>RichardsFlow_2d_geometry</geometrical_set>
                     <geometry>LEFT</geometry>
                     <type>Dirichlet</type>
                     <component>0</component>
                     <parameter>dirichlet0</parameter>
                 </boundary_condition>
                 <boundary_condition>
-                    <geometrical_set>Richards_2d_geometry</geometrical_set>
+                    <geometrical_set>RichardsFlow_2d_geometry</geometrical_set>
                     <geometry>RIGHT</geometry>
                     <type>Dirichlet</type>
                     <component>0</component>
                     <parameter>dirichlet0</parameter>
                 </boundary_condition>
                 <boundary_condition>
-                    <geometrical_set>Richards_2d_geometry</geometrical_set>
+                    <geometrical_set>RichardsFlow_2d_geometry</geometrical_set>
                     <geometry>BOTTOM</geometry>
                     <type>Dirichlet</type>
                     <component>1</component>
                     <parameter>dirichlet0</parameter>
                 </boundary_condition>
                 <boundary_condition>
-                    <geometrical_set>Richards_2d_geometry</geometrical_set>
+                    <geometrical_set>RichardsFlow_2d_geometry</geometrical_set>
                     <geometry>TOP</geometry>
                     <type>Dirichlet</type>
                     <component>1</component>
@@ -262,13 +259,13 @@
             <initial_condition>p0</initial_condition>
             <boundary_conditions>
                 <boundary_condition>
-                    <geometrical_set>Richards_2d_geometry</geometrical_set>
+                    <geometrical_set>RichardsFlow_2d_geometry</geometrical_set>
                     <geometry>BOTTOM</geometry>
                     <type>Dirichlet</type>
                     <parameter>p_Dirichlet_bottom</parameter>
                 </boundary_condition>
                 <boundary_condition>
-                    <geometrical_set>Richards_2d_geometry</geometrical_set>
+                    <geometrical_set>RichardsFlow_2d_geometry</geometrical_set>
                     <geometry>TOP</geometry>
                     <type>Dirichlet</type>
                     <parameter>p0</parameter>
@@ -297,4 +294,78 @@
             </eigen>
         </linear_solver>
     </linear_solvers>
+    <test_definition>
+        <vtkdiff>
+            <regex>RichardsFlow_2d_small_pcs_0_ts_.*.vtu</regex>
+            <field>displacement</field>
+            <absolute_tolerance>2e-14</absolute_tolerance>
+            <relative_tolerance>0</relative_tolerance>
+        </vtkdiff>
+        <vtkdiff>
+            <regex>RichardsFlow_2d_small_pcs_0_ts_.*.vtu</regex>
+            <field>sigma</field>
+            <absolute_tolerance>1e-8</absolute_tolerance>
+            <relative_tolerance>0</relative_tolerance>
+        </vtkdiff>
+        <vtkdiff>
+            <regex>RichardsFlow_2d_small_pcs_0_ts_.*.vtu</regex>
+            <field>epsilon</field>
+            <absolute_tolerance>1e-15</absolute_tolerance>
+            <relative_tolerance>0</relative_tolerance>
+        </vtkdiff>
+        <vtkdiff>
+            <regex>RichardsFlow_2d_small_pcs_0_ts_.*.vtu</regex>
+            <field>pressure</field>
+            <absolute_tolerance>1e-7</absolute_tolerance>
+            <relative_tolerance>1e-15</relative_tolerance>
+        </vtkdiff>
+        <vtkdiff>
+            <regex>RichardsFlow_2d_small_pcs_0_ts_.*.vtu</regex>
+            <field>pressure_interpolated</field>
+            <absolute_tolerance>1e-7</absolute_tolerance>
+            <relative_tolerance>1e-15</relative_tolerance>
+        </vtkdiff>
+        <vtkdiff>
+            <regex>RichardsFlow_2d_small_pcs_0_ts_.*.vtu</regex>
+            <field>saturation</field>
+            <absolute_tolerance>2e-11</absolute_tolerance>
+            <relative_tolerance>1e-15</relative_tolerance>
+        </vtkdiff>
+        <vtkdiff>
+            <regex>RichardsFlow_2d_small_pcs_0_ts_.*.vtu</regex>
+            <field>saturation_avg</field>
+            <absolute_tolerance>1e-11</absolute_tolerance>
+            <relative_tolerance>1e-15</relative_tolerance>
+        </vtkdiff>
+        <vtkdiff>
+            <regex>RichardsFlow_2d_small_pcs_0_ts_.*.vtu</regex>
+            <field>velocity</field>
+            <absolute_tolerance>1e-15</absolute_tolerance>
+            <relative_tolerance>1e-15</relative_tolerance>
+        </vtkdiff>
+        <vtkdiff>
+            <regex>RichardsFlow_2d_small_pcs_0_ts_.*.vtu</regex>
+            <field>HydraulicFlow</field>
+            <absolute_tolerance>1e-13</absolute_tolerance>
+            <relative_tolerance>0</relative_tolerance>
+        </vtkdiff>
+        <vtkdiff>
+            <regex>RichardsFlow_2d_small_pcs_0_ts_.*.vtu</regex>
+            <field>NodalForces</field>
+            <absolute_tolerance>1e-9</absolute_tolerance>
+            <relative_tolerance>0</relative_tolerance>
+        </vtkdiff>
+        <vtkdiff>
+            <regex>RichardsFlow_2d_geometry_OBSERVATION_POINT_pcs_0_ts_.*.vtu</regex>
+            <field>displacement</field>
+            <absolute_tolerance>2e-14</absolute_tolerance>
+            <relative_tolerance>0</relative_tolerance>
+        </vtkdiff>
+        <vtkdiff>
+            <regex>RichardsFlow_2d_geometry_OBSERVATION_POINT_pcs_0_ts_.*.vtu</regex>
+            <field>pressure</field>
+            <absolute_tolerance>1e-7</absolute_tolerance>
+            <relative_tolerance>1e-15</relative_tolerance>
+        </vtkdiff>
+    </test_definition>
 </OpenGeoSysProject>

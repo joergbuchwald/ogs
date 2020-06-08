@@ -28,6 +28,7 @@
                 <secondary_variable internal_name="velocity" output_name="velocity"/>
                 <secondary_variable internal_name="saturation" output_name="saturation"/>
                 <secondary_variable internal_name="porosity" output_name="porosity"/>
+                <secondary_variable internal_name="transport_porosity" output_name="transport_porosity"/>
             </secondary_variables>
             <specific_body_force>0 0</specific_body_force>
         </process>
@@ -59,14 +60,9 @@
                     <type>Solid</type>
                     <properties>
                         <property>
-                            <name>bulk_modulus</name>
-                            <type>Constant</type>
-                            <value>10</value>
-                        </property>
-                        <property>
                             <name>biot_coefficient</name>
                             <type>Constant</type>
-                            <value>1</value>
+                            <value>0.94444444444444444444</value>
                         </property>
                         <property>
                             <name>density</name>
@@ -82,7 +78,7 @@
                         </property>
                         <property>
                             <name>transport_porosity</name>
-                            <type>PorosityFromMassBalance</type>
+                            <type>TransportPorosityFromMassBalance</type>
                             <initial_porosity>phi0</initial_porosity>
                             <minimal_porosity>0</minimal_porosity>
                             <maximal_porosity>1</maximal_porosity>
@@ -164,7 +160,7 @@
         </processes>
         <output>
             <type>VTK</type>
-            <prefix>orthotropic_power_law_permeability_xyz</prefix>
+            <prefix>orthotropic_power_law_permeability_xyz_pcs_{:process_id}</prefix>
             <timesteps>
                 <pair>
                     <repeat>1000</repeat>
@@ -180,6 +176,7 @@
                 <variable>saturation</variable>
                 <variable>porosity</variable>
             </variables>
+            <suffix>_ts_{:timestep}_t_{:time}</suffix>
         </output>
     </time_loop>
     <local_coordinate_system>
@@ -328,4 +325,54 @@
             </eigen>
         </linear_solver>
     </linear_solvers>
+    <test_definition>
+        <vtkdiff>
+            <regex>orthotropic_power_law_permeability_xyz_pcs_0_ts_.*.vtu</regex>
+            <field>pressure</field>
+            <absolute_tolerance>5e-11</absolute_tolerance>
+            <relative_tolerance>1e-15</relative_tolerance>
+        </vtkdiff>
+        <vtkdiff>
+            <regex>orthotropic_power_law_permeability_xyz_pcs_0_ts_.*.vtu</regex>
+            <field>saturation</field>
+            <absolute_tolerance>1e-14</absolute_tolerance>
+            <relative_tolerance>0</relative_tolerance>
+        </vtkdiff>
+        <vtkdiff>
+            <regex>orthotropic_power_law_permeability_xyz_pcs_0_ts_.*.vtu</regex>
+            <field>displacement</field>
+            <absolute_tolerance>5e-11</absolute_tolerance>
+            <relative_tolerance>0</relative_tolerance>
+        </vtkdiff>
+        <vtkdiff>
+            <regex>orthotropic_power_law_permeability_xyz_pcs_0_ts_.*.vtu</regex>
+            <field>sigma</field>
+            <absolute_tolerance>2e-14</absolute_tolerance>
+            <relative_tolerance>0</relative_tolerance>
+        </vtkdiff>
+        <vtkdiff>
+            <regex>orthotropic_power_law_permeability_xyz_pcs_0_ts_.*.vtu</regex>
+            <field>epsilon</field>
+            <absolute_tolerance>1e-14</absolute_tolerance>
+            <relative_tolerance>0</relative_tolerance>
+        </vtkdiff>
+        <vtkdiff>
+            <regex>orthotropic_power_law_permeability_xyz_pcs_0_ts_.*.vtu</regex>
+            <field>velocity</field>
+            <absolute_tolerance>7e-14</absolute_tolerance>
+            <relative_tolerance>0</relative_tolerance>
+        </vtkdiff>
+        <vtkdiff>
+            <regex>orthotropic_power_law_permeability_xyz_pcs_0_ts_.*.vtu</regex>
+            <field>porosity</field>
+            <absolute_tolerance>5e-14</absolute_tolerance>
+            <relative_tolerance>1e-15</relative_tolerance>
+        </vtkdiff>
+        <vtkdiff>
+            <regex>orthotropic_power_law_permeability_xyz_pcs_0_ts_.*.vtu</regex>
+            <field>porosity_avg</field>
+            <absolute_tolerance>5e-14</absolute_tolerance>
+            <relative_tolerance>1e-15</relative_tolerance>
+        </vtkdiff>
+    </test_definition>
 </OpenGeoSysProject>

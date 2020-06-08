@@ -23,29 +23,20 @@ class Medium;
 class Phase;
 class Component;
 /**
- * \class IdealGasLaw
- * \brief Density function for ideal gases
+ * \brief Density function for ideal gases.
  * \details This property must be either a phase or a component property, it
  * computes the density of an ideal gas as function of phase pressure and
- * temperature
+ * temperature.
  */
 class IdealGasLaw final : public Property
 {
 public:
-    /// This method assigns a pointer to the material object that is the owner
-    /// of this property
-    void setScale(
-        std::variant<Medium*, Phase*, Component*> scale_pointer) override
+    explicit IdealGasLaw(std::string name);
+
+    void checkScale() const override
     {
-        if (std::holds_alternative<Phase*>(scale_pointer))
-        {
-            _phase = std::get<Phase*>(scale_pointer);
-        }
-        else if (std::holds_alternative<Component*>(scale_pointer))
-        {
-            _component = std::get<Component*>(scale_pointer);
-        }
-        else
+        if (!(std::holds_alternative<Phase*>(scale_) ||
+              std::holds_alternative<Component*>(scale_)))
         {
             OGS_FATAL(
                 "The property 'IdealGasLaw' is implemented on the "
@@ -54,7 +45,7 @@ public:
     }
 
     /// Those methods override the base class implementations and
-    /// actually compute and set the property _values and _dValues.
+    /// actually compute and set the property values_ and dValues_.
     PropertyDataType value(VariableArray const& variable_array,
                            ParameterLib::SpatialPosition const& /*pos*/,
                            double const /*t*/,
@@ -68,10 +59,6 @@ public:
                              Variable const variable1, Variable const variable2,
                              ParameterLib::SpatialPosition const& pos,
                              double const t, double const dt) const override;
-
-private:
-    Phase* _phase = nullptr;
-    Component* _component = nullptr;
 };
 
 }  // namespace MaterialPropertyLib

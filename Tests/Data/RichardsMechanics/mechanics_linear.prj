@@ -149,7 +149,7 @@
         </processes>
         <output>
             <type>VTK</type>
-            <prefix>mechanics_linear</prefix>
+            <prefix>mechanics_linear_pcs_{:process_id}</prefix>
             <timesteps>
                 <pair>
                     <repeat>1</repeat>
@@ -164,6 +164,7 @@
                 <variable>velocity</variable>
                 <variable>saturation</variable>
             </variables>
+            <suffix>_ts_{:timestep}_t_{:time}</suffix>
         </output>
     </time_loop>
     <parameters>
@@ -271,4 +272,48 @@
             </eigen>
         </linear_solver>
     </linear_solvers>
+    <test_definition>
+        <vtkdiff>
+            <regex>mechanics_linear_pcs_0_ts_.*.vtu</regex>
+            <field>displacement</field>
+            <absolute_tolerance>1e-15</absolute_tolerance>
+            <relative_tolerance>0</relative_tolerance>
+        </vtkdiff>
+        <vtkdiff>
+            <regex>mechanics_linear_pcs_0_ts_.*.vtu</regex>
+            <field>sigma</field>
+            <absolute_tolerance>5e-15</absolute_tolerance>
+            <relative_tolerance>0</relative_tolerance>
+        </vtkdiff>
+        <vtkdiff>
+            <regex>mechanics_linear_pcs_0_ts_.*.vtu</regex>
+            <field>epsilon</field>
+            <absolute_tolerance>5e-15</absolute_tolerance>
+            <relative_tolerance>0</relative_tolerance>
+        </vtkdiff>
+        <vtkdiff>
+            <regex>mechanics_linear_pcs_0_ts_.*.vtu</regex>
+            <field>pressure</field>
+            <absolute_tolerance>1e-15</absolute_tolerance>
+            <relative_tolerance>1e-15</relative_tolerance>
+        </vtkdiff>
+        <vtkdiff>
+            <regex>mechanics_linear_pcs_0_ts_.*.vtu</regex>
+            <field>velocity</field>
+            <absolute_tolerance>1e-15</absolute_tolerance>
+            <relative_tolerance>1e-15</relative_tolerance>
+        </vtkdiff>
+        <vtkdiff>
+            <regex>mechanics_linear_pcs_0_ts_.*.vtu</regex>
+            <field>HydraulicFlow</field>
+            <absolute_tolerance>1e-15</absolute_tolerance>
+            <relative_tolerance>0</relative_tolerance>
+        </vtkdiff>
+        <vtkdiff>
+            <regex>mechanics_linear_pcs_0_ts_.*.vtu</regex>
+            <field>NodalForces</field>
+            <absolute_tolerance>1e-15</absolute_tolerance>
+            <relative_tolerance>0</relative_tolerance>
+        </vtkdiff>
+    </test_definition>
 </OpenGeoSysProject>

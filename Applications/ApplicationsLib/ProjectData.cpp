@@ -48,9 +48,6 @@
 
 #ifdef OGS_BUILD_PROCESS_COMPONENTTRANSPORT
 #include "ChemistryLib/CreateChemicalSolverInterface.h"
-// The ComponenTransportProcess is needed for the instantiation of the chemical
-// solver.
-#include "ProcessLib/ComponentTransport/ComponentTransportProcess.h"
 #include "ProcessLib/ComponentTransport/CreateComponentTransportProcess.h"
 #endif
 #ifdef OGS_BUILD_PROCESS_STEADYSTATEDIFFUSION
@@ -166,12 +163,13 @@ std::vector<std::unique_ptr<MeshLib::Mesh>> readMeshes(
     if (optional_meshes)
     {
         DBUG("Reading multiple meshes.");
-        for (auto mesh_config :
-             //! \ogs_file_param{prj__meshes__mesh}
-             optional_meshes->getConfigParameterList("mesh"))
-        {
-            meshes.push_back(readSingleMesh(mesh_config, project_directory));
-        }
+        //! \ogs_file_param{prj__meshes__mesh}
+        auto const configs = optional_meshes->getConfigParameterList("mesh");
+        std::transform(
+            configs.begin(), configs.end(), std::back_inserter(meshes),
+            [&project_directory](auto const& mesh_config) {
+                return readSingleMesh(mesh_config, project_directory);
+            });
     }
     else
     {  // Read single mesh with geometry.
@@ -268,9 +266,8 @@ ProjectData::ProjectData() = default;
 ProjectData::ProjectData(BaseLib::ConfigTree const& project_config,
                          std::string const& project_directory,
                          std::string const& output_directory)
+    : _mesh_vec(readMeshes(project_config, project_directory))
 {
-    _mesh_vec = readMeshes(project_config, project_directory);
-
     if (auto const python_script =
             //! \ogs_file_param{prj__python_script}
         project_config.getConfigParameterOptional<std::string>("python_script"))
@@ -331,6 +328,11 @@ ProjectData::ProjectData(BaseLib::ConfigTree const& project_config,
     //! \ogs_file_param{prj__media}
     parseMedia(project_config.getConfigSubtreeOptional("media"));
 
+    parseChemicalSolverInterface(
+        //! \ogs_file_param{prj__chemical_system}
+        project_config.getConfigSubtreeOptional("chemical_system"),
+        output_directory);
+
     //! \ogs_file_param{prj__processes}
     parseProcesses(project_config.getConfigSubtree("processes"),
                    project_directory, output_directory);
@@ -340,11 +342,6 @@ ProjectData::ProjectData(BaseLib::ConfigTree const& project_config,
 
     //! \ogs_file_param{prj__nonlinear_solvers}
     parseNonlinearSolvers(project_config.getConfigSubtree("nonlinear_solvers"));
-
-    parseChemicalSystem(
-        //! \ogs_file_param{prj__chemical_system}
-        project_config.getConfigSubtreeOptional("chemical_system"),
-        output_directory);
 
     //! \ogs_file_param{prj__time_loop}
     parseTimeLoop(project_config.getConfigSubtree("time_loop"),
@@ -501,6 +498,60 @@ void ProjectData::parseMedia(
     {
         OGS_FATAL("No entity is found inside <media>.");
     }
+}
+
+void ProjectData::parseChemicalSolverInterface(
+    boost::optional<BaseLib::ConfigTree> const& config,
+    std::string const& output_directory)
+{
+    if (!config)
+    {
+        return;
+    }
+
+#ifdef OGS_BUILD_PROCESS_COMPONENTTRANSPORT
+    INFO(
+        "Ready for initializing interface to a chemical solver for water "
+        "chemistry calculation.");
+
+    auto const chemical_solver =
+        //! \ogs_file_attr{prj__chemical_system__chemical_solver}
+        config->getConfigAttribute<std::string>("chemical_solver");
+
+    if (boost::iequals(chemical_solver, "Phreeqc"))
+    {
+        INFO(
+            "Configuring phreeqc interface for water chemistry "
+            "calculation using file-based approach.");
+
+        _chemical_solver_interface =
+            ChemistryLib::createChemicalSolverInterface<
+                ChemistryLib::ChemicalSolver::Phreeqc>(_mesh_vec, *config,
+                                                       output_directory);
+    }
+    else if (boost::iequals(chemical_solver, "PhreeqcKernel"))
+    {
+        OGS_FATAL(
+            "The chemical solver option of PhreeqcKernel is not accessible "
+            "for the time being. Please set 'Phreeqc'' as the chemical "
+            "solver for reactive transport modeling.");
+    }
+    else
+    {
+        OGS_FATAL(
+            "Unknown chemical solver. Please specify either Phreeqc or "
+            "PhreeqcKernel as the solver for water chemistry calculation "
+            "instead.");
+    }
+#else
+    (void)output_directory;
+
+    OGS_FATAL(
+        "Found the type of the process to be solved is not component transport "
+        "process. Please specify the process type to ComponentTransport. At "
+        "the present, water chemistry calculation is only available for "
+        "component transport process.");
+#endif
 }
 
 void ProjectData::parseProcesses(BaseLib::ConfigTree const& processes_config,
@@ -675,7 +726,8 @@ void ProjectData::parseProcesses(BaseLib::ConfigTree const& processes_config,
                 ProcessLib::ComponentTransport::createComponentTransportProcess(
                     name, *_mesh_vec[0], std::move(jacobian_assembler),
                     _process_variables, _parameters, integration_order,
-                    process_config, _mesh_vec, output_directory, _media);
+                    process_config, _mesh_vec, output_directory, _media,
+                    _chemical_solver_interface);
         }
         else
 #endif
@@ -974,9 +1026,9 @@ void ProjectData::parseTimeLoop(BaseLib::ConfigTree const& config,
 {
     DBUG("Reading time loop configuration.");
 
-    _time_loop = ProcessLib::createTimeLoop(config, output_directory,
-                                            _processes, _nonlinear_solvers,
-                                            _mesh_vec, _chemical_system);
+    _time_loop = ProcessLib::createTimeLoop(
+        config, output_directory, _processes, _nonlinear_solvers, _mesh_vec,
+        _chemical_solver_interface);
 
     if (!_time_loop)
     {
@@ -1046,72 +1098,5 @@ void ProjectData::parseCurves(
             MathLib::createPiecewiseLinearCurve<
                 MathLib::PiecewiseLinearInterpolation>(conf),
             "The curve name is not unique.");
-    }
-}
-
-void ProjectData::parseChemicalSystem(
-    boost::optional<BaseLib::ConfigTree> const& config,
-    std::string const& output_directory)
-{
-    if (!config)
-    {
-        return;
-    }
-
-#ifdef OGS_BUILD_PROCESS_COMPONENTTRANSPORT
-    INFO(
-        "Ready for initializing interface to a chemical solver for water "
-        "chemistry calculation.");
-
-    if (auto const* component_transport_process = dynamic_cast<
-            ProcessLib::ComponentTransport::ComponentTransportProcess const*>(
-            _processes[0].get()))
-    {
-        auto const& process_id_to_component_name_map =
-            component_transport_process->getProcessIDToComponentNameMap();
-
-        auto const chemical_solver =
-            //! \ogs_file_attr{prj__chemical_system__chemical_solver}
-            config->getConfigAttribute<std::string>("chemical_solver");
-
-        if (boost::iequals(chemical_solver, "Phreeqc"))
-        {
-            INFO(
-                "Configuring phreeqc interface for water chemistry "
-                "calculation using file-based approach.");
-
-            _chemical_system = ChemistryLib::createChemicalSolverInterface<
-                ChemistryLib::ChemicalSolver::Phreeqc>(
-                _mesh_vec, process_id_to_component_name_map, *config,
-                output_directory);
-        }
-        else if (boost::iequals(chemical_solver, "PhreeqcKernel"))
-        {
-            INFO(
-                "Configuring phreeqc interface for water chemistry "
-                "calculation by direct memory access.");
-
-            _chemical_system = ChemistryLib::createChemicalSolverInterface<
-                ChemistryLib::ChemicalSolver::PhreeqcKernel>(
-                _mesh_vec, process_id_to_component_name_map, *config,
-                output_directory);
-        }
-        else
-        {
-            OGS_FATAL(
-                "Unknown chemical solver. Please specify either Phreeqc or "
-                "PhreeqcKernel as the solver for water chemistry calculation "
-                "instead.");
-        }
-    }
-    else
-#endif
-    {
-        (void)output_directory;
-
-        OGS_FATAL(
-            "The specified type of the process to be solved is not component "
-            "transport process so that water chemistry calculation could not "
-            "be activated.");
     }
 }

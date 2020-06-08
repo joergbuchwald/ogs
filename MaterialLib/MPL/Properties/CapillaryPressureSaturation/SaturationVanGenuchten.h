@@ -46,25 +46,24 @@ class Component;
 class SaturationVanGenuchten final : public Property
 {
 public:
-    SaturationVanGenuchten(double const residual_liquid_saturation,
+    SaturationVanGenuchten(std::string name,
+                           double const residual_liquid_saturation,
                            double const residual_gas_saturation,
                            double const exponent,
                            double const p_b);
 
-    void setScale(
-        std::variant<Medium*, Phase*, Component*> scale_pointer) override
+    void checkScale() const override
     {
-        if (!std::holds_alternative<Medium*>(scale_pointer))
+        if (!std::holds_alternative<Medium*>(scale_))
         {
             OGS_FATAL(
                 "The property 'SaturationVanGenuchten' is implemented on the "
                 "'media' scale only.");
         }
-        _medium = std::get<Medium*>(scale_pointer);
     }
 
     /// Those methods override the base class implementations and
-    /// actually compute and set the property _values and _dValues.
+    /// actually compute and set the property values_ and dValues_.
     PropertyDataType value(VariableArray const& variable_array,
                            ParameterLib::SpatialPosition const& /*pos*/,
                            double const /*t*/,
@@ -81,10 +80,9 @@ public:
                              double const /*dt*/) const override;
 
 private:
-    Medium* _medium = nullptr;
-    double const _S_L_res;
-    double const _S_L_max;
-    double const _m;
-    double const _p_b;
+    double const S_L_res_;
+    double const S_L_max_;
+    double const m_;
+    double const p_b_;
 };
 }  // namespace MaterialPropertyLib

@@ -37,12 +37,12 @@ public:
     };
 
 public:
-    Output(std::string output_directory, std::string prefix,
+    Output(std::string output_directory, std::string prefix, std::string suffix,
            bool const compress_output, std::string const& data_mode,
            bool const output_nonlinear_iteration_results,
            std::vector<PairRepeatEachSteps> repeats_each_steps,
            std::vector<double>&& fixed_output_times,
-           ProcessOutput&& process_output,
+           OutputDataSpecification&& output_data_specification,
            std::vector<std::string>&& mesh_names_for_output,
            std::vector<std::unique_ptr<MeshLib::Mesh>> const& meshes);
 
@@ -80,24 +80,16 @@ public:
     std::vector<double> getFixedOutputTimes() {return _fixed_output_times;}
 
 private:
-    struct ProcessData
-    {
-        explicit ProcessData(std::string const& filename) : pvd_file(filename)
-        {
-        }
-
-        MeshLib::IO::PVDFile pvd_file;
-    };
-
     struct OutputFile;
     void outputBulkMesh(OutputFile const& output_file,
-                        ProcessData* const process_data,
+                        MeshLib::IO::PVDFile* const pvd_file,
                         MeshLib::Mesh const& mesh,
                         double const t) const;
 
 private:
     std::string const _output_directory;
     std::string const _output_file_prefix;
+    std::string const _output_file_suffix;
 
     //! Enables or disables zlib-compression of the output files.
     bool const _output_file_compression;
@@ -114,24 +106,25 @@ private:
     //! Given times that steps have to reach.
     std::vector<double> _fixed_output_times;
 
-    std::multimap<Process const*, ProcessData> _process_to_process_data;
+    std::multimap<Process const*, MeshLib::IO::PVDFile> _process_to_pvd_file;
 
     /**
-     * Get the address of a ProcessData from corresponding to the given process.
+     * Get the address of a PVDFile from corresponding to the given process.
      * @param process    Process.
      * @param process_id Process ID.
-     * @return Address of a ProcessData.
+     * @param mesh_name_for_output mesh name for the output.
+     * @return Address of a PVDFile.
      */
-    ProcessData* findProcessData(Process const& process, const int process_id);
+    MeshLib::IO::PVDFile* findPVDFile(Process const& process,
+                                      const int process_id,
+                                      std::string const& mesh_name_for_output);
 
     //! Determines if there should be output at the given \c timestep or \c t.
     bool shallDoOutput(int timestep, double const t);
 
-    ProcessOutput const _process_output;
-    std::vector<std::string> const _mesh_names_for_output;
+    OutputDataSpecification const _output_data_specification;
+    std::vector<std::string> _mesh_names_for_output;
     std::vector<std::unique_ptr<MeshLib::Mesh>> const& _meshes;
 };
-
-
 
 }  // namespace ProcessLib

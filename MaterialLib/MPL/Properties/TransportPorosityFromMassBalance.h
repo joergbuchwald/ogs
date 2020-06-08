@@ -24,28 +24,27 @@ class Component;
 class TransportPorosityFromMassBalance final : public Property
 {
 private:
-    Phase* _phase = nullptr;
-
     /// Parameter, which is used by FEM to set the initial porosity value.
-    ParameterLib::Parameter<double> const& _phi0;
-    double const _phi_min;  //< Lower limit for the porosity.
-    double const _phi_max;  //< Upper limit for the porosity.
+    ParameterLib::Parameter<double> const& phi0_;
+    double const phi_min_;  //< Lower limit for the porosity.
+    double const phi_max_;  //< Upper limit for the porosity.
 
 public:
     TransportPorosityFromMassBalance(
+        std::string name,
         ParameterLib::Parameter<double> const& initial_porosity,
         double const phi_min, double const phi_max)
-        : _phi0(initial_porosity), _phi_min(phi_min), _phi_max(phi_max)
+        : phi0_(initial_porosity), phi_min_(phi_min), phi_max_(phi_max)
     {
+        name_ = std::move(name);
     }
 
-    void setScale(
-        std::variant<Medium*, Phase*, Component*> scale_pointer) override;
+    void checkScale() const override;
 
     PropertyDataType initialValue(ParameterLib::SpatialPosition const& pos,
                                   double const t) const override
     {
-        return fromVector(_phi0(t, pos));
+        return fromVector(phi0_(t, pos));
     }
 
     PropertyDataType value(VariableArray const& variable_array,

@@ -65,6 +65,11 @@ struct IntegrationPointData final
     double porosity_prev = std::numeric_limits<double>::quiet_NaN();
     double transport_porosity = std::numeric_limits<double>::quiet_NaN();
     double transport_porosity_prev = std::numeric_limits<double>::quiet_NaN();
+    double dry_density_solid = std::numeric_limits<double>::quiet_NaN();
+    double dry_density_pellet_saturated =
+        std::numeric_limits<double>::quiet_NaN();
+    double dry_density_pellet_unsaturated =
+        std::numeric_limits<double>::quiet_NaN();
 
     MaterialLib::Solids::MechanicsBase<DisplacementDim> const& solid_material;
     std::unique_ptr<typename MaterialLib::Solids::MechanicsBase<
@@ -83,7 +88,8 @@ struct IntegrationPointData final
         material_state_variables->pushBackState();
     }
 
-    typename BMatricesType::KelvinMatrixType computeElasticTangentStiffness(
+    MathLib::KelvinVector::KelvinMatrixType<DisplacementDim>
+    computeElasticTangentStiffness(
         double const t,
         ParameterLib::SpatialPosition const& x_position,
         double const dt,

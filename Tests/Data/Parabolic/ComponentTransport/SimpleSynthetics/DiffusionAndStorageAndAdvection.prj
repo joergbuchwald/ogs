@@ -49,16 +49,16 @@
                             <name>density</name>
                             <type>Linear</type>
                             <reference_value>1</reference_value>
-                                <independent_variable>
-                                    <variable_name>concentration</variable_name>
-                                    <reference_condition>0</reference_condition>
-                                    <slope>0.026</slope>
-                                </independent_variable>
-                                <independent_variable>
-                                    <variable_name>phase_pressure</variable_name>
-                                    <reference_condition>0.5</reference_condition>
-                                    <slope>5e-5</slope>
-                                </independent_variable>
+                            <independent_variable>
+                                <variable_name>concentration</variable_name>
+                                <reference_condition>0</reference_condition>
+                                <slope>0.026</slope>
+                            </independent_variable>
+                            <independent_variable>
+                                <variable_name>phase_pressure</variable_name>
+                                <reference_condition>0.5</reference_condition>
+                                <slope>5e-5</slope>
+                            </independent_variable>
                         </property>
                         <property>
                             <name>viscosity</name>
@@ -152,6 +152,7 @@
         <output>
             <type>VTK</type>
             <prefix>DiffusionAndStorageAndAdvection</prefix>
+            <suffix>_ts_{:timestep}_t_{:time}</suffix>
             <timesteps>
                 <pair>
                     <repeat>1</repeat>

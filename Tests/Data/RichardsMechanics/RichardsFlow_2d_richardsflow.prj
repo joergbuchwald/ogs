@@ -135,7 +135,7 @@
         </processes>
         <output>
             <type>VTK</type>
-            <prefix>RichardsFlow_2d_richardsflow</prefix>
+            <prefix>RichardsFlow_2d_richardsflow_pcs_{:process_id}</prefix>
             <timesteps>
                 <pair>
                     <repeat>9</repeat>
@@ -152,6 +152,7 @@
                 <variable>saturation</variable>
                 <variable>darcy_velocity</variable>
             </variables>
+            <suffix>_ts_{:timestep}_t_{:time}</suffix>
         </output>
     </time_loop>
     <parameters>
@@ -218,4 +219,18 @@
             </petsc>
         </linear_solver>
     </linear_solvers>
+    <test_definition>
+        <vtkdiff>
+            <regex>RichardsFlow_2d_richardsflow_pcs_0_ts_.*.vtu</regex>
+            <field>pressure</field>
+            <absolute_tolerance>5e-11</absolute_tolerance>
+            <relative_tolerance>1e-15</relative_tolerance>
+        </vtkdiff>
+        <vtkdiff>
+            <regex>RichardsFlow_2d_richardsflow_pcs_0_ts_.*.vtu</regex>
+            <field>saturation</field>
+            <absolute_tolerance>1e-14</absolute_tolerance>
+            <relative_tolerance>1e-15</relative_tolerance>
+        </vtkdiff>
+    </test_definition>
 </OpenGeoSysProject>

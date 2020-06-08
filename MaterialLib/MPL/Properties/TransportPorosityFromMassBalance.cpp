@@ -16,25 +16,21 @@
 
 namespace MaterialPropertyLib
 {
-void TransportPorosityFromMassBalance::setScale(
-    std::variant<Medium*, Phase*, Component*> scale_pointer)
+void TransportPorosityFromMassBalance::checkScale() const
 {
-    if (std::holds_alternative<Phase*>(scale_pointer))
-    {
-        _phase = std::get<Phase*>(scale_pointer);
-        if (_phase->name != "Solid")
-        {
-            OGS_FATAL(
-                "The property 'TransportPorosityFromMassBalance' must be "
-                "given in the 'Solid' phase, not in '{:s}' phase.",
-                _phase->name);
-        }
-    }
-    else
+    if (!std::holds_alternative<Phase*>(scale_))
     {
         OGS_FATAL(
             "The property 'TransportPorosityFromMassBalance' is "
             "implemented on the 'phase' scales only.");
+    }
+    auto const phase = std::get<Phase*>(scale_);
+    if (phase->name != "Solid")
+    {
+        OGS_FATAL(
+            "The property 'TransportPorosityFromMassBalance' must be given in "
+            "the 'Solid' phase, not in '{:s}' phase.",
+            phase->name);
     }
 }
 
@@ -43,10 +39,11 @@ PropertyDataType TransportPorosityFromMassBalance::value(
     ParameterLib::SpatialPosition const& pos, double const t,
     double const dt) const
 {
-    double const K_SR = _phase->property(PropertyType::bulk_modulus)
-                            .template value<double>(variable_array, pos, t, dt);
+    double const beta_SR = std::get<double>(
+        variable_array[static_cast<int>(Variable::grain_compressibility)]);
     auto const alpha_b =
-        _phase->property(PropertyType::biot_coefficient)
+        std::get<Phase*>(scale_)
+            ->property(PropertyType::biot_coefficient)
             .template value<double>(variable_array, pos, t, dt);
 
     double const e_dot = std::get<double>(
@@ -61,8 +58,8 @@ PropertyDataType TransportPorosityFromMassBalance::value(
     double const phi_tr_prev = std::get<double>(
         variable_array[static_cast<int>(Variable::transport_porosity)]);
 
-    double const w = dt * (e_dot + p_eff_dot / K_SR);
-    return std::clamp(phi_tr_prev + (alpha_b - phi) * w, _phi_min, _phi_max);
+    double const w = dt * (e_dot + p_eff_dot * beta_SR);
+    return std::clamp(phi_tr_prev + (alpha_b - phi) * w, phi_min_, phi_max_);
 }
 
 PropertyDataType TransportPorosityFromMassBalance::dValue(

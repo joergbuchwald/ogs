@@ -18,15 +18,11 @@ namespace ChemistryLib
 namespace PhreeqcIOData
 {
 struct Output;
-struct Component;
-struct EquilibriumReactant;
-struct KineticReactant;
+struct ChemicalSystem;
 struct UserPunch;
 
 std::unique_ptr<Output> createOutput(
-    std::vector<Component> const& components,
-    std::vector<EquilibriumReactant> const& equilibrium_reactants,
-    std::vector<KineticReactant> const& kinetic_reactants,
+    ChemicalSystem const& chemical_system,
     std::unique_ptr<UserPunch> const& user_punch,
     bool const use_high_precision,
     std::string const& project_file_name);

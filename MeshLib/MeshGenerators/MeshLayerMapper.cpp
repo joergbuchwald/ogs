@@ -174,10 +174,8 @@ bool MeshLayerMapper::createRasterLayers(
 
     // add bottom layer
     std::vector<MeshLib::Node*> const& nodes = bottom->getNodes();
-    for (MeshLib::Node* node : nodes)
-    {
-        _nodes.push_back(new MeshLib::Node(*node));
-    }
+    std::transform(nodes.begin(), nodes.end(), std::back_inserter(_nodes),
+                   [](auto const* node) { return new MeshLib::Node(*node); });
 
     // add the other layers
     for (std::size_t i = 0; i < nLayers - 1; ++i)
@@ -269,9 +267,11 @@ void MeshLayerMapper::addLayerToMesh(const MeshLib::Mesh &dem_mesh, unsigned lay
     }
 }
 
-bool MeshLayerMapper::layerMapping(MeshLib::Mesh &new_mesh, GeoLib::Raster const& raster, double noDataReplacementValue = 0.0)
+bool MeshLayerMapper::layerMapping(MeshLib::Mesh const& mesh,
+                                   GeoLib::Raster const& raster,
+                                   double const noDataReplacementValue = 0.0)
 {
-    if (new_mesh.getDimension() != 2)
+    if (mesh.getDimension() != 2)
     {
         ERR("MshLayerMapper::layerMapping() - requires 2D mesh");
         return false;
@@ -285,8 +285,8 @@ bool MeshLayerMapper::layerMapping(MeshLib::Mesh &new_mesh, GeoLib::Raster const
     const std::pair<double, double> xDim(x0, x0 + header.n_cols * delta); // extension in x-dimension
     const std::pair<double, double> yDim(y0, y0 + header.n_rows * delta); // extension in y-dimension
 
-    const std::size_t nNodes (new_mesh.getNumberOfNodes());
-    const std::vector<MeshLib::Node*> &nodes = new_mesh.getNodes();
+    const std::size_t nNodes (mesh.getNumberOfNodes());
+    const std::vector<MeshLib::Node*> &nodes = mesh.getNodes();
     for (unsigned i = 0; i < nNodes; ++i)
     {
         if (!raster.isPntOnRaster(*nodes[i]))
@@ -308,7 +308,8 @@ bool MeshLayerMapper::layerMapping(MeshLib::Mesh &new_mesh, GeoLib::Raster const
     return true;
 }
 
-bool MeshLayerMapper::mapToStaticValue(MeshLib::Mesh &mesh, double value)
+bool MeshLayerMapper::mapToStaticValue(MeshLib::Mesh const& mesh,
+                                       double const value)
 {
     if (mesh.getDimension() != 2)
     {

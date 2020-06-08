@@ -1,5 +1,5 @@
 #!/usr/bin/env groovy
-@Library('jenkins-pipeline@1.0.22') _
+@Library('jenkins-pipeline@1.0.23') _
 
 def stage_required = [build: false, full: false]
 def build_shared = 'ON'
@@ -227,7 +227,8 @@ pipeline {
                              pattern: 'build/build*.log')],
                 unstableTotalAll: 1
               recordIssues enabledForFailure: true,
-                tools: [cppCheck(pattern: 'build/cppcheck.log')]
+                tools: [cppCheck(pattern: 'build/cppcheck.log')],
+                unstableTotalAll: 500
             }
             success { archiveArtifacts 'build/*.tar.gz,build/conaninfo.txt,build/cppcheck.log' }
           }
@@ -278,6 +279,8 @@ pipeline {
           agent { label "frontend2"}
           environment {
             OMP_NUM_THREADS = '1'
+            SOURCE_DIR = "${env.WORKSPACE}"
+            BUILD_DIR = "/tmp/${env.BUILD_TAG}"
           }
           steps {
             script {
@@ -294,35 +297,41 @@ pipeline {
               }
               build {
                 env = 'eve/cli.sh'
+                cmd = 'nice -n 15 cmake --build . --config Release'
                 cmd_args = '-j 8'
               }
               build {
                 env = 'eve/cli.sh'
-                target = 'tests'
+                cmd = 'nice -n 15 cmake --build . --config Release --target tests'
               }
               build {
                 env = 'eve/cli.sh'
-                target = 'ctest'
+                cmd = 'nice -n 15 cmake --build . --config Release --target ctest'
               }
             }
           }
           post {
-            always {
-              xunit([
-                CTest(pattern: 'build/Testing/**/*.xml'),
-                GoogleTest(pattern: 'build/Tests/testrunner.xml')
-              ])
-            }
             success {
               script {
                 if (env.JOB_NAME == 'ufz/ogs/master') {
                   sh 'rm -rf /global/apps/ogs/head/standard'
                   build {
                     env = 'eve/cli.sh'
-                    target = 'install'
+                    cmd = 'nice -n 15 cmake --build . --config Release --target install'
                   }
                 }
               }
+            }
+            always {
+              sh "mkdir _out && cp -r ${env.BUILD_DIR}/Testing _out/ && cp -r ${env.BUILD_DIR}/Tests/testrunner.xml _out/"
+              xunit([
+                CTest(pattern: "_out/Testing/**/*.xml"),
+                GoogleTest(pattern: "_out/testrunner.xml")
+              ])
+            }
+            cleanup {
+              dir("${env.BUILD_DIR}") { deleteDir() }
+              dir('_out') { deleteDir() }
             }
           }
         }
@@ -334,6 +343,8 @@ pipeline {
           agent { label "frontend2"}
           environment {
             OMP_NUM_THREADS = '1'
+            SOURCE_DIR = "${env.WORKSPACE}"
+            BUILD_DIR = "/tmp/${env.BUILD_TAG}-petsc"
           }
           steps {
             script {
@@ -351,34 +362,42 @@ pipeline {
               build {
                 env = 'eve/petsc.sh'
                 cmd_args = '-j 8'
+                cmd = 'nice -n 15 cmake --build . --config Release'
               }
               build {
                 env = 'eve/petsc.sh'
                 target = 'tests'
+                cmd = 'nice -n 15 cmake --build . --config Release --target tests'
               }
               build {
                 env = 'eve/petsc.sh'
                 target = 'ctest'
+                cmd = 'nice -n 15 cmake --build . --config Release --target ctest'
               }
             }
           }
           post {
-            always {
-              xunit([
-                CTest(pattern: 'build/Testing/**/*.xml'),
-                GoogleTest(pattern: 'build/Tests/testrunner.xml')
-              ])
-            }
             success {
               script {
                 if (env.JOB_NAME == 'ufz/ogs/master') {
                   sh 'rm -rf /global/apps/ogs/head/petsc'
                   build {
                     env = 'eve/petsc.sh'
-                    target = 'install'
+                    cmd = 'nice -n 15 cmake --build . --config Release --target install'
                   }
                 }
               }
+            }
+            always {
+              sh "mkdir _out && cp -r ${env.BUILD_DIR}/Testing _out/ && cp -r ${env.BUILD_DIR}/Tests/testrunner.xml _out/"
+              xunit([
+                CTest(pattern: "_out/Testing/**/*.xml"),
+                GoogleTest(pattern: "_out/testrunner.xml")
+              ])
+            }
+            cleanup {
+              dir("${env.BUILD_DIR}") { deleteDir() }
+              dir('_out') { deleteDir() }
             }
           }
         }
@@ -393,8 +412,6 @@ pipeline {
             MSVC_NUMBER = '16'
             MSVC_VERSION = '2019'
             OMP_NUM_THREADS = '1'
-            CC = 'clcache'
-            CXX = 'clcache'
           }
           steps {
             script {
@@ -584,7 +601,7 @@ pipeline {
           }
           agent {
             dockerfile {
-              filename 'Dockerfile.clang.full'
+              filename 'Dockerfile.clang.gui'
               dir 'scripts/docker'
               label 'docker'
               args '-v /home/jenkins/cache/ccache:/opt/ccache -v /home/jenkins/cache/conan/.conan:/opt/conan/.conan'
@@ -597,7 +614,12 @@ pipeline {
               sh 'find $CONAN_USER_HOME -name "system_reqs.txt" -exec rm {} \\;'
               try {
                 configure {
-                  cmakeOptions = '-DOGS_CHECK_HEADER_COMPILATION=ON -DBUILD_TESTING=OFF'
+                  cmakeOptions =
+                    '-DOGS_CHECK_HEADER_COMPILATION=ON ' +
+                    '-DOGS_BUILD_UTILS=ON ' +
+                    '-DOGS_BUILD_GUI=ON ' +
+                    '-DOGS_USE_PYTHON=ON ' +
+                    '-DBUILD_SHARED_LIBS=ON '
                   dir = 'build-check-header'
                 }
               }
@@ -638,6 +660,8 @@ pipeline {
           post {
             always {
               xunit([CTest(pattern: 'build/Testing/**/*.xml')])
+            }
+            cleanup {
               dir('build') { deleteDir() }
             }
           }
@@ -753,7 +777,9 @@ pipeline {
           post {
             success {
               archiveArtifacts('_out/images/*.sif')
-              dir('_out') { deleteDir() } // Cleanup
+            }
+            cleanup {
+              dir('_out') { deleteDir() }
             }
           }
         }

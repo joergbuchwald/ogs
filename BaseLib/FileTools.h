@@ -30,6 +30,24 @@ namespace BaseLib
 bool IsFileExisting(const std::string &strFilename);
 
 /**
+ * Returns the begin and end position of the string enclosed in open_char and
+ * close_char and the enclosed string itself. Search starts at position pos
+ * within the string str. Nested open_char and close_char are not handled
+ * correctly.
+ */
+std::tuple<std::string, std::string::size_type, std::string::size_type>
+getParenthesizedString(std::string const& in,
+                       char const open_char,
+                       char const close_char,
+                       std::string::size_type pos);
+
+std::string constructFormattedFileName(std::string const& format_specification,
+                                       std::string const& mesh_name,
+                                       int const process_id,
+                                       int const timestep,
+                                       double const t);
+
+/**
  * \brief write value as binary into the given output stream
  *
  * \tparam T    data type of the value
@@ -136,11 +154,6 @@ std::string getFileExtension(std::string const& path);
 bool hasFileExtension(std::string const& extension,
                       std::string const& filename);
 
-/** Returns a string with file extension as found by getFileExtension()
- * dropped.
- */
-std::string dropFileExtension(std::string const& filename);
-
 /**
  * Checks if file_name already contains a qualified path and if not copies the
  * path from source.
@@ -148,17 +161,17 @@ std::string dropFileExtension(std::string const& filename);
 std::string copyPathToFileName(const std::string &file_name,
                                const std::string &source);
 
+/** Returns a string with file extension as found by getFileExtension()
+ * dropped.
+ */
+std::string dropFileExtension(std::string const& filename);
+
 /**
  * Extracts the path of a pathname.
  *
  * Returns a string up to the last path separator not including it.
  */
 std::string extractPath(std::string const& pathname);
-
-/**
- * Appends a platform-dependent path separator (/ or \) if missing
- */
-std::string appendPathSeparator(std::string const& path);
 
 /**
  * Concat two paths. Does not check for validity.

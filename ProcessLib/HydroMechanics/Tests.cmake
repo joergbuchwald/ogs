@@ -1,22 +1,10 @@
 # HydroMechanics; Small deformations, linear poroelastic (HML)
 
 ### With monolithic scheme
-AddTest(
-    NAME HydroMechanics_HML_square_1e2_quad8_confined_compression
-    PATH HydroMechanics/Linear/Confined_Compression
-    EXECUTABLE ogs
-    EXECUTABLE_ARGS square_1e2.prj
-    WRAPPER time
-    TESTER vtkdiff
-    REQUIREMENTS NOT OGS_USE_MPI
-    DIFF_DATA
-    GLOB square_1e2_pcs_0_ts_*.vtu displacement displacement 1e-15 1e-15
-    GLOB square_1e2_pcs_0_ts_*.vtu pressure pressure 1e-15 1e-15
-    GLOB square_1e2_pcs_0_ts_*.vtu pressure_interpolated pressure_interpolated 1e-15 1e-15
-    GLOB square_1e2_pcs_0_ts_*.vtu velocity velocity 1e-15 1e-15
-    GLOB square_1e2_pcs_0_ts_*.vtu HydraulicFlow HydraulicFlow 1e-15 1e-15
-    GLOB square_1e2_pcs_0_ts_*.vtu NodalForces NodalForces 1e-15 1e-15
-)
+if (NOT OGS_USE_MPI)
+    OgsTest(PROJECTFILE HydroMechanics/Linear/Confined_Compression/square_1e2.prj)
+endif()
+
 AddTest(
     NAME HydroMechanics_HML_square_1e2_quad9_confined_compression
     PATH HydroMechanics/Linear/Confined_Compression
@@ -62,17 +50,17 @@ AddTest(
     TESTER vtkdiff
     REQUIREMENTS NOT OGS_USE_MPI
     DIFF_DATA
-    hm1_1Dbeam_pcs_1_ts_1_t_1.000000.vtu hm1_1Dbeam_pcs_1_ts_1_t_1.000000.vtu pressure pressure 2.0e-9 0.0
-    hm1_1Dbeam_pcs_1_ts_1_t_1.000000.vtu hm1_1Dbeam_pcs_1_ts_1_t_1.000000.vtu displacement displacement 1.0e-9 0.0
-    hm1_1Dbeam_pcs_1_ts_1_t_1.000000.vtu hm1_1Dbeam_pcs_1_ts_1_t_1.000000.vtu sigma_xx sigma_xx 5.0e-8 0.0
-    hm1_1Dbeam_pcs_1_ts_1_t_1.000000.vtu hm1_1Dbeam_pcs_1_ts_1_t_1.000000.vtu sigma_yy sigma_yy 5.0e-8 0.0
-    hm1_1Dbeam_pcs_1_ts_1_t_1.000000.vtu hm1_1Dbeam_pcs_1_ts_1_t_1.000000.vtu sigma_zz sigma_zz 5.0e-8 0.0
-    hm1_1Dbeam_pcs_1_ts_1_t_1.000000.vtu hm1_1Dbeam_pcs_1_ts_1_t_1.000000.vtu sigma_xy sigma_xy 5.0e-8 0.0
-    hm1_1Dbeam_pcs_1_ts_1_t_1.000000.vtu hm1_1Dbeam_pcs_1_ts_1_t_1.000000.vtu sigma_xz sigma_xz 5.0e-8 0.0
-    hm1_1Dbeam_pcs_1_ts_1_t_1.000000.vtu hm1_1Dbeam_pcs_1_ts_1_t_1.000000.vtu sigma_yz sigma_yz 5.0e-8 0.0
-    hm1_1Dbeam_pcs_1_ts_1_t_1.000000.vtu hm1_1Dbeam_pcs_1_ts_1_t_1.000000.vtu epsilon_xx epsilon_xx 1.0e-9 0.0
-    hm1_1Dbeam_pcs_1_ts_1_t_1.000000.vtu hm1_1Dbeam_pcs_1_ts_1_t_1.000000.vtu epsilon_yy epsilon_yy 1.0e-9 0.0
-    hm1_1Dbeam_pcs_1_ts_1_t_1.000000.vtu hm1_1Dbeam_pcs_1_ts_1_t_1.000000.vtu epsilon_zz epsilon_zz 1.0e-9 0.0
+    hm1_1Dbeam_pcs_1_ts_1_t_1.000000.vtu hm1_1Dbeam_ts_1_t_1.000000.vtu pressure pressure 2.0e-9 0.0
+    hm1_1Dbeam_pcs_1_ts_1_t_1.000000.vtu hm1_1Dbeam_ts_1_t_1.000000.vtu displacement displacement 1.0e-9 0.0
+    hm1_1Dbeam_pcs_1_ts_1_t_1.000000.vtu hm1_1Dbeam_ts_1_t_1.000000.vtu sigma_xx sigma_xx 5.0e-8 0.0
+    hm1_1Dbeam_pcs_1_ts_1_t_1.000000.vtu hm1_1Dbeam_ts_1_t_1.000000.vtu sigma_yy sigma_yy 5.0e-8 0.0
+    hm1_1Dbeam_pcs_1_ts_1_t_1.000000.vtu hm1_1Dbeam_ts_1_t_1.000000.vtu sigma_zz sigma_zz 5.0e-8 0.0
+    hm1_1Dbeam_pcs_1_ts_1_t_1.000000.vtu hm1_1Dbeam_ts_1_t_1.000000.vtu sigma_xy sigma_xy 5.0e-8 0.0
+    hm1_1Dbeam_pcs_1_ts_1_t_1.000000.vtu hm1_1Dbeam_ts_1_t_1.000000.vtu sigma_xz sigma_xz 5.0e-8 0.0
+    hm1_1Dbeam_pcs_1_ts_1_t_1.000000.vtu hm1_1Dbeam_ts_1_t_1.000000.vtu sigma_yz sigma_yz 5.0e-8 0.0
+    hm1_1Dbeam_pcs_1_ts_1_t_1.000000.vtu hm1_1Dbeam_ts_1_t_1.000000.vtu epsilon_xx epsilon_xx 1.0e-9 0.0
+    hm1_1Dbeam_pcs_1_ts_1_t_1.000000.vtu hm1_1Dbeam_ts_1_t_1.000000.vtu epsilon_yy epsilon_yy 1.0e-9 0.0
+    hm1_1Dbeam_pcs_1_ts_1_t_1.000000.vtu hm1_1Dbeam_ts_1_t_1.000000.vtu epsilon_zz epsilon_zz 1.0e-9 0.0
 )
 
 AddTest(
@@ -84,17 +72,17 @@ AddTest(
     TESTER vtkdiff
     REQUIREMENTS NOT OGS_USE_MPI
     DIFF_DATA
-    hm1_2Dsquare_pcs_1_ts_1_t_1.000000.vtu hm1_2Dsquare_pcs_1_ts_1_t_1.000000.vtu pressure pressure 1.0e-9 0.0
-    hm1_2Dsquare_pcs_1_ts_1_t_1.000000.vtu hm1_2Dsquare_pcs_1_ts_1_t_1.000000.vtu displacement displacement 1.0e-9 0.0
-    hm1_2Dsquare_pcs_1_ts_1_t_1.000000.vtu hm1_2Dsquare_pcs_1_ts_1_t_1.000000.vtu sigma_xx sigma_xx 5.0e-8 0.0
-    hm1_2Dsquare_pcs_1_ts_1_t_1.000000.vtu hm1_2Dsquare_pcs_1_ts_1_t_1.000000.vtu sigma_yy sigma_yy 5.0e-8 0.0
-    hm1_2Dsquare_pcs_1_ts_1_t_1.000000.vtu hm1_2Dsquare_pcs_1_ts_1_t_1.000000.vtu sigma_zz sigma_zz 5.0e-8 0.0
-    hm1_2Dsquare_pcs_1_ts_1_t_1.000000.vtu hm1_2Dsquare_pcs_1_ts_1_t_1.000000.vtu sigma_xy sigma_xy 5.0e-8 0.0
-    hm1_2Dsquare_pcs_1_ts_1_t_1.000000.vtu hm1_2Dsquare_pcs_1_ts_1_t_1.000000.vtu sigma_xz sigma_xz 5.0e-8 0.0
-    hm1_2Dsquare_pcs_1_ts_1_t_1.000000.vtu hm1_2Dsquare_pcs_1_ts_1_t_1.000000.vtu sigma_yz sigma_yz 5.0e-8 0.0
-    hm1_2Dsquare_pcs_1_ts_1_t_1.000000.vtu hm1_2Dsquare_pcs_1_ts_1_t_1.000000.vtu epsilon_xx epsilon_xx 1.0e-9 0.0
-    hm1_2Dsquare_pcs_1_ts_1_t_1.000000.vtu hm1_2Dsquare_pcs_1_ts_1_t_1.000000.vtu epsilon_yy epsilon_yy 1.0e-9 0.0
-    hm1_2Dsquare_pcs_1_ts_1_t_1.000000.vtu hm1_2Dsquare_pcs_1_ts_1_t_1.000000.vtu epsilon_zz epsilon_zz 1.0e-9 0.0
+    hm1_2Dsquare_pcs_1_ts_1_t_1.000000.vtu hm1_2Dsquare_ts_1_t_1.000000.vtu pressure pressure 1.0e-9 0.0
+    hm1_2Dsquare_pcs_1_ts_1_t_1.000000.vtu hm1_2Dsquare_ts_1_t_1.000000.vtu displacement displacement 1.0e-9 0.0
+    hm1_2Dsquare_pcs_1_ts_1_t_1.000000.vtu hm1_2Dsquare_ts_1_t_1.000000.vtu sigma_xx sigma_xx 5.0e-8 0.0
+    hm1_2Dsquare_pcs_1_ts_1_t_1.000000.vtu hm1_2Dsquare_ts_1_t_1.000000.vtu sigma_yy sigma_yy 5.0e-8 0.0
+    hm1_2Dsquare_pcs_1_ts_1_t_1.000000.vtu hm1_2Dsquare_ts_1_t_1.000000.vtu sigma_zz sigma_zz 5.0e-8 0.0
+    hm1_2Dsquare_pcs_1_ts_1_t_1.000000.vtu hm1_2Dsquare_ts_1_t_1.000000.vtu sigma_xy sigma_xy 5.0e-8 0.0
+    hm1_2Dsquare_pcs_1_ts_1_t_1.000000.vtu hm1_2Dsquare_ts_1_t_1.000000.vtu sigma_xz sigma_xz 5.0e-8 0.0
+    hm1_2Dsquare_pcs_1_ts_1_t_1.000000.vtu hm1_2Dsquare_ts_1_t_1.000000.vtu sigma_yz sigma_yz 5.0e-8 0.0
+    hm1_2Dsquare_pcs_1_ts_1_t_1.000000.vtu hm1_2Dsquare_ts_1_t_1.000000.vtu epsilon_xx epsilon_xx 1.0e-9 0.0
+    hm1_2Dsquare_pcs_1_ts_1_t_1.000000.vtu hm1_2Dsquare_ts_1_t_1.000000.vtu epsilon_yy epsilon_yy 1.0e-9 0.0
+    hm1_2Dsquare_pcs_1_ts_1_t_1.000000.vtu hm1_2Dsquare_ts_1_t_1.000000.vtu epsilon_zz epsilon_zz 1.0e-9 0.0
 )
 
 AddTest(
@@ -106,17 +94,17 @@ AddTest(
     TESTER vtkdiff
     REQUIREMENTS NOT OGS_USE_MPI
     DIFF_DATA
-    hm1_3Dcube_pcs_1_ts_1_t_1.000000.vtu hm1_3Dcube_pcs_1_ts_1_t_1.000000.vtu pressure pressure 2.0e-8 0.0
-    hm1_3Dcube_pcs_1_ts_1_t_1.000000.vtu hm1_3Dcube_pcs_1_ts_1_t_1.000000.vtu displacement displacement 1.0e-8 0.0
-    hm1_3Dcube_pcs_1_ts_1_t_1.000000.vtu hm1_3Dcube_pcs_1_ts_1_t_1.000000.vtu sigma_xx sigma_xx 5.0e-7 0.0
-    hm1_3Dcube_pcs_1_ts_1_t_1.000000.vtu hm1_3Dcube_pcs_1_ts_1_t_1.000000.vtu sigma_yy sigma_yy 5.0e-7 0.0
-    hm1_3Dcube_pcs_1_ts_1_t_1.000000.vtu hm1_3Dcube_pcs_1_ts_1_t_1.000000.vtu sigma_zz sigma_zz 5.0e-7 0.0
-    hm1_3Dcube_pcs_1_ts_1_t_1.000000.vtu hm1_3Dcube_pcs_1_ts_1_t_1.000000.vtu sigma_xy sigma_xy 5.0e-7 0.0
-    hm1_3Dcube_pcs_1_ts_1_t_1.000000.vtu hm1_3Dcube_pcs_1_ts_1_t_1.000000.vtu sigma_xz sigma_xz 5.0e-7 0.0
-    hm1_3Dcube_pcs_1_ts_1_t_1.000000.vtu hm1_3Dcube_pcs_1_ts_1_t_1.000000.vtu sigma_yz sigma_yz 5.0e-7 0.0
-    hm1_3Dcube_pcs_1_ts_1_t_1.000000.vtu hm1_3Dcube_pcs_1_ts_1_t_1.000000.vtu epsilon_xx epsilon_xx 1.0e-8 0.0
-    hm1_3Dcube_pcs_1_ts_1_t_1.000000.vtu hm1_3Dcube_pcs_1_ts_1_t_1.000000.vtu epsilon_yy epsilon_yy 1.0e-8 0.0
-    hm1_3Dcube_pcs_1_ts_1_t_1.000000.vtu hm1_3Dcube_pcs_1_ts_1_t_1.000000.vtu epsilon_zz epsilon_zz 1.0e-8 0.0
+    hm1_3Dcube_pcs_1_ts_1_t_1.000000.vtu hm1_3Dcube_ts_1_t_1.000000.vtu pressure pressure 2.0e-8 0.0
+    hm1_3Dcube_pcs_1_ts_1_t_1.000000.vtu hm1_3Dcube_ts_1_t_1.000000.vtu displacement displacement 1.0e-8 0.0
+    hm1_3Dcube_pcs_1_ts_1_t_1.000000.vtu hm1_3Dcube_ts_1_t_1.000000.vtu sigma_xx sigma_xx 5.0e-7 0.0
+    hm1_3Dcube_pcs_1_ts_1_t_1.000000.vtu hm1_3Dcube_ts_1_t_1.000000.vtu sigma_yy sigma_yy 5.0e-7 0.0
+    hm1_3Dcube_pcs_1_ts_1_t_1.000000.vtu hm1_3Dcube_ts_1_t_1.000000.vtu sigma_zz sigma_zz 5.0e-7 0.0
+    hm1_3Dcube_pcs_1_ts_1_t_1.000000.vtu hm1_3Dcube_ts_1_t_1.000000.vtu sigma_xy sigma_xy 5.0e-7 0.0
+    hm1_3Dcube_pcs_1_ts_1_t_1.000000.vtu hm1_3Dcube_ts_1_t_1.000000.vtu sigma_xz sigma_xz 5.0e-7 0.0
+    hm1_3Dcube_pcs_1_ts_1_t_1.000000.vtu hm1_3Dcube_ts_1_t_1.000000.vtu sigma_yz sigma_yz 5.0e-7 0.0
+    hm1_3Dcube_pcs_1_ts_1_t_1.000000.vtu hm1_3Dcube_ts_1_t_1.000000.vtu epsilon_xx epsilon_xx 1.0e-8 0.0
+    hm1_3Dcube_pcs_1_ts_1_t_1.000000.vtu hm1_3Dcube_ts_1_t_1.000000.vtu epsilon_yy epsilon_yy 1.0e-8 0.0
+    hm1_3Dcube_pcs_1_ts_1_t_1.000000.vtu hm1_3Dcube_ts_1_t_1.000000.vtu epsilon_zz epsilon_zz 1.0e-8 0.0
 )
 
 AddTest(
@@ -128,17 +116,17 @@ AddTest(
     TESTER vtkdiff
     REQUIREMENTS NOT OGS_USE_MPI
     DIFF_DATA
-    hm1_3Dgravity_pcs_1_ts_1_t_1.000000.vtu hm1_3Dgravity_pcs_1_ts_1_t_1.000000.vtu pressure pressure 1.0e-9 0.0
-    hm1_3Dgravity_pcs_1_ts_1_t_1.000000.vtu hm1_3Dgravity_pcs_1_ts_1_t_1.000000.vtu displacement displacement 1.0e-10 0.0
-    hm1_3Dgravity_pcs_1_ts_1_t_1.000000.vtu hm1_3Dgravity_pcs_1_ts_1_t_1.000000.vtu sigma_xx sigma_xx 1.0e-8 0.0
-    hm1_3Dgravity_pcs_1_ts_1_t_1.000000.vtu hm1_3Dgravity_pcs_1_ts_1_t_1.000000.vtu sigma_yy sigma_yy 1.0e-8 0.0
-    hm1_3Dgravity_pcs_1_ts_1_t_1.000000.vtu hm1_3Dgravity_pcs_1_ts_1_t_1.000000.vtu sigma_zz sigma_zz 2.0e-8 0.0
-    hm1_3Dgravity_pcs_1_ts_1_t_1.000000.vtu hm1_3Dgravity_pcs_1_ts_1_t_1.000000.vtu sigma_xy sigma_xy 1.0e-8 0.0
-    hm1_3Dgravity_pcs_1_ts_1_t_1.000000.vtu hm1_3Dgravity_pcs_1_ts_1_t_1.000000.vtu sigma_xz sigma_xz 1.0e-8 0.0
-    hm1_3Dgravity_pcs_1_ts_1_t_1.000000.vtu hm1_3Dgravity_pcs_1_ts_1_t_1.000000.vtu sigma_yz sigma_yz 1.0e-8 0.0
-    hm1_3Dgravity_pcs_1_ts_1_t_1.000000.vtu hm1_3Dgravity_pcs_1_ts_1_t_1.000000.vtu epsilon_xx epsilon_xx 1.0e-9 0.0
-    hm1_3Dgravity_pcs_1_ts_1_t_1.000000.vtu hm1_3Dgravity_pcs_1_ts_1_t_1.000000.vtu epsilon_yy epsilon_yy 1.0e-9 0.0
-    hm1_3Dgravity_pcs_1_ts_1_t_1.000000.vtu hm1_3Dgravity_pcs_1_ts_1_t_1.000000.vtu epsilon_zz epsilon_zz 1.0e-9 0.0
+    hm1_3Dgravity_pcs_1_ts_1_t_1.000000.vtu hm1_3Dgravity_ts_1_t_1.000000.vtu pressure pressure 1.0e-9 0.0
+    hm1_3Dgravity_pcs_1_ts_1_t_1.000000.vtu hm1_3Dgravity_ts_1_t_1.000000.vtu displacement displacement 1.0e-10 0.0
+    hm1_3Dgravity_pcs_1_ts_1_t_1.000000.vtu hm1_3Dgravity_ts_1_t_1.000000.vtu sigma_xx sigma_xx 1.0e-8 0.0
+    hm1_3Dgravity_pcs_1_ts_1_t_1.000000.vtu hm1_3Dgravity_ts_1_t_1.000000.vtu sigma_yy sigma_yy 1.0e-8 0.0
+    hm1_3Dgravity_pcs_1_ts_1_t_1.000000.vtu hm1_3Dgravity_ts_1_t_1.000000.vtu sigma_zz sigma_zz 2.0e-8 0.0
+    hm1_3Dgravity_pcs_1_ts_1_t_1.000000.vtu hm1_3Dgravity_ts_1_t_1.000000.vtu sigma_xy sigma_xy 1.0e-8 0.0
+    hm1_3Dgravity_pcs_1_ts_1_t_1.000000.vtu hm1_3Dgravity_ts_1_t_1.000000.vtu sigma_xz sigma_xz 1.0e-8 0.0
+    hm1_3Dgravity_pcs_1_ts_1_t_1.000000.vtu hm1_3Dgravity_ts_1_t_1.000000.vtu sigma_yz sigma_yz 1.0e-8 0.0
+    hm1_3Dgravity_pcs_1_ts_1_t_1.000000.vtu hm1_3Dgravity_ts_1_t_1.000000.vtu epsilon_xx epsilon_xx 1.0e-9 0.0
+    hm1_3Dgravity_pcs_1_ts_1_t_1.000000.vtu hm1_3Dgravity_ts_1_t_1.000000.vtu epsilon_yy epsilon_yy 1.0e-9 0.0
+    hm1_3Dgravity_pcs_1_ts_1_t_1.000000.vtu hm1_3Dgravity_ts_1_t_1.000000.vtu epsilon_zz epsilon_zz 1.0e-9 0.0
 )
 
 AddTest(
@@ -481,11 +469,11 @@ AddTest(
     TESTER vtkdiff
     REQUIREMENTS NOT OGS_USE_MPI
     DIFF_DATA
-    InjectionProduction1D_Mono_pcs_0_ts_100_t_8640000.000000.vtu InjectionProduction1D_pcs_1_ts_100_t_8640000.000000.vtu displacement displacement 1e-11 1e-11
-    InjectionProduction1D_Mono_pcs_0_ts_100_t_8640000.000000.vtu InjectionProduction1D_pcs_1_ts_100_t_8640000.000000.vtu pressure pressure 1e-11 1e-11
-    InjectionProduction1D_Mono_pcs_0_ts_100_t_8640000.000000.vtu InjectionProduction1D_pcs_1_ts_100_t_8640000.000000.vtu velocity velocity 1e-11 1e-11
-    InjectionProduction1D_Mono_pcs_0_ts_100_t_8640000.000000.vtu InjectionProduction1D_pcs_1_ts_100_t_8640000.000000.vtu epsilon_yy epsilon_yy 1e-11 1e-11
-    InjectionProduction1D_Mono_pcs_0_ts_100_t_8640000.000000.vtu InjectionProduction1D_pcs_1_ts_100_t_8640000.000000.vtu sigma_yy sigma_yy 1e-11 1e-11
-    InjectionProduction1D_Mono_pcs_0_ts_100_t_8640000.000000.vtu InjectionProduction1D_pcs_1_ts_100_t_8640000.000000.vtu HydraulicFlow HydraulicFlow 1e-11 0
-    InjectionProduction1D_Mono_pcs_0_ts_100_t_8640000.000000.vtu InjectionProduction1D_pcs_1_ts_100_t_8640000.000000.vtu NodalForces NodalForces 3e-7 0
+    InjectionProduction1D_Mono_pcs_0_ts_100_t_8640000.000000.vtu InjectionProduction1D_ts_100_t_8640000.000000.vtu displacement displacement 1e-11 1e-11
+    InjectionProduction1D_Mono_pcs_0_ts_100_t_8640000.000000.vtu InjectionProduction1D_ts_100_t_8640000.000000.vtu pressure pressure 1e-11 1e-11
+    InjectionProduction1D_Mono_pcs_0_ts_100_t_8640000.000000.vtu InjectionProduction1D_ts_100_t_8640000.000000.vtu velocity velocity 1e-11 1e-11
+    InjectionProduction1D_Mono_pcs_0_ts_100_t_8640000.000000.vtu InjectionProduction1D_ts_100_t_8640000.000000.vtu epsilon_yy epsilon_yy 1e-11 1e-11
+    InjectionProduction1D_Mono_pcs_0_ts_100_t_8640000.000000.vtu InjectionProduction1D_ts_100_t_8640000.000000.vtu sigma_yy sigma_yy 1e-11 1e-11
+    InjectionProduction1D_Mono_pcs_0_ts_100_t_8640000.000000.vtu InjectionProduction1D_ts_100_t_8640000.000000.vtu HydraulicFlow HydraulicFlow 1e-11 0
+    InjectionProduction1D_Mono_pcs_0_ts_100_t_8640000.000000.vtu InjectionProduction1D_ts_100_t_8640000.000000.vtu NodalForces NodalForces 3e-7 0
 )

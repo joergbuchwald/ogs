@@ -10,13 +10,17 @@
 
 #include "ProcessOutput.h"
 
+#ifndef _WIN32
+#ifndef __APPLE__
+#include <cfenv>
+#endif  // __APPLE__
+#endif  // _WIN32
+
 #include "InfoLib/GitInfo.h"
+#include "IntegrationPointWriter.h"
 #include "MathLib/LinAlg/LinAlg.h"
 #include "MeshLib/IO/VtkIO/VtuInterface.h"
 #include "NumLib/DOF/LocalToGlobalIndexMap.h"
-
-#include "IntegrationPointWriter.h"
-
 
 /// Copies the ogs_version string containing the release number and the git
 /// hash.
@@ -128,10 +132,8 @@ static void addSecondaryVariableResiduals(
 
 namespace ProcessLib
 {
-void processOutputData(
-    const double t,
-    std::vector<GlobalVector*> const& x,
-    int const process_id,
+void addProcessDataToMesh(
+    const double t, std::vector<GlobalVector*> const& x, int const process_id,
     MeshLib::Mesh& mesh,
     std::vector<NumLib::LocalToGlobalIndexMap const*> const& dof_table,
     std::vector<std::reference_wrapper<ProcessVariable>> const&
@@ -140,7 +142,7 @@ void processOutputData(
     bool const output_secondary_variable,
     std::vector<std::unique_ptr<IntegrationPointWriter>> const* const
         integration_point_writer,
-    ProcessOutput const& process_output)
+    OutputDataSpecification const& process_output)
 {
     DBUG("Process output data.");
 
@@ -197,7 +199,6 @@ void processOutputData(
         auto& output_data = *MeshLib::getOrCreateMeshProperty<double>(
             mesh, pv.getName(), MeshLib::MeshItemType::Node, num_comp);
 
-
         for (int component_id = 0; component_id < num_comp; ++component_id)
         {
             auto const& mesh_subset = dof_table[process_id]->getMeshSubset(
@@ -253,8 +254,29 @@ void makeOutput(std::string const& file_name, MeshLib::Mesh const& mesh,
 {
     // Write output file
     DBUG("Writing output to '{:s}'.", file_name);
+
+    // Store floating-point exception handling. Output of NaN's triggers
+    // floating point exceptions. Because we are not debugging VTK (or other
+    // libraries) at this point, the possibly set exceptions are temporary
+    // disabled and restored before end of the function.
+#ifndef _WIN32
+#ifndef __APPLE__
+    fenv_t fe_env;
+    fegetenv(&fe_env);
+    fesetenv(FE_DFL_ENV);  // Set default environment effectively disabling
+                           // exceptions.
+#endif  //_WIN32
+#endif  //__APPLE__
+
     MeshLib::IO::VtuInterface vtu_interface(&mesh, data_mode, compress_output);
     vtu_interface.writeToFile(file_name);
+
+    // Restore floating-point exception handling.
+#ifndef _WIN32
+#ifndef __APPLE__
+    fesetenv(&fe_env);
+#endif  //_WIN32
+#endif  //__APPLE__
 }
 
 }  // namespace ProcessLib

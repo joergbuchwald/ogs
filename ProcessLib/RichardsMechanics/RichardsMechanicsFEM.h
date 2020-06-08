@@ -158,7 +158,8 @@ public:
     }
 
     void computeSecondaryVariableConcrete(
-        double const t, std::vector<double> const& local_x) override;
+        double const t, double const dt, std::vector<double> const& local_x,
+        std::vector<double> const& local_x_dot) override;
 
     void postNonLinearSolverConcrete(std::vector<double> const& local_x,
                                      double const t, double const dt,
@@ -172,10 +173,6 @@ public:
         // assumes N is stored contiguously in memory
         return Eigen::Map<const Eigen::RowVectorXd>(N_u.data(), N_u.size());
     }
-
-    std::size_t setScalar(double const* values, double IpData::*member);
-    std::size_t setKelvinVector(double const* values,
-                                KelvinVectorType IpData::*member);
 
     std::vector<double> getSigma() const override;
 
@@ -221,6 +218,22 @@ public:
 
     std::vector<double> getEpsilon() const override;
     std::vector<double> const& getIntPtEpsilon(
+        const double t,
+        std::vector<GlobalVector*> const& x,
+        std::vector<NumLib::LocalToGlobalIndexMap const*> const& dof_table,
+        std::vector<double>& cache) const override;
+
+    std::vector<double> const& getIntPtDryDensitySolid(
+        const double t,
+        std::vector<GlobalVector*> const& x,
+        std::vector<NumLib::LocalToGlobalIndexMap const*> const& dof_table,
+        std::vector<double>& cache) const override;
+    std::vector<double> const& getIntPtDryDensityPelletSaturated(
+        const double t,
+        std::vector<GlobalVector*> const& x,
+        std::vector<NumLib::LocalToGlobalIndexMap const*> const& dof_table,
+        std::vector<double>& cache) const override;
+    std::vector<double> const& getIntPtDryDensityPelletUnsaturated(
         const double t,
         std::vector<GlobalVector*> const& x,
         std::vector<NumLib::LocalToGlobalIndexMap const*> const& dof_table,

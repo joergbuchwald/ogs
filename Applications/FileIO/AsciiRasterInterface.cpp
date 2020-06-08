@@ -28,11 +28,11 @@ GeoLib::Raster* AsciiRasterInterface::readRaster(std::string const& fname)
 {
     std::string ext (BaseLib::getFileExtension(fname));
     std::transform(ext.begin(), ext.end(), ext.begin(), tolower);
-    if (ext == "asc")
+    if (ext == ".asc")
     {
         return getRasterFromASCFile(fname);
     }
-    if (ext == "grd")
+    if (ext == ".grd")
     {
         return getRasterFromSurferFile(fname);
     }
@@ -292,10 +292,10 @@ boost::optional<std::vector<GeoLib::Raster const*>> readRasters(
 
     std::vector<GeoLib::Raster const*> rasters;
     rasters.reserve(raster_paths.size());
-    for (auto const& path : raster_paths)
-    {
-        rasters.push_back(FileIO::AsciiRasterInterface::readRaster(path));
-    }
+    std::transform(raster_paths.begin(), raster_paths.end(),
+                   std::back_inserter(rasters), [](auto const& path) {
+                       return FileIO::AsciiRasterInterface::readRaster(path);
+                   });
     return boost::make_optional(rasters);
 }
 } // end namespace FileIO

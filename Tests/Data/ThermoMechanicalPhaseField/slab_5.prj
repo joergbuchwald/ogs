@@ -137,6 +137,7 @@
         <output>
             <type>VTK</type>
             <prefix>slab_5</prefix>
+            <suffix>_ts_{:timestep}_t_{:time}</suffix>
             <timesteps>
                 <pair>
                     <repeat>3</repeat>

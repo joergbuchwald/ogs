@@ -66,12 +66,15 @@ public:
                                                variable2);
     }
 
+    /// Short description of the component with its name.
+    std::string description() const;
+
 public:
     std::string const name;
 
 protected:
     /// The property array of the component.
-    PropertyArray _properties;
+    PropertyArray properties_;
 };
 
 /// Method for creating a new component based on the specified component name.

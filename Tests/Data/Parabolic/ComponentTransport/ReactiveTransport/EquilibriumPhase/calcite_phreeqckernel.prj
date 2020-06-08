@@ -356,6 +356,7 @@
         <output>
             <type>VTK</type>
             <prefix>calcite_phreeqckernel</prefix>
+            <suffix>_ts_{:timestep}_t_{:time}</suffix>
             <timesteps>
                 <pair>
                     <repeat>5</repeat>
@@ -390,7 +391,7 @@
         </solution>
         <equilibrium_reactants>
             <phase_component>
-		<name>Calcite</name>
+                <name>Calcite</name>
                 <initial_amount>2.07e-4</initial_amount>
                 <saturation_index>0.0</saturation_index>
             </phase_component>
