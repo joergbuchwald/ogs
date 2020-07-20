@@ -54,7 +54,7 @@ AddTest(
     TESTER vtkdiff
     REQUIREMENTS NOT OGS_USE_MPI
     DIFF_DATA
-    standard_solution_buildup_test_pcs_0_ts_107_t_424800.000000.vtu buildup_test_pcs_0_ts_107_t_424800.000000.vtu pressure pressure 5e-6 0.0
+    standard_solution_buildup_test_pcs_0_ts_107_t_424800.000000.vtu buildup_test_pcs_0_ts_107_t_424800.000000.vtu pressure pressure 1.6e-5 0.0
     standard_solution_buildup_test_pcs_0_ts_211_t_720000.000000.vtu buildup_test_pcs_0_ts_211_t_720000.000000.vtu pressure pressure 5e-5 0.0
 )
 
@@ -435,3 +435,9 @@ AddTest(
 #    DIFF_DATA
 #    GLOB LF_constraint_bc_1e3_pcs_0_ts_*.vtu p p 1e-15 1e-14
 #)
+
+if (NOT (OGS_USE_MPI))
+    OgsTest(PROJECTFILE Parabolic/LiquidFlow/SimpleSynthetics/PrimaryVariableConstraintDirichletBC/cuboid_1x1x1_hex_1000_Dirichlet_Dirichlet_1.prj)
+    OgsTest(PROJECTFILE Parabolic/LiquidFlow/SimpleSynthetics/PrimaryVariableConstraintDirichletBC/cuboid_1x1x1_hex_1000_Dirichlet_Dirichlet_2.prj)
+    OgsTest(PROJECTFILE Parabolic/LiquidFlow/SimpleSynthetics/PrimaryVariableConstraintDirichletBC/cuboid_1x1x1_hex_1000_Dirichlet_Dirichlet_3.prj)
+endif()

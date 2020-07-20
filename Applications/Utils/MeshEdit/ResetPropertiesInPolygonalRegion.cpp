@@ -9,20 +9,21 @@
  *
  */
 
+#include <tclap/CmdLine.h>
+
 #include <algorithm>
 #include <cstdlib>
 #include <vector>
 
-#include <tclap/CmdLine.h>
-
 #include "Applications/FileIO/readGeometryFromFile.h"
-#include "InfoLib/GitInfo.h"
 #include "GeoLib/GEOObjects.h"
 #include "GeoLib/Polygon.h"
+#include "InfoLib/GitInfo.h"
 #include "MeshGeoToolsLib/MeshEditing/ResetMeshElementProperty.h"
 #include "MeshLib/IO/readMeshFromFile.h"
 #include "MeshLib/IO/writeMeshToFile.h"
 #include "MeshLib/Mesh.h"
+#include "MeshLib/MeshInformation.h"
 
 int main(int argc, char* argv[])
 {
@@ -91,12 +92,7 @@ int main(int argc, char* argv[])
     FileIO::readGeometryFromFile(geometry_fname.getValue(), geometries,
                                  gmsh_path_arg.getValue());
 
-    std::string geo_name;
-    {
-        std::vector<std::string> geo_names;
-        geometries.getGeometryNames(geo_names);
-        geo_name = geo_names[0];
-    }
+    auto const geo_name = geometries.getGeometryNames()[0];
 
     // *** check if the data is usable
     // *** get vector of polylines
@@ -159,13 +155,7 @@ int main(int argc, char* argv[])
                                                   restrict_arg.getValue());
     }
 
-    std::vector<std::string> property_names(
-        mesh->getProperties().getPropertyVectorNames());
-    INFO("Mesh contains {:d} property vectors:", property_names.size());
-    for (const auto& name : property_names)
-    {
-        INFO("- {:s}", name);
-    }
+    MeshLib::MeshInformation::writePropertyVectorInformation(*mesh);
 
     MeshLib::IO::writeMeshToFile(*mesh, mesh_out.getValue());
 

@@ -1,8 +1,9 @@
 build mac:
   extends: .template-build-linux
-
   tags:
     - mac
-
   variables:
     BUILD_DIR: "build-mac"
+    CMAKE_ARGS: >-
+      -DOGS_BUILD_UTILS=ON
+      -DOGS_USE_PYTHON=ON

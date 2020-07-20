@@ -2,16 +2,44 @@ build docs:
   stage: build
   image:
     name: $CONTAINER_GCC_IMAGE
-
+  dependencies: [meta, meta_container]
   before_script:
+    # HACK to easier linking to the generated pages
+    - echo '<meta http-equiv="REFRESH" content="0;URL=build/docs/index.html">' >> Doxygen.html
     - mkdir -p build
     - cd build
-
   script:
     - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DOGS_USE_CONAN=OFF -DOGS_BUILD_PROCESSES=GroundwaterFlow
     - cmake --build . --target doc > >(tee make-docs.output)
-
   artifacts:
     expose_as: 'Doxygen'
-    paths: ['build/docs/']
+    paths:
+      - Doxygen.html
+      - build/docs
     expire_in: 1 week
+
+check docs links:
+  stage: check
+  image: $WEB_IMAGE
+  dependencies: [meta_container, "build docs"]
+  extends:
+      - .rules-master-manual
+  script:
+    - cd build
+    - >
+      urlchecker check --retry-count 5 --file-types .html
+      --white-listed-patterns \&lt\;,\&quot,www.w3.org,www.doxygen.org,cdnjs.cloudflare.com,docs.opengeosys.org/docs/tools
+      --white-listed-urls http://www.opengeosys.org/project/license,http://www.opengeosys.org,http://www.opengeosys.org\&quot,http://www.trolltech.com/products/qt/licensing.html,http://www.trolltech.com/products/qt/opensource.html
+      --white-listed-files project_file_doc_qa.html,ogs_file_
+      docs
+
+deploy doxygen:
+  stage: package
+  image: $WEB_IMAGE
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+  dependencies: [meta_container, "build docs"]
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - netlify deploy --prod --dir=build/docs --site=$DOXYGEN_NETLIFY_SITE_ID

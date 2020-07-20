@@ -1,9 +1,7 @@
 OpenGeoSys 6
 ============
 
-[![Tag](https://img.shields.io/github/tag/ufz/ogs.svg?style=flat-square)](https://github.com/ufz/ogs/releases)
-[![BSD License (modified)](http://img.shields.io/badge/license-BSD-blue.svg?style=flat-square)](https://github.com/ufz/ogs/blob/master/LICENSE.txt)
-[![Build Status](https://jenkins.opengeosys.org/buildStatus/icon?job=ufz/ogs/master)](https://jenkins.opengeosys.org/job/ufz/job/ogs/job/master)
+[![Modified BSD License](http://img.shields.io/badge/license-BSD-blue.svg?style=flat-square)](https://gitlab.opengeosys.org/ogs/ogs/-/blob/master/LICENSE.txt)
 [![DOI](https://zenodo.org/badge/1701384.svg)](https://zenodo.org/badge/latestdoi/1701384)
 
 [OpenGeoSys][ogs] (OGS) is a scientific open source project for the development of
@@ -22,16 +20,13 @@ waste deposition. OGS is comprised of the THMC-simulator (simply referred to as
 - Good starting point for users as well as for developers is the [documentation][documentation]
 - Check your code against our [styleguide](http://ufz.github.io/styleguide/cppguide.xml)
 - Have a look at the [source code documentation][docs]
-- For the actual build status see the [Jenkins-CI server][jenkins-ci]
 
 ## License ##
 
-OpenGeoSys is distributed under a Modified BSD License which encourages users to
-attribute the work of the OpenGeoSys Community especially in scientific
-publications. See the [LICENSE.txt][license-source] for the license text.
+OpenGeoSys is distributed under the Modified BSD License. See the
+[LICENSE.txt][license-source] for the license text.
 
-[ogs]: http://www.opengeosys.org
+[ogs]: https://www.opengeosys.org
 [documentation]: https://www.opengeosys.org/docs/
-[jenkins-ci]: https://jenkins.opengeosys.org/job/ufz/job/ogs/job/master/
-[docs]: http://doxygen.opengeosys.org
+[docs]: https://doxygen.opengeosys.org
 [license-source]: https://github.com/ufz/ogs/blob/master/LICENSE.txt

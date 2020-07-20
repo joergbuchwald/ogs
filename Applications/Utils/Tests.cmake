@@ -287,6 +287,9 @@ AddTest(
 )
 
 foreach(element_type tri quad)
+    if(OGS_USE_MPI)
+        break()
+    endif()
     add_test(NAME ExtractBoundary-generate_input_files_${element_type}
         COMMAND generateStructuredMesh -e ${element_type} --lx 1 --ly 1 --nx 10 --ny 10 -o ${Data_BINARY_DIR}/FileIO/square_1x1_${element_type}.vtu
         WORKING_DIRECTORY ${Data_BINARY_DIR}/FileIO/
@@ -309,6 +312,24 @@ foreach(element_type tri quad)
         DEPENDS ExtractBoundary-generate_input_files_${element_type}
     )
 endforeach()
+
+AddTest(
+    NAME partmesh_with_field_data
+    PATH NodePartitionedMesh/partmesh
+    EXECUTABLE partmesh
+    EXECUTABLE_ARGS -n 2 -i cube_1x1x1_hex_8.vtu -o ${Data_BINARY_DIR}/NodePartitionedMesh/partmesh
+    TESTER diff
+    REQUIREMENTS NOT OGS_USE_MPI
+    DIFF_DATA
+        cube_1x1x1_hex_8_partitioned_cell_properties_cfg2.bin
+        cube_1x1x1_hex_8_partitioned_cell_properties_val2.bin
+        cube_1x1x1_hex_8_partitioned_msh_cfg2.bin
+        cube_1x1x1_hex_8_partitioned_msh_ele2.bin
+        cube_1x1x1_hex_8_partitioned_msh_ele_g2.bin
+        cube_1x1x1_hex_8_partitioned_msh_nod2.bin
+        cube_1x1x1_hex_8_partitioned_node_properties_cfg2.bin
+        cube_1x1x1_hex_8_partitioned_node_properties_val2.bin
+)
 
 if(OGS_USE_NETCDF)
     AddTest(

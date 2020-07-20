@@ -121,6 +121,8 @@ public:
         MathLib::KelvinVector::KelvinVectorDimensions<DisplacementDim>::value;
     using Invariants = MathLib::KelvinVector::Invariants<KelvinVectorSize>;
 
+    using SymmetricTensor = Eigen::Matrix<double, KelvinVectorSize, 1>;
+
     HydroMechanicsLocalAssembler(HydroMechanicsLocalAssembler const&) = delete;
     HydroMechanicsLocalAssembler(HydroMechanicsLocalAssembler&&) = delete;
 
@@ -364,10 +366,8 @@ private:
         cache.clear();
         cache.reserve(_ip_data.size());
 
-        for (auto const& ip_data : _ip_data)
-        {
-            cache.push_back(ip_data.eps[component]);
-        }
+        transform(cbegin(_ip_data), cend(_ip_data), back_inserter(cache),
+                  [&](auto const& ip_data) { return ip_data.eps[component]; });
 
         return cache;
     }

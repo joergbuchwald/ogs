@@ -12,7 +12,7 @@ set(DOXYGEN_EXCLUDE
     ${PROJECT_SOURCE_DIR}/Documentation/ProjectFile
     ${PROJECT_SOURCE_DIR}/web)
 set(DOXYGEN_FILE_PATTERNS *.h *.cpp *.tpp *.dox)
-set(DOXYGEN_PROJECT_NAME "OGS ${OGS_VERSION}")
+set(DOXYGEN_PROJECT_NAME "OGS")
 set(DOXYGEN_PROJECT_VERSION ${GIT_SHA1_SHORT})
 set(DOXYGEN_PROJECT_LOGO ${PROJECT_SOURCE_DIR}/Documentation/OpenGeoSys-Logo.png)
 set(DOXYGEN_HTML_OUTPUT ${PROJECT_BINARY_DIR}/docs)
@@ -23,7 +23,10 @@ set(DOXYGEN_EXTRACT_STATIC YES)
 set(DOXYGEN_EXTRACT_ANON_NSPACES YES)
 set(DOXYGEN_SORT_BY_SCOPE_NAME YES)
 set(DOXYGEN_LAYOUT_FILE ${PROJECT_SOURCE_DIR}/Documentation/DoxygenLayout.xml)
-set(DOXYGEN_CITE_BIB_FILES ${PROJECT_SOURCE_DIR}/Documentation/bibliography)
+set(DOXYGEN_CITE_BIB_FILES
+    ${PROJECT_SOURCE_DIR}/Documentation/bibliography/ogs
+    ${PROJECT_SOURCE_DIR}/Documentation/bibliography/other
+)
 set(DOXYGEN_WARN_LOGFILE ${PROJECT_BINARY_DIR}/DoxygenWarnings.log)
 set(DOXYGEN_EXCLUDE_PATTERNS moc_* ui_* CMake*)
 set(DOXYGEN_IMAGE_PATH ${PROJECT_SOURCE_DIR}/Documentation/images)
@@ -45,6 +48,8 @@ set(DOXYGEN_ALIASES
     "ogs_file_param_special{1} = \\xrefitem ogs_file_param \\\"Input File Parameter\\\" \\\"List of all Input File Parameters\\\" \\ref ogs_file_param__\\1 \\\"\\1\\\""
     "ogs_file_attr_special{1} = \\xrefitem ogs_file_param \\\"Input File Parameter\\\" \\\"List of all Input File Parameters\\\" \\ref ogs_file_attr__\\1 \\\"\\1\\\""
     "ogs_missing_documentation = \\xrefitem ogs_missing_documentation \\\"Missing Documentation\\\" \\\"OGS Input File Parameters&mdash\;List of incomplete documentation pages\\\" Documentation missing/incomplete")
+set(DOXYGEN_CREATE_SUBDIRS YES)
+configure_file(${PROJECT_SOURCE_DIR}/Documentation/mainpage.dox.in ${PROJECT_BINARY_DIR}/DocAux/dox/mainpage.dox)
 
 doxygen_add_docs(doc
     ${PROJECT_SOURCE_DIR}/

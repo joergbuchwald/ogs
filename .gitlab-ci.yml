@@ -1,34 +1,43 @@
 stages:
-  - pre-checks
+  - preparation
   - build
-  - checks
-  - gui
+  - check
   - package
-
 
 variables:
   # Docker image names
-  CONTAINER_GCC_IMAGE: $CI_REGISTRY/ogs/$CI_PROJECT_NAME/$CI_PROJECT_NAMESPACE/gcc:$CI_COMMIT_REF_SLUG
-  CONTAINER_GCC_GUI_IMAGE: $CI_REGISTRY/ogs/$CI_PROJECT_NAME/$CI_PROJECT_NAMESPACE/gcc-gui:$CI_COMMIT_REF_SLUG
-  CONTAINER_CLANG_IMAGE: $CI_REGISTRY/ogs/$CI_PROJECT_NAME/$CI_PROJECT_NAMESPACE/clang:$CI_COMMIT_REF_SLUG
+  CONTAINER_GCC_IMAGE: $CI_REGISTRY/ogs/$CI_PROJECT_NAME/gcc
+  CONTAINER_GCC_GUI_IMAGE: $CI_REGISTRY/ogs/$CI_PROJECT_NAME/gcc-gui
+  CONTAINER_CLANG_IMAGE: $CI_REGISTRY/ogs/$CI_PROJECT_NAME/clang
   XUNIT_TO_JUNIT_IMAGE: $CI_REGISTRY/ogs/$CI_PROJECT_NAME/xunit-to-junit
   PRECOMMIT_IMAGE: $CI_REGISTRY/ogs/$CI_PROJECT_NAME/pre-commit
   WEB_IMAGE: $CI_REGISTRY/ogs/$CI_PROJECT_NAME/web
   # Build config
   BUILD_TYPE: Release
   BUILD_PROCESSES: "" # Empty string: builds all processes
+  BUILD_TESTS: "true"
+  BUILD_CTEST: "true"
+
+workflow:
+  rules:
+    # Disable CI for non-MR user-scoped pipelines
+    - if: '$CI_MERGE_REQUEST_IID == null && $CI_PROJECT_NAMESPACE != "ogs"'
+      when: never
+    - if: $CI_MERGE_REQUEST_IID                    # merge requests
+    - if: $CI_COMMIT_TAG                           # tags, ogs/ogs repo only
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH  # master, ogs/ogs repo only
 
 include:
-  - template: 'Workflows/MergeRequest-Pipelines.gitlab-ci.yml'
   # extends
   - local: '/scripts/ci/extends/defaults.yml'
-  - local: '/scripts/ci/extends/rules-master-manual.yml'
+  - local: '/scripts/ci/extends/rules.yml'
   - local: '/scripts/ci/extends/template-build-linux.yml'
   - local: '/scripts/ci/extends/template-build-win.yml'
   - local: '/scripts/ci/extends/container-maker-setup.yml'
   - local: '/scripts/ci/extends/vs2019-environment.yml'
   - local: '/scripts/ci/extends/test-artifacts.yml'
-  # jobs
+  - local: '/scripts/ci/jobs/meta.yml'
+  # jobs, can be indiviually disabled for testing
   - local: '/scripts/ci/jobs/pre-commit.yml'
   - local: '/scripts/ci/jobs/build_image.yml'
   - local: '/scripts/ci/jobs/build-linux.yml'
@@ -38,12 +47,14 @@ include:
   - local: '/scripts/ci/jobs/build-win.yml'
   - local: '/scripts/ci/jobs/build-mac.yml'
   - local: '/scripts/ci/jobs/checks.yml'
-  - local: '/scripts/ci/jobs/container.yml'
+  # - template: 'Code-Quality.gitlab-ci.yml' # see !3053
+  - local: '/scripts/ci/jobs/code-quality.yml'
   - local: '/scripts/ci/jobs/build-gui-linux.yml'
   - local: '/scripts/ci/jobs/build-gui-win.yml'
   - local: '/scripts/ci/jobs/build-gui-mac.yml'
   - local: '/scripts/ci/jobs/check-header.yml'
   - local: '/scripts/ci/jobs/tests-large.yml'
-  - local: '/scripts/ci/jobs/web.yml'
   - local: '/scripts/ci/jobs/clang-sanitizer.yml'
   - local: '/scripts/ci/jobs/clang-tidy.yml'
+  - local: '/scripts/ci/jobs/web.yml'
+  - local: '/scripts/ci/jobs/container.yml'

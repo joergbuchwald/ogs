@@ -174,13 +174,12 @@ MeshComponentMap MeshComponentMap::getSubset(
                 {
                     OGS_FATAL(
                         "Could not find a global index for global component "
-                        "{:d} "
-                        "for the mesh '{:s}', node {:d}, in the corresponding "
-                        "bulk "
-                        "mesh '{:s}' and node {:d}. This happens because the "
-                        "boundary mesh is larger then the definition region of "
-                        "the bulk component, usually because the geometry for "
-                        "the boundary condition is too large.",
+                        "{:d} for the mesh '{:s}', node {:d}, in the "
+                        "corresponding bulk mesh '{:s}' and node {:d}. This "
+                        "happens because the boundary mesh is larger then the "
+                        "definition region of the bulk component, usually "
+                        "because the geometry for the boundary condition is "
+                        "too large.",
                         component_id,
                         new_mesh_subset.getMesh().getName(),
                         node_id,
@@ -304,10 +303,8 @@ std::vector<GlobalIndexType> MeshComponentMap::getGlobalIndicesByComponent(
 
     std::vector<GlobalIndexType> global_indices;
     global_indices.reserve(pairs.size());
-    for (const auto& pair : pairs)
-    {
-        global_indices.push_back(pair.second);
-    }
+    transform(cbegin(pairs), cend(pairs), back_inserter(global_indices),
+              [&](const auto& pair) { return pair.second; });
 
     return global_indices;
 }

@@ -13,9 +13,32 @@
 
 #pragma once
 
-#include "Tests/TestTools.h"
+#include <functional>
+#include <memory>
 
 #include "MaterialLib/MPL/Medium.h"
+
 namespace MPL = MaterialPropertyLib;
 
-std::unique_ptr<MPL::Medium> createTestMaterial(std::string const& xml);
+namespace BaseLib
+{
+class ConfigTree;
+}
+
+namespace MaterialPropertyLib
+{
+class Property;
+}
+
+namespace Tests
+{
+std::unique_ptr<MPL::Medium> createTestMaterial(
+    std::string const& xml, int const geometry_dimension = 1);
+
+std::unique_ptr<MaterialPropertyLib::Property> createTestProperty(
+    const char xml[],
+    std::function<std::unique_ptr<MaterialPropertyLib::Property>(
+        BaseLib::ConfigTree const& config)>
+        createProperty);
+
+}  // namespace Tests

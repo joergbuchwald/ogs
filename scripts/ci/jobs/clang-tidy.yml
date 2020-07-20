@@ -1,11 +1,8 @@
 clang tidy:
-  stage: checks
-  tags:
-    - docker
+  stage: check
   extends:
-    - .defaults
-    - .rules-master-manual
-
+    - .rules-manual
+  dependencies: [meta_container]
   variables:
     BUILD_DIR: "build-tidy"
     CMAKE_ARGS: "-DBUILD_SHARED_LIBS=ON -DBUILD_TESTING=OFF -DCMAKE_CXX_CLANG_TIDY=clang-tidy-9"

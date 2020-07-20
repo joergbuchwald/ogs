@@ -1,14 +1,22 @@
-{{ $gh_release := print "https://github.com/ufz/ogs/releases/tag/" .Title }}
+{{ $gh_release := print "https://github.com/ufz/ogs/releases/tag/" .Params.tag }}
 {{ $gh_download := print "https://github.com/ufz/ogs/releases/download/" .Params.tag }}
+{{ $type := "GitHub"}}
+{{/* comparison only works for two version parts, strip out 6. */}}
+{{ if gt (slicestr .Params.tag 2) "3.1" }}
+  {{ $gh_release = print "https://gitlab.opengeosys.org/ogs/ogs/-/releases/" .Params.tag }}
+  {{ $gh_download = print "https://ogsstorage.blob.core.windows.net/binaries/ogs6/" .Params.tag }}
+  {{ $type = "GitLab"}}
+{{ end }}
+
 {{ $file_prefix := print "ogs-" .Params.tag }}
-<p>Released on {{ dateFormat "Monday, Jan 2, 2006" .Params.release_date }}, <a href="{{ $gh_release }}"><i class="fab fa-github"></i> GitHub release</a></p>
+<p>Released on {{ dateFormat "Monday, Jan 2, 2006" .Params.release_date }}, <a href="{{ $gh_release }}"><i class="fab fa-{{ $type | lower}}"></i> {{ $type }} release</a></p>
 {{ if .Params.downloads }}
   <div class="note">
-    <h3><i class="fal fa-download"></i> Benchmark downloads</h3>
+    <h3><i class="far fa-download"></i> Benchmark downloads</h3>
     <div class="flex">
       <a href="https://github.com/ufz/ogs-data/archive/{{.Params.tag}}.zip"><i class="far fa-arrow-right"></i> Benchmark input files for OpenGeoSys {{ .Params.tag }}</a>
     </div>
-    <h3><i class="fal fa-download"></i> Binary downloads</h3>
+    <h3><i class="far fa-download"></i> Binary downloads</h3>
     <div class="flex">
       {{ if .Params.downloads.win }}
         <div class="w-1/2">
@@ -19,7 +27,7 @@
                 <a href="{{$gh_download}}/{{$file_prefix}}-{{.}}">
                   OpenGeoSys
                   {{ if in . "python" }}
-                     ( with Python bindings <i class="fab fa-python"></i>)
+                     (with Python bindings <i class="fab fa-python"></i>)
                   {{ end }}
                   {{ if in . "de" }}
                      + DataExplorer
@@ -42,7 +50,7 @@
                 <a href="{{$gh_download}}/{{$file_prefix}}-{{.}}">
                   OpenGeoSys
                   {{ if in . "python" }}
-                     ( with Python bindings <i class="fab fa-python"></i>)
+                     (with Python bindings <i class="fab fa-python"></i>)
                   {{ end }}
                   {{ if in . "de" }}
                      + DataExplorer
@@ -67,7 +75,7 @@
                 <a href="{{$gh_download}}/{{$file_prefix}}-{{.}}">
                   OpenGeoSys
                   {{ if in . "python" }}
-                     ( with Python bindings <i class="fab fa-python"></i>)
+                     (with Python bindings <i class="fab fa-python"></i>)
                   {{ end }}
                   {{ if in . "de" }}
                      + DataExplorer
@@ -99,5 +107,11 @@
 {{ end }}
 
 <div class="content">
-  {{ .Content }}
+  {{ if eq $type "GitHub" }}
+    {{ .Content }}
+  {{ else }}
+    {{ $urlPre := "https://gitlab.opengeosys.org/api/v4" }}
+    {{ $release := getJSON $urlPre "/projects/120/releases/" .Params.tag }}
+    {{ $release.description | markdownify }}
+  {{ end }}
 </div>

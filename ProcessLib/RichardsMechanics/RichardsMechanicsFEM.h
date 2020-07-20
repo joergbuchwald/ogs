@@ -69,6 +69,8 @@ public:
         MathLib::KelvinVector::KelvinVectorDimensions<DisplacementDim>::value;
     using Invariants = MathLib::KelvinVector::Invariants<KelvinVectorSize>;
 
+    using SymmetricTensor = Eigen::Matrix<double, KelvinVectorSize, 1>;
+
     RichardsMechanicsLocalAssembler(RichardsMechanicsLocalAssembler const&) =
         delete;
     RichardsMechanicsLocalAssembler(RichardsMechanicsLocalAssembler&&) = delete;
@@ -224,16 +226,6 @@ public:
         std::vector<double>& cache) const override;
 
     std::vector<double> const& getIntPtDryDensitySolid(
-        const double t,
-        std::vector<GlobalVector*> const& x,
-        std::vector<NumLib::LocalToGlobalIndexMap const*> const& dof_table,
-        std::vector<double>& cache) const override;
-    std::vector<double> const& getIntPtDryDensityPelletSaturated(
-        const double t,
-        std::vector<GlobalVector*> const& x,
-        std::vector<NumLib::LocalToGlobalIndexMap const*> const& dof_table,
-        std::vector<double>& cache) const override;
-    std::vector<double> const& getIntPtDryDensityPelletUnsaturated(
         const double t,
         std::vector<GlobalVector*> const& x,
         std::vector<NumLib::LocalToGlobalIndexMap const*> const& dof_table,

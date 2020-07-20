@@ -1,18 +1,15 @@
 build gui win:
   extends: .template-build-win
-  stage: gui
-  needs:
-    - job: build win
-      artifacts: false
+  stage: build
   rules:
-    - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "master"'
+    - if: '$CI_COMMIT_BRANCH == "master"'
     - changes:
       - Applications/DataExplorer/**/*
     - when: manual
       allow_failure: true
-
   variables:
     BUILD_DIR: build-gui-win
+    BUILD_CTEST: "false"
     CMAKE_ARGS: >-
       -DOGS_USE_PYTHON=ON
       -DOGS_BUILD_GUI=ON

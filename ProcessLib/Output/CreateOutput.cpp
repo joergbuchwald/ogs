@@ -55,8 +55,6 @@ std::unique_ptr<Output> createOutput(
     // Construction of output times
     std::vector<Output::PairRepeatEachSteps> repeats_each_steps;
 
-    std::vector<double> fixed_output_times;
-
     //! \ogs_file_param{prj__time_loop__output__timesteps}
     if (auto const timesteps = config.getConfigSubtreeOptional("timesteps"))
     {
@@ -119,7 +117,7 @@ std::unique_ptr<Output> createOutput(
             OGS_FATAL(
                 "There are multiple meshes defined in the output section of "
                 "the project file, but the prefix doesn't contain "
-                "'{:meshname}'. Thus the names for the files, the simulation "
+                "'{{:meshname}}'. Thus the names for the files, the simulation "
                 "results should be written to, would not be distinguishable "
                 "for different meshes.");
         }
@@ -133,16 +131,12 @@ std::unique_ptr<Output> createOutput(
         }
     }
 
-    auto fixed_output_times_ptr =
+    std::vector<double> fixed_output_times =
         //! \ogs_file_param{prj__time_loop__output__fixed_output_times}
-        config.getConfigParameterOptional<std::vector<double>>(
-            "fixed_output_times");
-    if (fixed_output_times_ptr)
-    {
-        fixed_output_times = std::move(*fixed_output_times_ptr);
-        // Remove possible duplicated elements and sort in descending order.
-        BaseLib::makeVectorUnique(fixed_output_times, std::greater<>());
-    }
+        config.getConfigParameter<std::vector<double>>("fixed_output_times",
+                                                       {});
+    // Remove possible duplicated elements and sort.
+    BaseLib::makeVectorUnique(fixed_output_times);
 
     bool const output_iteration_results =
         //! \ogs_file_param{prj__time_loop__output__output_iteration_results}

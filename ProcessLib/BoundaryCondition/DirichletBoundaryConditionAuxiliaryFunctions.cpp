@@ -44,14 +44,15 @@ void checkParametersOfDirichletBoundaryCondition(
     {
         OGS_FATAL(
             "The required bulk node ids map does not exist in the boundary "
-            "mesh '{:s}'.",
-            bc_mesh.getName());
+            "mesh '{:s}' or has the wrong data type (should be equivalent to "
+            "C++ data type std::size_t which is an unsigned integer of size "
+            "{:d} or UInt64 in vtk terminology).",
+            bc_mesh.getName(), sizeof(std::size_t));
     }
 
     DBUG(
         "Found {:d} nodes for Dirichlet BCs for the variable {:d} and "
-        "component "
-        "{:d}",
+        "component {:d}",
         bc_mesh.getNodes().size(), variable_id, component_id);
 }
 

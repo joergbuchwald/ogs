@@ -24,16 +24,10 @@ class Mesh;
 class Node;
 class Element;
 
-/// Adds a layer on top of the mesh
-MeshLib::Mesh* addTopLayerToMesh(MeshLib::Mesh const& mesh,
-    double thickness,
-    std::string const& name);
-
 /// Adds a layer to the mesh. If on_top is true, the layer is added on top,
 /// if it is false, the layer is added at the bottom.
-MeshLib::Mesh* addLayerToMesh(MeshLib::Mesh const& mesh,
-    double thickness,
-    std::string const& name,
-    bool on_top);
+MeshLib::Mesh* addLayerToMesh(MeshLib::Mesh const& mesh, double thickness,
+                              std::string const& name, bool on_top,
+                              bool copy_material_ids);
 
 } // end namespace MeshLib

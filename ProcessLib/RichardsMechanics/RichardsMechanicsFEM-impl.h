@@ -458,8 +458,18 @@ void RichardsMechanicsLocalAssembler<
         double const k_rel =
             medium->property(MPL::PropertyType::relative_permeability)
                 .template value<double>(variables, x_position, t, dt);
-        auto const mu = liquid_phase.property(MPL::PropertyType::viscosity)
-                            .template value<double>(variables, x_position, t, dt);
+        auto const mu =
+            liquid_phase.property(MPL::PropertyType::viscosity)
+                .template value<double>(variables, x_position, t, dt);
+
+        // For stress dependent permeability.
+        variables[static_cast<int>(MPL::Variable::stress)]
+            .emplace<SymmetricTensor>(
+                MathLib::KelvinVector::kelvinVectorToSymmetricTensor(
+                    (_ip_data[ip].sigma_eff +
+                     alpha * chi_S_L * identity2 * p_cap_ip)
+                        .eval()));
+
         auto const K_intrinsic = MPL::formEigenTensor<DisplacementDim>(
             solid_phase.property(MPL::PropertyType::permeability)
                 .value(variables, x_position, t, dt));
@@ -510,8 +520,7 @@ void RichardsMechanicsLocalAssembler<
         //
         K.template block<displacement_size, pressure_size>(displacement_index,
                                                            pressure_index)
-            .noalias() -=
-            B.transpose() * alpha * chi_S_L * identity2 * N_p * w;
+            .noalias() -= B.transpose() * alpha * chi_S_L * identity2 * N_p * w;
 
         //
         // pressure equation, displacement part.
@@ -657,14 +666,11 @@ void RichardsMechanicsLocalAssembler<ShapeFunctionDisplacement,
         variables[static_cast<int>(MPL::Variable::temperature)] = temperature;
 
         auto& eps = _ip_data[ip].eps;
-        auto& sigma_eff = _ip_data[ip].sigma_eff;
+        auto const& sigma_eff = _ip_data[ip].sigma_eff;
         auto& S_L = _ip_data[ip].saturation;
         auto const S_L_prev = _ip_data[ip].saturation_prev;
         auto const alpha =
             solid_phase.property(MPL::PropertyType::biot_coefficient)
-                .template value<double>(variables, x_position, t, dt);
-        auto const rho_SR =
-            solid_phase.property(MPL::PropertyType::density)
                 .template value<double>(variables, x_position, t, dt);
 
         auto const C_el = _ip_data[ip].computeElasticTangentStiffness(
@@ -782,8 +788,17 @@ void RichardsMechanicsLocalAssembler<ShapeFunctionDisplacement,
         double const k_rel =
             medium->property(MPL::PropertyType::relative_permeability)
                 .template value<double>(variables, x_position, t, dt);
-        auto const mu = liquid_phase.property(MPL::PropertyType::viscosity)
-                            .template value<double>(variables, x_position, t, dt);
+        auto const mu =
+            liquid_phase.property(MPL::PropertyType::viscosity)
+                .template value<double>(variables, x_position, t, dt);
+
+        // For stress dependent permeability.
+        variables[static_cast<int>(MPL::Variable::stress)]
+            .emplace<SymmetricTensor>(
+                MathLib::KelvinVector::kelvinVectorToSymmetricTensor(
+                    (_ip_data[ip].sigma_eff +
+                     alpha * chi_S_L * identity2 * p_cap_ip)
+                        .eval()));
         auto const K_intrinsic = MPL::formEigenTensor<DisplacementDim>(
             solid_phase.property(MPL::PropertyType::permeability)
                 .value(variables, x_position, t, dt));
@@ -802,6 +817,15 @@ void RichardsMechanicsLocalAssembler<ShapeFunctionDisplacement,
             .template block<displacement_size, displacement_size>(
                 displacement_index, displacement_index)
             .noalias() += B.transpose() * C * B * w;
+
+        auto const phi = _ip_data[ip].porosity;
+        double const p_FR = -chi_S_L * p_cap_ip;
+        // p_SR
+        variables[static_cast<int>(MPL::Variable::solid_grain_pressure)] =
+            p_FR - (sigma_eff + sigma_sw).dot(identity2) / (3 * (1 - phi));
+        auto const rho_SR =
+            solid_phase.property(MPL::PropertyType::density)
+                .template value<double>(variables, x_position, t, dt);
 
         double const rho = rho_SR * (1 - porosity) + S_L * porosity * rho_LR;
         local_rhs.template segment<displacement_size>(displacement_index)
@@ -1196,36 +1220,6 @@ std::vector<double> const& RichardsMechanicsLocalAssembler<
 
 template <typename ShapeFunctionDisplacement, typename ShapeFunctionPressure,
           typename IntegrationMethod, int DisplacementDim>
-std::vector<double> const& RichardsMechanicsLocalAssembler<
-    ShapeFunctionDisplacement, ShapeFunctionPressure, IntegrationMethod,
-    DisplacementDim>::
-    getIntPtDryDensityPelletSaturated(
-        const double /*t*/,
-        std::vector<GlobalVector*> const& /*x*/,
-        std::vector<NumLib::LocalToGlobalIndexMap const*> const& /*dof_table*/,
-        std::vector<double>& cache) const
-{
-    return ProcessLib::getIntegrationPointScalarData(
-        _ip_data, &IpData::dry_density_pellet_saturated, cache);
-}
-
-template <typename ShapeFunctionDisplacement, typename ShapeFunctionPressure,
-          typename IntegrationMethod, int DisplacementDim>
-std::vector<double> const& RichardsMechanicsLocalAssembler<
-    ShapeFunctionDisplacement, ShapeFunctionPressure, IntegrationMethod,
-    DisplacementDim>::
-    getIntPtDryDensityPelletUnsaturated(
-        const double /*t*/,
-        std::vector<GlobalVector*> const& /*x*/,
-        std::vector<NumLib::LocalToGlobalIndexMap const*> const& /*dof_table*/,
-        std::vector<double>& cache) const
-{
-    return ProcessLib::getIntegrationPointScalarData(
-        _ip_data, &IpData::dry_density_pellet_unsaturated, cache);
-}
-
-template <typename ShapeFunctionDisplacement, typename ShapeFunctionPressure,
-          typename IntegrationMethod, int DisplacementDim>
 void RichardsMechanicsLocalAssembler<ShapeFunctionDisplacement,
                                      ShapeFunctionPressure, IntegrationMethod,
                                      DisplacementDim>::
@@ -1402,7 +1396,6 @@ void RichardsMechanicsLocalAssembler<ShapeFunctionDisplacement,
                                           typename BMatricesType::BMatrixType>(
                 dNdx_u, N_u, x_coord, _is_axially_symmetric);
 
-
         double p_cap_ip;
         NumLib::shapeFunctionInterpolate(-p_L, N_p, p_cap_ip);
 
@@ -1521,29 +1514,40 @@ void RichardsMechanicsLocalAssembler<ShapeFunctionDisplacement,
                     porosity;
             }
         }
-        auto const mu = liquid_phase.property(MPL::PropertyType::viscosity)
-                            .template value<double>(variables, x_position, t, dt);
+        auto const mu =
+            liquid_phase.property(MPL::PropertyType::viscosity)
+                .template value<double>(variables, x_position, t, dt);
         auto const rho_LR =
             liquid_phase.property(MPL::PropertyType::density)
                 .template value<double>(variables, x_position, t, dt);
+
+        // For stress dependent permeability.
+        variables[static_cast<int>(MPL::Variable::stress)]
+            .emplace<SymmetricTensor>(
+                MathLib::KelvinVector::kelvinVectorToSymmetricTensor(
+                    (_ip_data[ip].sigma_eff +
+                     alpha * chi_S_L * identity2 * p_cap_ip)
+                        .eval()));
         auto const K_intrinsic = MPL::formEigenTensor<DisplacementDim>(
             solid_phase.property(MPL::PropertyType::permeability)
                 .value(variables, x_position, t, dt));
+
         double const k_rel =
             medium->property(MPL::PropertyType::relative_permeability)
                 .template value<double>(variables, x_position, t, dt);
 
         GlobalDimMatrixType const K_over_mu = k_rel * K_intrinsic / mu;
 
+        auto const phi = _ip_data[ip].porosity;
+        auto const& sigma_eff = _ip_data[ip].sigma_eff;
+        double const p_FR = -chi_S_L * p_cap_ip;
+        // p_SR
+        variables[static_cast<int>(MPL::Variable::solid_grain_pressure)] =
+            p_FR - (sigma_eff + sigma_sw).dot(identity2) / (3 * (1 - phi));
         auto const rho_SR =
             solid_phase.property(MPL::PropertyType::density)
                 .template value<double>(variables, x_position, t, dt);
-        auto const phi = _ip_data[ip].porosity;
         _ip_data[ip].dry_density_solid = (1 - phi) * rho_SR;
-        _ip_data[ip].dry_density_pellet_saturated =
-            (phi - phi_tr) * rho_LR + (1 - phi) * rho_SR;
-        _ip_data[ip].dry_density_pellet_unsaturated =
-            S_L * (phi - phi_tr) * rho_LR + (1 - phi) * rho_SR;
 
         eps.noalias() = B * u;
 
@@ -1561,7 +1565,7 @@ void RichardsMechanicsLocalAssembler<ShapeFunctionDisplacement,
         porosity_avg +=
             _ip_data[ip].porosity;  // Note, this is not updated, because needs
                                     // xdot and dt to be passed.
-        sigma_avg += _ip_data[ip].sigma_eff;
+        sigma_avg += sigma_eff;
     }
     saturation_avg /= n_integration_points;
     porosity_avg /= n_integration_points;

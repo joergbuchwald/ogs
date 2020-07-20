@@ -1,18 +1,16 @@
 container:
   stage: package
-  only:
-    refs:
-      - master
-  tags:
-    - docker-shell
-  variables:
-    GIT_STRATEGY: fetch
-    OPENMPI_VERSIONS: 'off 2.1.6 3.1.4 4.0.1'
-    GIT_LFS_SKIP_SMUDGE: "1"
-  extends: .container-maker-setup
+  tags: [docker-shell]
+  needs: [meta]
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+    - if: $CI_COMMIT_TAG
+  extends:
+    - .container-maker-setup
   script:
-    - python ThirdParty/container-maker/ogscm/cli.py -B -C -R --ogs . --pm system --cvode --ompi $OPENMPI_VERSIONS
+    - python ThirdParty/container-maker/ogscm/cli.py -B -C -R --ogs . --pm system --cvode
+    - python ThirdParty/container-maker/ogscm/cli.py -B -C -R --ogs . --pm system --cvode --ompi 4.0.4 --base_image centos:8
   artifacts:
+    name: container
     paths:
       - _out/images/*.sif
-    expire_in: 2 weeks

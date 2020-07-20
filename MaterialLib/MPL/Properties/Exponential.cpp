@@ -16,12 +16,15 @@
 namespace MaterialPropertyLib
 {
 Exponential::Exponential(std::string name,
+                         double const offset,
                          PropertyDataType const& property_reference_value,
                          ExponentData const& v)
-    : exponent_data_(v)
+    : exponent_data_(v), offset_(offset)
 {
     name_ = std::move(name);
-    value_ = property_reference_value;
+    auto const f = std::get<double>(exponent_data_.factor);
+    auto const v0 = std::get<double>(exponent_data_.reference_condition);
+    value_ = std::get<double>(property_reference_value) * std::exp(-f * v0);
 }
 
 PropertyDataType Exponential::value(
@@ -29,12 +32,11 @@ PropertyDataType Exponential::value(
     ParameterLib::SpatialPosition const& /*pos*/, double const /*t*/,
     double const /*dt*/) const
 {
-    return std::get<double>(value_) *
-           std::exp(
-               -std::get<double>(exponent_data_.factor) *
-               (std::get<double>(
-                    variable_array[static_cast<int>(exponent_data_.type)]) -
-                std::get<double>(exponent_data_.reference_condition)));
+    auto const f = std::get<double>(exponent_data_.factor);
+    auto const v =
+        std::get<double>(variable_array[static_cast<int>(exponent_data_.type)]);
+
+    return offset_ + std::get<double>(value_) * std::exp(f * v);
 }
 
 PropertyDataType Exponential::dValue(
@@ -42,15 +44,16 @@ PropertyDataType Exponential::dValue(
     ParameterLib::SpatialPosition const& /*pos*/, double const /*t*/,
     double const /*dt*/) const
 {
-    return exponent_data_.type == primary_variable
-               ? -std::get<double>(value_) *
-                     std::get<double>(exponent_data_.factor) *
-                     std::exp(
-                         -std::get<double>(exponent_data_.factor) *
-                         (std::get<double>(variable_array[static_cast<int>(
-                              exponent_data_.type)]) -
-                          std::get<double>(exponent_data_.reference_condition)))
-               : decltype(value_){};
+    if (exponent_data_.type != primary_variable)
+    {
+        return 0.;
+    }
+
+    auto const f = std::get<double>(exponent_data_.factor);
+    auto const v =
+        std::get<double>(variable_array[static_cast<int>(exponent_data_.type)]);
+
+    return std::get<double>(value_) * f * std::exp(f * v);
 }
 
 PropertyDataType Exponential::d2Value(
@@ -58,16 +61,16 @@ PropertyDataType Exponential::d2Value(
     ParameterLib::SpatialPosition const& /*pos*/, double const /*t*/,
     double const /*dt*/) const
 {
-    return exponent_data_.type == pv1 && exponent_data_.type == pv2
-               ? std::get<double>(value_) *
-                     boost::math::pow<2>(
-                         std::get<double>(exponent_data_.factor)) *
-                     std::exp(
-                         -std::get<double>(exponent_data_.factor) *
-                         (std::get<double>(variable_array[static_cast<int>(
-                              exponent_data_.type)]) -
-                          std::get<double>(exponent_data_.reference_condition)))
-               : decltype(value_){};
+    if (exponent_data_.type != pv1 && exponent_data_.type != pv2)
+    {
+        return 0.;
+    }
+
+    auto const f = std::get<double>(exponent_data_.factor);
+    auto const v =
+        std::get<double>(variable_array[static_cast<int>(exponent_data_.type)]);
+
+    return std::get<double>(value_) * f * f * std::exp(f * v);
 }
 
 }  // namespace MaterialPropertyLib

@@ -337,12 +337,14 @@ std::size_t copyNodePropertyVectorValues(
 {
     auto const& nodes = p.nodes;
     auto const nnodes = nodes.size();
+    auto const n_components = pv.getNumberOfComponents();
     for (std::size_t i = 0; i < nnodes; ++i)
     {
         const auto global_id = nodes[i]->getID();
-        partitioned_pv[offset + i] = pv[global_id];
+        std::copy_n(&pv[n_components * global_id], n_components,
+                    &partitioned_pv[offset + n_components * i]);
     }
-    return nnodes;
+    return n_components * nnodes;
 }
 
 /// Copies the properties from global property vector \c pv to the
@@ -356,47 +358,58 @@ std::size_t copyCellPropertyVectorValues(
     MeshLib::PropertyVector<T>& partitioned_pv)
 {
     std::size_t const n_regular(p.regular_elements.size());
+    auto const n_components = pv.getNumberOfComponents();
     for (std::size_t i = 0; i < n_regular; ++i)
     {
         const auto id = p.regular_elements[i]->getID();
-        partitioned_pv[offset + i] = pv[id];
+        std::copy_n(&pv[n_components * id], n_components,
+                    &partitioned_pv[offset + n_components * i]);
     }
 
     std::size_t const n_ghost(p.ghost_elements.size());
     for (std::size_t i = 0; i < n_ghost; ++i)
     {
         const auto id = p.ghost_elements[i]->getID();
-        partitioned_pv[offset + n_regular + i] = pv[id];
+        std::copy_n(&pv[n_components * id], n_components,
+                    &partitioned_pv[offset + n_components * (n_regular + i)]);
     }
-    return n_regular + n_ghost;
+    return n_components * (n_regular + n_ghost);
 }
 
 template <typename T>
-bool copyPropertyVector(MeshLib::Properties const& original_properties,
-                        MeshLib::Properties& partitioned_properties,
-                        std::vector<Partition> const& partitions,
-                        std::string const& name,
-                        std::size_t const total_number_of_tuples)
+bool copyPropertyVector(
+    MeshLib::Properties& partitioned_properties,
+    std::vector<Partition> const& partitions,
+    MeshLib::PropertyVector<T> const* const pv,
+    std::map<MeshLib::MeshItemType, std::size_t> const total_number_of_tuples)
 {
-    if (!original_properties.existsPropertyVector<T>(name))
+    if (pv == nullptr)
     {
         return false;
     }
+    auto const item_type = pv->getMeshItemType();
 
-    auto const& pv = original_properties.getPropertyVector<T>(name);
+    if (item_type == MeshLib::MeshItemType::IntegrationPoint)
+    {
+        return true;  // Skip integration point data. Requires parsing of json
+                      // for the integration point data. Return true, because
+                      // the property was "successfully" parsed.
+    }
+
     auto partitioned_pv = partitioned_properties.createNewPropertyVector<T>(
-        name, pv->getMeshItemType(), pv->getNumberOfComponents());
-    partitioned_pv->resize(total_number_of_tuples *
+        pv->getPropertyName(), pv->getMeshItemType(),
+        pv->getNumberOfComponents());
+    partitioned_pv->resize(total_number_of_tuples.at(item_type) *
                            pv->getNumberOfComponents());
 
     auto copy_property_vector_values = [&](Partition const& p,
                                            std::size_t offset) {
-        if (pv->getMeshItemType() == MeshLib::MeshItemType::Node)
+        if (item_type == MeshLib::MeshItemType::Node)
         {
             return copyNodePropertyVectorValues(p, offset, *pv,
                                                 *partitioned_pv);
         }
-        if (pv->getMeshItemType() == MeshLib::MeshItemType::Cell)
+        if (item_type == MeshLib::MeshItemType::Cell)
         {
             return copyCellPropertyVectorValues(p, offset, *pv,
                                                 *partitioned_pv);
@@ -404,7 +417,7 @@ bool copyPropertyVector(MeshLib::Properties const& original_properties,
         OGS_FATAL(
             "Copying of property vector values for mesh item type {:s} is "
             "not implemented.",
-            pv->getMeshItemType());
+            item_type);
     };
 
     std::size_t position_offset(0);
@@ -421,64 +434,62 @@ bool copyPropertyVector(MeshLib::Properties const& original_properties,
 /// At least one of the functions must return the 'true' value, but at most one
 /// is executed.
 template <typename Function>
-void applyToPropertyVectors(std::vector<std::string> const& property_names,
-                            Function f)
+void applyToPropertyVectors(MeshLib::Properties const& properties, Function f)
 {
-    for (auto const& name : property_names)
+    for (auto [name, property] : properties)
     {
         // Open question, why is the 'unsigned long' case not compiling giving
         // an error "expected '(' for function-style cast or type construction"
         // with clang-7, and "error C4576: a parenthesized type followed by an
         // initializer list is a non-standard explicit type conversion syntax"
         // with MSVC-15.
-        bool success =
-            f(double{}, name) || f(float{}, name) || f(int{}, name) ||
-            f(long{}, name) || f(unsigned{}, name) ||
-            f(static_cast<unsigned long>(0), name) || f(std::size_t{}, name);
+        bool success = f(double{}, property) || f(float{}, property) ||
+                       f(int{}, property) || f(long{}, property) ||
+                       f(unsigned{}, property) || f(long{}, property) ||
+                       f(static_cast<unsigned long>(0), property) ||
+                       f(std::size_t{}, property) || f(char{}, property);
         if (!success)
         {
             OGS_FATAL("Could not apply function to PropertyVector '{:s}'.",
-                      name);
+                      property->getPropertyName());
         }
     }
-}
-
-void processProperties(MeshLib::Properties const& properties,
-                       MeshLib::MeshItemType const mesh_item_type,
-                       std::vector<Partition> const& partitions,
-                       MeshLib::Properties& partitioned_properties)
-{
-    std::size_t const total_number_of_tuples =
-        std::accumulate(begin(partitions), end(partitions), 0,
-                        [&](std::size_t const sum, Partition const& p) {
-                            return sum + p.numberOfMeshItems(mesh_item_type);
-                        });
-
-    DBUG(
-        "total number of tuples define on mesh item type '{:s}' after "
-        "partitioning: {:d} ",
-        toString(mesh_item_type), total_number_of_tuples);
-
-    // 1 create new PV
-    // 2 resize the PV with total_number_of_tuples
-    // 3 copy the values according to the partition info
-    applyToPropertyVectors(properties.getPropertyVectorNames(mesh_item_type),
-                           [&](auto type, std::string const& name) {
-                               return copyPropertyVector<decltype(type)>(
-                                   properties, partitioned_properties,
-                                   partitions, name, total_number_of_tuples);
-                           });
 }
 
 MeshLib::Properties partitionProperties(
     MeshLib::Properties const& properties,
     std::vector<Partition> const& partitions)
 {
-    MeshLib::Properties partitioned_properties;
-    processProperties(properties, MeshLib::MeshItemType::Node, partitions,
-                      partitioned_properties);
-    processProperties(properties, MeshLib::MeshItemType::Cell, partitions,
-                      partitioned_properties);
+    using namespace MeshLib;
+
+    Properties partitioned_properties;
+
+    auto count_tuples = [&](MeshItemType const mesh_item_type) {
+        return std::accumulate(begin(partitions), end(partitions), 0,
+                               [&](std::size_t const sum, Partition const& p) {
+                                   return sum +
+                                          p.numberOfMeshItems(mesh_item_type);
+                               });
+    };
+    std::map<MeshItemType, std::size_t> const total_number_of_tuples = {
+        {MeshItemType::Cell, count_tuples(MeshItemType::Cell)},
+        {MeshItemType::Node, count_tuples(MeshItemType::Node)}};
+
+    DBUG(
+        "total number of tuples after partitioning defined for cells is"
+        " {:d} and for nodes {:d}.",
+        total_number_of_tuples.at(MeshItemType::Cell),
+        total_number_of_tuples.at(MeshItemType::Node));
+
+    // 1 create new PV
+    // 2 resize the PV with total_number_of_tuples
+    // 3 copy the values according to the partition info
+    applyToPropertyVectors(properties, [&](auto type, auto const property) {
+        return copyPropertyVector<decltype(type)>(
+            partitioned_properties, partitions,
+            dynamic_cast<PropertyVector<decltype(type)> const*>(property),
+            total_number_of_tuples);
+    });
     return partitioned_properties;
 }
 
@@ -700,18 +711,23 @@ void writePropertyVectorValuesBinary(std::ostream& os,
 }
 
 template <typename T>
-bool writePropertyVectorBinary(
-    MeshLib::Properties const& partitioned_properties, std::string const& name,
-    std::ostream& out_val, std::ostream& out_meta)
+bool writePropertyVectorBinary(MeshLib::PropertyVector<T> const* const pv,
+                               MeshLib::MeshItemType const mesh_item_type,
+                               std::ostream& out_val, std::ostream& out_meta)
 {
-    if (!partitioned_properties.existsPropertyVector<T>(name))
+    if (pv == nullptr)
     {
         return false;
     }
+    // skip property of different mesh item type. Return true, because this
+    // operation was successful.
+    if (pv->getMeshItemType() != mesh_item_type)
+    {
+        return true;
+    }
 
     MeshLib::IO::PropertyVectorMetaData pvmd;
-    pvmd.property_name = name;
-    auto* pv = partitioned_properties.getPropertyVector<T>(name);
+    pvmd.property_name = pv->getPropertyName();
     pvmd.fillPropertyVectorMetaDataTypeInfo<T>();
     pvmd.number_of_components = pv->getNumberOfComponents();
     pvmd.number_of_tuples = pv->getNumberOfTuples();
@@ -725,9 +741,9 @@ void writePropertiesBinary(const std::string& file_name_base,
                            std::vector<Partition> const& partitions,
                            MeshLib::MeshItemType const mesh_item_type)
 {
-    auto const& property_names =
-        partitioned_properties.getPropertyVectorNames(mesh_item_type);
-    if (property_names.empty())
+    auto const number_of_properties =
+        partitioned_properties.size(mesh_item_type);
+    if (number_of_properties == 0)
     {
         return;
     }
@@ -752,14 +768,15 @@ void writePropertiesBinary(const std::string& file_name_base,
         OGS_FATAL("Could not open file '{:s}' for output.", file_name_val);
     }
 
-    std::size_t const number_of_properties(property_names.size());
     BaseLib::writeValueBinary(out, number_of_properties);
 
-    applyToPropertyVectors(property_names,
-                           [&](auto type, std::string const& name) {
-                               return writePropertyVectorBinary<decltype(type)>(
-                                   partitioned_properties, name, out_val, out);
-                           });
+    applyToPropertyVectors(
+        partitioned_properties, [&](auto type, auto const& property) {
+            return writePropertyVectorBinary<decltype(type)>(
+                dynamic_cast<MeshLib::PropertyVector<decltype(type)> const*>(
+                    property),
+                mesh_item_type, out_val, out);
+        });
 
     unsigned long offset = 0;
     for (const auto& partition : partitions)
@@ -769,8 +786,7 @@ void writePropertiesBinary(const std::string& file_name_base,
                         partition.numberOfMeshItems(mesh_item_type))};
         DBUG(
             "Write meta data for node-based PropertyVector: global offset "
-            "{:d}, "
-            "number of tuples {:d}",
+            "{:d}, number of tuples {:d}",
             pvpmd.offset, pvpmd.number_of_tuples);
         MeshLib::IO::writePropertyVectorPartitionMetaData(out, pvpmd);
         offset += pvpmd.number_of_tuples;

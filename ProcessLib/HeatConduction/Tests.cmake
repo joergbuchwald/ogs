@@ -11,17 +11,104 @@ AddTest(
 )
 
 AddTest(
-        NAME 1D_HeatConduction_neumann
+        NAME 1D_HeatConduction_neumann_picard
         PATH Parabolic/T/1D_neumann
         EXECUTABLE ogs
-        EXECUTABLE_ARGS line_60_heat.prj
+        EXECUTABLE_ARGS picard.prj
         TESTER vtkdiff
         DIFF_DATA
-        temperature_analytical.vtu line_60_heat_pcs_0_ts_65_t_5078125.000000.vtu Temperature_Analytical_2months temperature 1e-4 1e-4
-        temperature_analytical.vtu line_60_heat_pcs_0_ts_405_t_31640625.000000.vtu Temperature_Analytical_1year temperature 1e-4 1e-4
+        picard_ts_1_t_78125.000000.vtu picard_ts_1_t_78125.000000.vtu temperature temperature 1e-12 1e-16
+        picard_ts_3_t_234375.000000.vtu picard_ts_3_t_234375.000000.vtu temperature temperature 1e-12 1e-16
+        picard_ts_65_t_5078125.000000.vtu picard_ts_65_t_5078125.000000.vtu temperature temperature 1e-12 1e-16
+        picard_ts_405_t_31640625.000000.vtu picard_ts_405_t_31640625.000000.vtu temperature temperature 1e-12 1e-16
+        picard_ts_500_t_39062500.000000.vtu picard_ts_500_t_39062500.000000.vtu temperature temperature 1e-12 1e-16
+        temperature_analytical.vtu picard_ts_1_t_78125.000000.vtu temperature_78125s temperature 8e-2 1e-4
+        temperature_analytical.vtu picard_ts_3_t_234375.000000.vtu temperature_234375s temperature 6e-2 1e-4
+        temperature_analytical.vtu picard_ts_65_t_5078125.000000.vtu temperature_5078125s temperature 1e-4 1e-4
+        temperature_analytical.vtu picard_ts_405_t_31640625.000000.vtu temperature_31640625s temperature 1e-4 1e-4
+        temperature_analytical.vtu picard_ts_500_t_39062500.000000.vtu temperature_39062500s temperature 1e-4 1e-4
     REQUIREMENTS NOT OGS_USE_MPI
 )
 
+AddTest(
+    NAME 1D_HeatConduction_neumann_newton
+    PATH Parabolic/T/1D_neumann
+    EXECUTABLE ogs
+    EXECUTABLE_ARGS newton.prj
+    TESTER vtkdiff
+    DIFF_DATA
+    newton_ts_1_t_78125.000000.vtu newton_ts_1_t_78125.000000.vtu temperature temperature 1e-12 1e-16
+    newton_ts_3_t_234375.000000.vtu newton_ts_3_t_234375.000000.vtu temperature temperature 1e-12 1e-16
+    newton_ts_65_t_5078125.000000.vtu newton_ts_65_t_5078125.000000.vtu temperature temperature 1e-12 1e-16
+    newton_ts_405_t_31640625.000000.vtu newton_ts_405_t_31640625.000000.vtu temperature temperature 1e-12 1e-16
+    newton_ts_500_t_39062500.000000.vtu newton_ts_500_t_39062500.000000.vtu temperature temperature 1e-12 1e-16
+    temperature_analytical.vtu newton_ts_1_t_78125.000000.vtu temperature_78125s temperature 8e-2 1e-4
+    temperature_analytical.vtu newton_ts_3_t_234375.000000.vtu temperature_234375s temperature 6e-2 1e-4
+    temperature_analytical.vtu newton_ts_65_t_5078125.000000.vtu temperature_5078125s temperature 1e-4 1e-4
+    temperature_analytical.vtu newton_ts_405_t_31640625.000000.vtu temperature_31640625s temperature 1e-4 1e-4
+    temperature_analytical.vtu newton_ts_500_t_39062500.000000.vtu temperature_39062500s temperature 1e-4 1e-4
+    REQUIREMENTS NOT OGS_USE_MPI
+)
+
+AddTest(
+    NAME 1D_HeatConduction_neumann_picard_masslumping
+    PATH Parabolic/T/1D_neumann
+    EXECUTABLE ogs
+    EXECUTABLE_ARGS picard_masslumping.prj
+    TESTER vtkdiff
+    DIFF_DATA
+    picard_masslumping_ts_1_t_78125.000000.vtu picard_masslumping_ts_1_t_78125.000000.vtu temperature temperature 1e-12 1e-16
+    picard_masslumping_ts_3_t_234375.000000.vtu picard_masslumping_ts_3_t_234375.000000.vtu temperature temperature 1e-12 1e-16
+    picard_masslumping_ts_65_t_5078125.000000.vtu picard_masslumping_ts_65_t_5078125.000000.vtu temperature temperature 1e-12 1e-16
+    picard_masslumping_ts_405_t_31640625.000000.vtu picard_masslumping_ts_405_t_31640625.000000.vtu temperature temperature 1e-12 1e-16
+    picard_masslumping_ts_500_t_39062500.000000.vtu picard_masslumping_ts_500_t_39062500.000000.vtu temperature temperature 1e-12 1e-16
+    temperature_analytical.vtu picard_masslumping_ts_1_t_78125.000000.vtu temperature_78125s temperature 2e-1 1e-4
+    temperature_analytical.vtu picard_masslumping_ts_3_t_234375.000000.vtu temperature_234375s temperature 2e-1 1e-4
+    temperature_analytical.vtu picard_masslumping_ts_65_t_5078125.000000.vtu temperature_5078125s temperature 1e-4 1e-4
+    temperature_analytical.vtu picard_masslumping_ts_405_t_31640625.000000.vtu temperature_31640625s temperature 1e-4 1e-4
+    temperature_analytical.vtu picard_masslumping_ts_500_t_39062500.000000.vtu temperature_39062500s temperature 1e-4 1e-4
+    REQUIREMENTS NOT OGS_USE_MPI
+)
+
+AddTest(
+    NAME 1D_HeatConduction_neumann_newton_masslumping
+    PATH Parabolic/T/1D_neumann
+    EXECUTABLE ogs
+    EXECUTABLE_ARGS newton_masslumping.prj
+    TESTER vtkdiff
+    DIFF_DATA
+    newton_masslumping_ts_1_t_78125.000000.vtu newton_masslumping_ts_1_t_78125.000000.vtu temperature temperature 1e-12 1e-16
+    newton_masslumping_ts_3_t_234375.000000.vtu newton_masslumping_ts_3_t_234375.000000.vtu temperature temperature 1e-12 1e-16
+    newton_masslumping_ts_65_t_5078125.000000.vtu newton_masslumping_ts_65_t_5078125.000000.vtu temperature temperature 1e-12 1e-16
+    newton_masslumping_ts_405_t_31640625.000000.vtu newton_masslumping_ts_405_t_31640625.000000.vtu temperature temperature 1e-12 1e-16
+    newton_masslumping_ts_500_t_39062500.000000.vtu newton_masslumping_ts_500_t_39062500.000000.vtu temperature temperature 1e-12 1e-16
+    temperature_analytical.vtu newton_masslumping_ts_1_t_78125.000000.vtu temperature_78125s temperature 2e-1 1e-4
+    temperature_analytical.vtu newton_masslumping_ts_3_t_234375.000000.vtu temperature_234375s temperature 2e-1 1e-4
+    temperature_analytical.vtu newton_masslumping_ts_65_t_5078125.000000.vtu temperature_5078125s temperature 1e-4 1e-4
+    temperature_analytical.vtu newton_masslumping_ts_405_t_31640625.000000.vtu temperature_31640625s temperature 1e-4 1e-4
+    temperature_analytical.vtu newton_masslumping_ts_500_t_39062500.000000.vtu temperature_39062500s temperature 1e-4 1e-4
+    REQUIREMENTS NOT OGS_USE_MPI
+)
+
+AddTest(
+    NAME 1D_HeatConduction_neumann_petsc_newtonls
+    PATH Parabolic/T/1D_neumann
+    EXECUTABLE ogs
+    EXECUTABLE_ARGS petsc_newtonls.prj
+    TESTER vtkdiff
+    DIFF_DATA
+    newton_ts_1_t_78125.000000.vtu petsc_newtonls_ts_1_t_78125_000000_0.vtu temperature temperature 1e-12 1e-16
+    newton_ts_3_t_234375.000000.vtu petsc_newtonls_ts_3_t_234375_000000_0.vtu temperature temperature 1e-12 1e-16
+    newton_ts_65_t_5078125.000000.vtu petsc_newtonls_ts_65_t_5078125_000000_0.vtu temperature temperature 1e-12 1e-16
+    newton_ts_405_t_31640625.000000.vtu petsc_newtonls_ts_405_t_31640625_000000_0.vtu temperature temperature 1e-12 1e-16
+    newton_ts_500_t_39062500.000000.vtu petsc_newtonls_ts_500_t_39062500_000000_0.vtu temperature temperature 1e-12 1e-16
+    temperature_analytical.vtu petsc_newtonls_ts_1_t_78125_000000_0.vtu temperature_78125s temperature 8e-2 1e-4
+    temperature_analytical.vtu petsc_newtonls_ts_3_t_234375_000000_0.vtu temperature_234375s temperature 6e-2 1e-4
+    temperature_analytical.vtu petsc_newtonls_ts_65_t_5078125_000000_0.vtu temperature_5078125s temperature 1e-4 1e-4
+    temperature_analytical.vtu petsc_newtonls_ts_405_t_31640625_000000_0.vtu temperature_31640625s temperature 1e-4 1e-4
+    temperature_analytical.vtu petsc_newtonls_ts_500_t_39062500_000000_0.vtu temperature_39062500s temperature 1e-4 1e-4
+    REQUIREMENTS OGS_USE_MPI
+)
 # SQUARE 1x1 HEAT CONDUCTION TEST -- AXIALLY SYMMETRIC
 # test results are compared to 3D simulation on a wedge-shaped domain
 AddTest(
@@ -65,7 +152,7 @@ AddTest(
     EXECUTABLE_ARGS line_1_line_1e2_source_term.prj
     TESTER vtkdiff
     DIFF_DATA
-    line_1_line_1e2_pcs_0_ts_500_t_39062500.000000_reference.vtu line_1_line_1e2_pcs_0_ts_500_t_39062500.000000.vtu temperature temperature 1e-11 0.0
+    line_1_line_1e2_pcs_0_ts_500_t_39062500.000000_reference.vtu line_1_line_1e2_pcs_0_ts_500_t_39062500.000000.vtu temperature temperature 1.4e-11 0.0
     REQUIREMENTS NOT OGS_USE_MPI
 )
 
@@ -162,7 +249,7 @@ AddTest(
         EXECUTABLE_ARGS line_source_term_x_0.5.prj
         TESTER vtkdiff
         DIFF_DATA
-        source_term_middle_pcs_0_ts_1_t_1.000000.vtu source_term_middle_pcs_0_ts_1_t_1.000000.vtu temperature temperature 4e-15 2e-14
+        source_term_middle_pcs_0_ts_1_t_1.000000.vtu source_term_middle_pcs_0_ts_1_t_1.000000.vtu temperature temperature 7e-15 2e-14
         source_term_middle_pcs_0_ts_1_t_1.000000.vtu source_term_middle_pcs_0_ts_1_t_1.000000.vtu heat_flux_x heat_flux_x 7e-14 0.0
         REQUIREMENTS NOT OGS_USE_MPI
 )

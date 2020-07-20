@@ -1,16 +1,13 @@
 build linux frontend:
-  extends: .template-build-linux
+  extends:
+    - .template-build-linux
+    - .rules-master-manual
   tags:
-    - frontend1
-  rules:
-    - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "master"'
-    - when: manual
-      allow_failure: true
-
+    - frontend2
   variables:
     BUILD_DIR: "build"
     CCACHE_DIR: "/data/ogs/.ccache"
-    CMAKE_ARGS: "-DOGS_USE_CONAN=OFF -DOGS_DISABLE_CCACHE=OFF"
+    CMAKE_ARGS: "-DOGS_USE_CONAN=OFF -DOGS_DISABLE_CCACHE=OFF -DOGS_CPU_ARCHITECTURE=generic"
 
   before_script:
     - source scripts/env/eve/cli.sh

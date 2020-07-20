@@ -18,10 +18,14 @@
 #include "MaterialLib/MPL/CreateMedium.h"
 #include "MathLib/InterpolationAlgorithms/PiecewiseLinearInterpolation.h"
 #include "ParameterLib/Parameter.h"
+#include "Tests/TestTools.h"
 
-std::unique_ptr<MPL::Medium> createTestMaterial(std::string const& xml)
+namespace Tests
 {
-    auto const ptree = readXml(xml.c_str());
+std::unique_ptr<MPL::Medium> createTestMaterial(std::string const& xml,
+                                                int const geometry_dimension)
+{
+    auto const ptree = Tests::readXml(xml.c_str());
     BaseLib::ConfigTree conf(ptree, "", BaseLib::ConfigTree::onerror,
                              BaseLib::ConfigTree::onwarning);
     auto const& config = conf.getConfigSubtree("medium");
@@ -30,5 +34,25 @@ std::unique_ptr<MPL::Medium> createTestMaterial(std::string const& xml)
              std::unique_ptr<MathLib::PiecewiseLinearInterpolation>>
         curves;
 
-    return MPL::createMedium(config, parameters, nullptr, curves);
+    return MPL::createMedium(geometry_dimension, config, parameters, nullptr,
+                             curves);
 }
+
+std::unique_ptr<MaterialPropertyLib::Property> createTestProperty(
+    const char xml[],
+    std::function<std::unique_ptr<MaterialPropertyLib::Property>(
+        BaseLib::ConfigTree const& config)>
+        createProperty)
+{
+    auto const ptree = Tests::readXml(xml);
+    BaseLib::ConfigTree conf(ptree, "", BaseLib::ConfigTree::onerror,
+                             BaseLib::ConfigTree::onwarning);
+    auto const& sub_config = conf.getConfigSubtree("property");
+    // Parsing the property name:
+    auto const property_name =
+        sub_config.getConfigParameter<std::string>("name");
+
+    return createProperty(sub_config);
+}
+
+}  // namespace Tests

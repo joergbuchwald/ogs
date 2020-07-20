@@ -20,6 +20,7 @@
 
 #include "filesystem.h"
 #include "Applications/FileIO/TetGenInterface.h"
+#include "BaseLib/StringTools.h"
 #include "InfoLib/TestInfo.h"
 #include "MeshLib/IO/readMeshFromFile.h"
 #include "GeoLib/GEOObjects.h"
@@ -100,9 +101,10 @@ TEST(FileIO, TetGenMeshReaderWithMaterials)
     ASSERT_EQ(1378, mesh->getNumberOfNodes());
     ASSERT_EQ(5114, mesh->getNumberOfElements());
 
+    ASSERT_NE(nullptr, materialIDs(*mesh));
     auto const& bounds =
-        MeshLib::MeshInformation::getValueBounds<int>(*mesh, "MaterialIDs");
-    ASSERT_TRUE(boost::none != bounds);
+        MeshLib::MeshInformation::getValueBounds(*materialIDs(*mesh));
+    ASSERT_TRUE(bounds.has_value());
     ASSERT_EQ(-20, bounds->first);
     ASSERT_EQ(-10, bounds->second);
 }
@@ -118,7 +120,5 @@ TEST(FileIO, TetGenMeshReaderWithoutMaterials)
     ASSERT_EQ(202, mesh->getNumberOfNodes());
     ASSERT_EQ(650, mesh->getNumberOfElements());
 
-    auto const& bounds =
-        MeshLib::MeshInformation::getValueBounds<int>(*mesh, "MaterialIDs");
-    ASSERT_TRUE(boost::none == bounds);
+    ASSERT_EQ(nullptr, materialIDs(*mesh));
 }

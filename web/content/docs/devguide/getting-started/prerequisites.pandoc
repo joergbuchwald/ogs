@@ -50,6 +50,32 @@ You need to have at least **gcc {{< dataFile "versions.minimum_version.gcc" >}}*
 $ gcc --version
 gcc (GCC) {{< dataFile "versions.minimum_version.gcc" >}}.0
 ```
+
+::: {.note}
+### Install a newer compiler on Ubuntu
+
+We recommend using Ubuntu {{< dataFile "versions.tested_version.ubuntu" >}} as its standard `gcc` package is already at version 9. If you are on an older Ubuntu version you can install a newer compiler from the `ubuntu-toolchain-r/test`-repository:
+
+```bash
+sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+sudo apt-get update
+sudo apt-get install gcc-9 g++-9
+```
+
+To make the newly installed compiler the default one:
+
+```bash
+sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 60 \
+  --slave /usr/bin/g++ g++ /usr/bin/g++-9
+```
+
+If you do not do this you have to specify the compiler during the first CMake run:
+
+```bash
+CC=gcc-9 CXX=c++-9 cmake ../ogs [more CMake options]
+```
+:::
+
 :::
 
 ::: {.mac}
@@ -73,7 +99,7 @@ The Homebrew package manager is needed for installing other libraries and packag
 
 ## Step: Install Git
 
-Git is a powerful and distributed version control system. OGS source code is hosted on [GitHub](https://github.com/ufz/ogs). See the developer guide page on [Code Reviews]({{< ref "code-reviews" >}}) for more info on how OGS uses GitHub for collaborative development.
+Git is a powerful and distributed version control system. OGS source code is hosted on [GitLab](https://gitlab.opengeosys.org/ogs/ogs). See the developer guide page on [Code Reviews]({{< ref "code-reviews" >}}) for more info on how OGS uses GitLab for collaborative development.
 
 ::: {.win}
 Download and install git from the [git homepage](http://git-scm.com/download/win). Use the default installer options but also enable `Enable symbolic links` under the *Configuring extra options* page.
@@ -107,8 +133,7 @@ git version {{< dataFile "versions.minimum_version.git" >}}
 Otherwise please install Git with your favorite package manager:
 
 ```bash
-$ sudo yum install git      // RPM-based systems
-$ sudo apt-get install git  // Debian-based systems
+$ sudo apt-get install git
 ```
 
 Let Git know who you are:
@@ -153,41 +178,6 @@ In some corporate environments you may have to use a proxy server. In this case 
 git config --global http.proxy http://yourproxy.example.com
 ```
 :::
-
-
-## Step: Install Git LFS
-
-[Git LFS](https://git-lfs.github.com/) (large file storage) is a git extension dealing with large binary files such as images and is used for the documentation. You don't need to worry about anything but you need to install the extension as it is not a part of standard git.
-
-::: {.win}
-- Git LFS is already part of your regular git installation, to enable it run: `git lfs install` in the command line
-:::
-
-::: {.linux}
-Install via [PackageCloud](https://packagecloud.io/):
-
-```bash
-$ curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
-$ sudo apt-get install git-lfs
-$ git lfs install
-```
-:::
-
-::: {.mac}
-Install with Homebrew:
-
-```bash
-$ brew install git-lfs
-$ git lfs install
-```
-:::
-
-::: {.note}
-### <i class="far fa-info-circle"></i> Git LFS installation without admin rights
-
-If you do not have rights to install a system package (e.g. on cluster systems) you can [download](https://github.com/git-lfs/git-lfs/releases/latest) a precompiled `git-lfs` executable. Simply put it into your `PATH` and everything should work (remember to run `git lfs install` once!). See also: <https://github.com/git-lfs/git-lfs/wiki/Installation#other>
-:::
-
 
 ## Step: Install Python 3
 
