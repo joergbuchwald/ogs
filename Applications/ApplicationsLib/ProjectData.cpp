@@ -72,6 +72,11 @@
 #ifdef OGS_BUILD_PROCESS_LIQUIDFLOW
 #include "ProcessLib/LiquidFlow/CreateLiquidFlowProcess.h"
 #endif
+
+#ifdef OGS_BUILD_PROCESS_NONISOTHERMALRICHARDSFLOWMECHANICS
+#include "ProcessLib/NonisothermalRichardsFlowMechanics/CreateNonisothermalRichardsFlowMechanicsProcess.h"
+#endif
+
 #ifdef OGS_BUILD_PROCESS_PHASEFIELD
 #include "ProcessLib/PhaseField/CreatePhaseFieldProcess.h"
 #endif
@@ -980,6 +985,35 @@ void ProjectData::parseProcesses(
         }
         else
 #endif
+
+#ifdef OGS_BUILD_PROCESS_NONISOTHERMALRICHARDSFLOWMECHANICS
+        if (type == "NONISOTHERMAL_RICHARDSFLOW_MECHANICS")
+        {
+           switch (_mesh_vec[0]->getDimension())
+           {
+                case 2:
+                    process = ProcessLib::NonisothermalRichardsFlowMechanics::
+                        createNonisothermalRichardsFlowMechanicsProcess<2>(
+                            name, *_mesh_vec[0], std::move(jacobian_assembler),
+                            _process_variables, _parameters,
+                            _local_coordinate_system, integration_order,
+                            process_config, _media);
+                    break;
+                case 3:
+                    process = ProcessLib::NonisothermalRichardsFlowMechanics::
+                        createNonisothermalRichardsFlowMechanicsProcess<3>(
+                            name, *_mesh_vec[0], std::move(jacobian_assembler),
+                            _process_variables, _parameters,
+                            _local_coordinate_system, integration_order,
+                            process_config, _media);
+                    break;
+               
+           }
+            
+        }
+        else
+#endif
+            
 #ifdef OGS_BUILD_PROCESS_TWOPHASEFLOWWITHPP
             if (type == "TWOPHASE_FLOW_PP")
         {
