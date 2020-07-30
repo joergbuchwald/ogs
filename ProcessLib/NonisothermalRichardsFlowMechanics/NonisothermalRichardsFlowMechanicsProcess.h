@@ -110,13 +110,6 @@ public:  // CRTP implementation
     {
     }
 
-    void computeSecondaryVariableImplementation(
-        double const /*t*/, double const /*dt*/,
-        std::vector<GlobalVector*> const& /*x*/,
-        std::vector<GlobalVector*> const& /*xdot*/, int const /*process_id*/)
-    {
-    }
-
 protected:
     using LocalAssemblerIF =
         RichardsMechanics::LocalAssemblerInterface<DisplacementDim>;
@@ -193,14 +186,6 @@ protected:
     {
         return static_cast<Derived const*>(this)->getDOFTableImplementation(
             process_id);
-    }
-
-    void computeSecondaryVariableConcrete(
-        double const t, double const dt, std::vector<GlobalVector*> const& x,
-        std::vector<GlobalVector*> const& xdot, int const process_id) override
-    {
-        static_cast<Derived*>(this)->computeSecondaryVariableImplementation(
-            t, dt, x, xdot, process_id);
     }
 
     std::tuple<NumLib::LocalToGlobalIndexMap*, bool>
