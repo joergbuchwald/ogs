@@ -50,8 +50,53 @@ public:
     {
     }
 
+public:  // CRTP implementation
+    bool hasMechanicalProcessImplementation(int const process_id) const
+    {
+        return process_id == data_of_staggeredTcHcM_.M_process_id;
+    }
+
+    NumLib::LocalToGlobalIndexMap& getDOFTableImplementation(
+        const int process_id) const
+    {
+        return (process_id == data_of_staggeredTcHcM_.M_process_id)
+                   ? *this->_local_to_global_index_map
+                   : *this->local_to_global_index_map_single_component_;
+    }
+
+    void constructDofTableImplementation();
+    void initializeBoundaryConditionsImplementation();
+    MathLib::MatrixSpecifications getMatrixSpecificationsImplementation(
+        const int process_id) const;
+
+    void setInitialConditionsConcreteProcessImplementation(
+        GlobalVector const& x, double const t);
+    void initializeConcreteProcessImplementation(
+        NumLib::LocalToGlobalIndexMap const& dof_table,
+        MeshLib::Mesh const& mesh,
+        unsigned const integration_order);
+
+    void assembleConcreteProcessImplementation(
+        const double t, double const dt, std::vector<GlobalVector*> const& x,
+        std::vector<GlobalVector*> const& xdot, int const process_id,
+        GlobalMatrix& M, GlobalMatrix& K, GlobalVector& b);
+
+    void assembleWithJacobianConcreteProcessImplementation(
+        const double t, double const dt, std::vector<GlobalVector*> const& x,
+        std::vector<GlobalVector*> const& xdot, const double dxdot_dx,
+        const double dx_dx, int const process_id, GlobalMatrix& M,
+        GlobalMatrix& K, GlobalVector& b, GlobalMatrix& Jac);
+
 private:
     DataOfStaggeredTcHcM data_of_staggeredTcHcM_;
+    using LocalAssemblerIF =
+        RichardsMechanics::LocalAssemblerInterface<DisplacementDim>;
+
+    /// Sparsity pattern for T or H equations
+    GlobalSparsityPattern sparsity_pattern_T_or_H_;
+
+    std::vector<std::reference_wrapper<NumLib::LocalToGlobalIndexMap>>
+    getDOFTables() const;
 };
 
 extern template class NonisothermalRichardsFlowMechanicsStaggerdTcHcM<2>;
