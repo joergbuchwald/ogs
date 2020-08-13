@@ -40,11 +40,12 @@ void checkMPLProperties(
         MaterialPropertyLib::porosity, MaterialPropertyLib::biot_coefficient,
         MaterialPropertyLib::bishops_effective_stress,
         MaterialPropertyLib::relative_permeability,
-        MaterialPropertyLib::saturation};
+        MaterialPropertyLib::saturation, MaterialPropertyLib::tortuosity};
     std::array const required_liquid_properties = {
         MaterialPropertyLib::viscosity, MaterialPropertyLib::density,
         MaterialPropertyLib::specific_heat_capacity,
-        MaterialPropertyLib::thermal_conductivity};
+        MaterialPropertyLib::thermal_conductivity,
+        MaterialPropertyLib::thermal_diffusion_enhancement_factor};
     std::array const required_gas_properties = {
         MaterialPropertyLib::specific_heat_capacity,
         MaterialPropertyLib::thermal_conductivity};
