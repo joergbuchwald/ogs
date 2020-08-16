@@ -97,12 +97,24 @@ RichardsMechanicsLocalAssembler<ShapeFunctionDisplacement,
         ip_data.dNdx_p = shape_matrices_p[ip].dNdx;
 
         // Initial porosity. Could be read from intergration point data or mesh.
-        ip_data.porosity =
-            solid_phase.property(MPL::porosity)
-                .template initialValue<double>(
-                    x_position,
-                    std::numeric_limits<
-                        double>::quiet_NaN() /* t independent */);
+        if (solid_phase.hasProperty(MPL::PropertyType::porosity))
+        {
+            ip_data.porosity =
+                solid_phase.property(MPL::porosity)
+                    .template initialValue<double>(
+                        x_position,
+                        std::numeric_limits<
+                            double>::quiet_NaN() /* t independent */);
+        }
+        else if (medium->hasProperty(MPL::PropertyType::porosity))
+        {  // porosity has to be moved to medium property.
+            ip_data.porosity =
+                medium->property(MPL::porosity)
+                    .template initialValue<double>(
+                        x_position,
+                        std::numeric_limits<
+                            double>::quiet_NaN() /* t independent */);
+        }
 
         ip_data.transport_porosity = ip_data.porosity;
         if (solid_phase.hasProperty(MPL::PropertyType::transport_porosity))
