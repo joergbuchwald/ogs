@@ -304,7 +304,7 @@ private:
         DisplacementDim>::MaterialStateVariables const&
     getMaterialStateVariablesAt(unsigned integration_point) const override;
 
-private:
+protected:
     RichardsMechanicsProcessData<DisplacementDim>& _process_data;
 
     std::vector<IpData, Eigen::aligned_allocator<IpData>> _ip_data;
@@ -316,6 +316,7 @@ private:
         typename ShapeMatricesTypeDisplacement::ShapeMatrices::ShapeType>
         _secondary_data;
 
+private:
     static const int pressure_index = 0;
     static const int pressure_size = ShapeFunctionPressure::NPOINTS;
     static const int displacement_index = ShapeFunctionPressure::NPOINTS;
