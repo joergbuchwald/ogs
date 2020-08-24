@@ -273,15 +273,17 @@ void RichardsMechanicsProcess<DisplacementDim>::initializeConcreteProcess(
 
     const int mechanical_process_id = _use_monolithic_scheme ? 0 : 1;
     const int deformation_variable_id = _use_monolithic_scheme ? 1 : 0;
+    const unsigned M_shape_function_orger =
+        getProcessVariables(mechanical_process_id)[deformation_variable_id]
+            .get()
+            .getShapeFunctionOrder();
+    // for monolithic scheme.
+    const unsigned H_shape_function_orger = 1;
     ProcessLib::RichardsMechanics::createLocalAssemblers<
         DisplacementDim, RichardsMechanicsLocalAssembler>(
         mesh.getDimension(), mesh.getElements(), dof_table,
-        // use displacement process variable to set shape function order
-        getProcessVariables(mechanical_process_id)[deformation_variable_id]
-            .get()
-            .getShapeFunctionOrder(),
-        _local_assemblers, mesh.isAxiallySymmetric(), integration_order,
-        _process_data);
+        M_shape_function_orger, H_shape_function_orger, _local_assemblers,
+        mesh.isAxiallySymmetric(), integration_order, _process_data);
 
     auto add_secondary_variable = [&](std::string const& name,
                                       int const num_components,

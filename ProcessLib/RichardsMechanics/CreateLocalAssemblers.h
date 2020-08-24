@@ -30,6 +30,7 @@ template <int GlobalDim,
 void createLocalAssemblers(
     NumLib::LocalToGlobalIndexMap const& dof_table,
     const unsigned shapefunction_order,
+    const unsigned other_shapefunction_order,
     std::vector<MeshLib::Element*> const& mesh_elements,
     std::vector<std::unique_ptr<LocalAssemblerInterface>>& local_assemblers,
     ExtraCtorArgs&&... extra_ctor_args)
@@ -44,7 +45,8 @@ void createLocalAssemblers(
     // Populate the vector of local assemblers.
     local_assemblers.resize(mesh_elements.size());
 
-    LocalDataInitializer initializer(dof_table, shapefunction_order);
+    LocalDataInitializer initializer(dof_table, shapefunction_order,
+                                     other_shapefunction_order);
 
     DBUG("Calling local assembler builder for all mesh elements.");
     GlobalExecutor::transformDereferenced(
@@ -74,13 +76,15 @@ void createLocalAssemblers(
     std::vector<MeshLib::Element*> const& mesh_elements,
     NumLib::LocalToGlobalIndexMap const& dof_table,
     const unsigned shapefunction_order,
+    const unsigned other_shapefunction_order,
     std::vector<std::unique_ptr<LocalAssemblerInterface>>& local_assemblers,
     ExtraCtorArgs&&... extra_ctor_args)
 {
     DBUG("Create local assemblers.");
 
     detail::createLocalAssemblers<GlobalDim, LocalAssemblerImplementation>(
-        dof_table, shapefunction_order, mesh_elements, local_assemblers,
+        dof_table, shapefunction_order, other_shapefunction_order,
+        mesh_elements, local_assemblers,
         std::forward<ExtraCtorArgs>(extra_ctor_args)...);
 }
 }  // namespace RichardsMechanics
