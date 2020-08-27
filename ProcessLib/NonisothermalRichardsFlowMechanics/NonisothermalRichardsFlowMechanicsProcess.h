@@ -19,6 +19,13 @@ namespace ProcessLib
 {
 namespace NonisothermalRichardsFlowMechanics
 {
+/**
+ * Base class for the non-isothermal single phase flow in partially saturated
+ * deformable porous media.
+ *
+ * The theory is described in a PDF by
+ *   [this link](https://www.opengeosys.org/pdf/NonIsothermalRichardsFlowMechanics)
+ */
 template <typename Derived, int DisplacementDim>
 class NonisothermalRichardsFlowMechanicsProcess : public Process
 {
