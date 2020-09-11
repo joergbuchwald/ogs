@@ -328,6 +328,9 @@ void NonIsothermalRichardsFlowMechanicsAssemblerTcHcM<
     GlobalDimMatrixType const& I(
         GlobalDimMatrixType::Identity(DisplacementDim, DisplacementDim));
 
+    // For lumped mass
+    double element_mass = 0.0;
+
     for (unsigned ip(0); ip < n_integration_points; ip++)
     {
         pos.setIntegrationPoint(ip);
@@ -394,6 +397,11 @@ void NonIsothermalRichardsFlowMechanicsAssemblerTcHcM<
                                             SpecificGasConstant::WaterVapour));
         }
 
+        if (this->_process_data.apply_mass_lumping)
+        {
+            element_mass += w * mass_coefficient;
+        }
+
         local_M.noalias() += w * mass_coefficient * N_p.transpose() * N_p;
 
         // Assemble Laplace matrix
@@ -426,6 +434,7 @@ void NonIsothermalRichardsFlowMechanicsAssemblerTcHcM<
 
         GlobalDimMatrixType const hydraulic_conductivity =
             intrinsic_permeability * k_rel / viscosity;
+
         if (data_of_staggeredTcHcM_.has_vapor_diffusion)
         {
             auto const tortuosity =
@@ -516,11 +525,12 @@ void NonIsothermalRichardsFlowMechanicsAssemblerTcHcM<
 
     if (this->_process_data.apply_mass_lumping)
     {
+        double const c = element_mass / local_M.trace();
         for (int idx_ml = 0; idx_ml < local_M.cols(); idx_ml++)
         {
-            double const mass_lump_val = local_M.col(idx_ml).sum();
+            double const m_ii = local_M(idx_ml, idx_ml);
             local_M.col(idx_ml).setZero();
-            local_M(idx_ml, idx_ml) = mass_lump_val;
+            local_M(idx_ml, idx_ml) = c * m_ii;
         }
     }  // end of mass lumping
 }
