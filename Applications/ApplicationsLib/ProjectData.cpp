@@ -106,6 +106,9 @@
 #ifdef OGS_BUILD_PROCESS_THERMOMECHANICS
 #include "ProcessLib/ThermoMechanics/CreateThermoMechanicsProcess.h"
 #endif
+#ifdef OGS_BUILD_PROCESS_THERMORICHARDSFLOW
+#include "ProcessLib/ThermoRichardsFlow/CreateThermoRichardsFlowProcess.h"
+#endif
 #ifdef OGS_BUILD_PROCESS_TWOPHASEFLOWWITHPP
 #include "ProcessLib/TwoPhaseFlowWithPP/CreateTwoPhaseFlowWithPPProcess.h"
 #endif
@@ -948,6 +951,17 @@ void ProjectData::parseProcesses(
                             process_config);
                     break;
             }
+        }
+        else
+#endif
+#ifdef OGS_BUILD_PROCESS_THERMORICHARDSFLOW
+            if (type == "THERMO_RICHARDS_FLOW")
+        {
+            process =
+                ProcessLib::ThermoRichardsFlow::createThermoRichardsFlowProcess(
+                    name, *_mesh_vec[0], std::move(jacobian_assembler),
+                    _process_variables, _parameters, integration_order,
+                    process_config, _media);
         }
         else
 #endif
