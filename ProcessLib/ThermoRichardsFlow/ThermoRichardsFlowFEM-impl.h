@@ -18,7 +18,6 @@
 #include "MaterialLib/SolidModels/SelectSolidConstitutiveRelation.h"
 #include "NumLib/Function/Interpolation.h"
 #include "ProcessLib/Utils/SetOrGetIntegrationPointData.h"
-#include "ThermoRichardsFlowFEM.h"
 
 namespace ProcessLib
 {
