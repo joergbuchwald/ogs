@@ -294,14 +294,6 @@ void ThermoRichardsFlowProcess::computeSecondaryVariableConcrete(
         pv.getActiveElementIDs(), getDOFTable(process_id), t, dt, x, x_dot);
 }
 
-std::tuple<NumLib::LocalToGlobalIndexMap*, bool>
-ThermoRichardsFlowProcess::getDOFTableForExtrapolatorData() const
-{
-    const bool manage_storage = false;
-    return std::make_tuple(_local_to_global_index_map_single_component.get(),
-                           manage_storage);
-}
-
 NumLib::LocalToGlobalIndexMap const& ThermoRichardsFlowProcess::getDOFTable(
     const int /*process_id*/) const
 {

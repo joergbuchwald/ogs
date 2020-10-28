@@ -103,9 +103,6 @@ private:
 
     std::vector<std::unique_ptr<LocalAssemblerIF>> _local_assemblers;
 
-    std::unique_ptr<NumLib::LocalToGlobalIndexMap>
-        _local_to_global_index_map_single_component;
-
     /// Sparsity pattern for the flow equation, and it is initialized only if
     /// the staggered scheme is used.
     GlobalSparsityPattern _sparsity_pattern_with_linear_element;
@@ -114,11 +111,6 @@ private:
                                           GlobalVector const& x,
                                           GlobalVector const& x_dot,
                                           int const process_id) override;
-    /**
-     * @copydoc ProcessLib::Process::getDOFTableForExtrapolatorData()
-     */
-    std::tuple<NumLib::LocalToGlobalIndexMap*, bool>
-    getDOFTableForExtrapolatorData() const override;
 
     MeshLib::PropertyVector<double>* _heat_flux = nullptr;
     MeshLib::PropertyVector<double>* _hydraulic_flow = nullptr;
