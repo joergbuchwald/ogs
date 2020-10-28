@@ -15,8 +15,6 @@
 
 #include "IntegrationPointData.h"
 #include "MaterialLib/SolidModels/LinearElasticIsotropic.h"
-#include "MathLib/KelvinVector.h"
-#include "MathLib/LinAlg/Eigen/EigenMapTools.h"
 #include "NumLib/DOF/DOFTableUtil.h"
 #include "NumLib/Fem/InitShapeMatrices.h"
 #include "NumLib/Fem/ShapeMatrixPolicy.h"
