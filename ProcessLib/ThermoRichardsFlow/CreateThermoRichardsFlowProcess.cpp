@@ -20,8 +20,10 @@
 #include "ParameterLib/Utils.h"
 #include "ProcessLib/Output/CreateSecondaryVariables.h"
 #include "ProcessLib/Utils/ProcessUtils.h"
+
 #include "ThermoRichardsFlowProcess.h"
 #include "ThermoRichardsFlowProcessData.h"
+#include "LocalAssemblerInterface.h"
 
 namespace ProcessLib
 {
@@ -119,26 +121,26 @@ std::unique_ptr<Process> createThermoRichardsFlowProcess(
     checkProcessVariableComponents(*variable_T, 1);
     checkProcessVariableComponents(*variable_p, 1);
 
-    // Specific body force
+    // Specific body force parameter.
     Eigen::VectorXd specific_body_force;
+    std::vector<double> const b =
+        //! \ogs_file_param{prj__processes__process__HT__specific_body_force}
+        config.getConfigParameter<std::vector<double>>("specific_body_force");
+    assert(!b.empty() && b.size() < 4);
+    if (b.size() < mesh.getDimension())
     {
-        std::vector<double> const b =
-            //! \ogs_file_param{prj__processes__process__THERMO_RICHARDS_FLOW__specific_body_force}
-            config.getConfigParameter<std::vector<double>>(
-                "specific_body_force");
-        /*
-        if (b.size() != DisplacementDim)
-        {
-            OGS_FATAL(
-                "The size of the specific body force vector does not match the "
-                "displacement dimension. Vector size is {:d}, displacement "
-                "dimension is {:d}",
-                b.size(), DisplacementDim);
-        }
-        */
-
+        OGS_FATAL(
+            "specific body force (gravity vector) has {:d} components, mesh "
+            "dimension is {:d}",
+            b.size(), mesh.getDimension());
+    }
+    bool const has_gravity = MathLib::toVector(b).norm() > 0;
+    if (has_gravity)
+    {
+        specific_body_force.resize(b.size());
         std::copy_n(b.data(), b.size(), specific_body_force.data());
     }
+
 
     auto media_map =
         MaterialPropertyLib::createMaterialSpatialDistributionMap(media, mesh);
