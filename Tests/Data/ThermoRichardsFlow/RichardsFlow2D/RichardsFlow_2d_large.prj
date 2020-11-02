@@ -13,6 +13,7 @@
                 <relative_epsilons>1e-6</relative_epsilons>
             </jacobian_assembler>
             <process_variables>
+                <temperature>temperature</temperature>
                 <process_variable>pressure</process_variable>
             </process_variables>
             <secondary_variables>
