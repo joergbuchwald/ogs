@@ -33,7 +33,9 @@ void checkMPLProperties(
 {
     std::array const required_property_medium = {
         MaterialPropertyLib::PropertyType::porosity,
-        MaterialPropertyLib::PropertyType::permeability};
+        MaterialPropertyLib::PropertyType::permeability,
+        MaterialPropertyLib::PropertyType::thermal_expansivity,
+        MaterialPropertyLib::PropertyType::compressibility};
 
     std::array const required_property_liquid_phase = {
         MaterialPropertyLib::PropertyType::viscosity,

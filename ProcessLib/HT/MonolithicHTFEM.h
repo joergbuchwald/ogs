@@ -106,6 +106,7 @@ public:
         auto const& medium =
             *process_data.media_map->getMedium(this->_element.getID());
         auto const& liquid_phase = medium.phase("AqueousLiquid");
+        auto const& solid_phase = medium.phase("Solid");
         auto const& b = process_data.specific_body_force;
 
         GlobalDimMatrixType const& I(
@@ -173,6 +174,16 @@ public:
                         vars, MaterialPropertyLib::Variable::temperature, pos,
                         t, dt);
 
+            // solid:
+            auto const thermal_expansivity =
+                  medium
+                      .property(MaterialPropertyLib::PropertyType::thermal_expansivity)
+                      .template value<double>(vars, pos, t, dt);
+            auto const compressibility =
+                  medium
+                      .property(MaterialPropertyLib::PropertyType::compressibility)
+                      .template value<double>(vars, pos, t, dt);
+
             // Use the viscosity model to compute the viscosity
             auto const viscosity =
                 liquid_phase
@@ -203,8 +214,9 @@ public:
                                  vars, porosity, fluid_density,
                                  specific_heat_capacity_fluid, pos, t, dt) *
                              N.transpose() * N;
-            Mpp.noalias() += (w * porosity * drho_dp) * N.transpose() * N;
-            MpT.noalias() += (w * drho_dT) * N.transpose() * porosity * N;
+            Mpp.noalias() += (w * fluid_density * compressibility ) * N.transpose() * N;
+            MpT.noalias() += (w * fluid_density * thermal_expansivity ) * N.transpose() * N;
+
             if (process_data.has_gravity)
             {
                 Bp += w * boost::math::pow<2>(fluid_density) *
