@@ -176,13 +176,15 @@ public:
 
             // solid:
             auto const thermal_expansivity =
-                  medium
-                      .property(MaterialPropertyLib::PropertyType::thermal_expansivity)
-                      .template value<double>(vars, pos, t, dt);
+                medium
+                    .property(
+                        MaterialPropertyLib::PropertyType::thermal_expansivity)
+                    .template value<double>(vars, pos, t, dt);
             auto const compressibility =
-                  medium
-                      .property(MaterialPropertyLib::PropertyType::compressibility)
-                      .template value<double>(vars, pos, t, dt);
+                medium
+                    .property(
+                        MaterialPropertyLib::PropertyType::compressibility)
+                    .template value<double>(vars, pos, t, dt);
 
             // Use the viscosity model to compute the viscosity
             auto const viscosity =
@@ -214,8 +216,10 @@ public:
                                  vars, porosity, fluid_density,
                                  specific_heat_capacity_fluid, pos, t, dt) *
                              N.transpose() * N;
-            Mpp.noalias() += (w * fluid_density * compressibility ) * N.transpose() * N;
-            MpT.noalias() += (w * fluid_density * thermal_expansivity ) * N.transpose() * N;
+            Mpp.noalias() +=
+                (w * fluid_density * compressibility) * N.transpose() * N;
+            MpT.noalias() +=
+                (w * fluid_density * thermal_expansivity) * N.transpose() * N;
 
             if (process_data.has_gravity)
             {
