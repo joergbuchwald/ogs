@@ -254,10 +254,11 @@ void ThermoRichardsFlowLocalAssembler<
             medium->property(MPL::PropertyType::biot_coefficient)
                 .template value<double>(variables, x_position, t, dt);
 
-        auto const K_SR =
+        //bulk_modulus correct name for bulk modulus of solid skeleton
+        auto const K_S =
             solid_phase.property(MPL::PropertyType::bulk_modulus)
                 .template value<double>(variables, x_position, t, dt);
-        auto const beta_SR = (1 - alpha) / K_SR;
+        auto const beta_SR = (1 - alpha) / K_S;
         variables[static_cast<int>(MPL::Variable::grain_compressibility)] =
             beta_SR;
 
@@ -314,7 +315,7 @@ void ThermoRichardsFlowLocalAssembler<
         auto const mu =
             liquid_phase.property(MPL::PropertyType::viscosity)
                 .template value<double>(variables, x_position, t, dt);
-
+ 
         auto const K_intrinsic = MPL::formEigenTensor<GlobalDim>(
             medium->property(MPL::PropertyType::permeability)
                 .value(variables, x_position, t, dt));
@@ -338,7 +339,7 @@ void ThermoRichardsFlowLocalAssembler<
 
         double const p_FR = -chi_S_L * p_cap_ip;
         // p_SR
-        variables[static_cast<int>(MPL::Variable::solid_grain_pressure)] = p_FR;
+         variables[static_cast<int>(MPL::Variable::solid_grain_pressure)] = p_FR;
         auto const rho_SR =
             solid_phase.property(MPL::PropertyType::density)
                 .template value<double>(variables, x_position, t, dt);
