@@ -38,7 +38,7 @@
                         <property>
                             <name>specific_heat_capacity</name>
                             <type>Constant</type>
-                            <value>6e7</value>
+                            <value>4200</value>
                         </property>
                         <property>
                             <name>thermal_conductivity</name>
@@ -68,7 +68,7 @@
                         <property>
                             <name>bulk_modulus</name>
                             <type>Constant</type>
-                            <value>1.0e10</value>
+                            <value>1.0e100</value>
                         </property>
                         <property>
                             <name>density</name>
@@ -83,7 +83,7 @@
                         <property>
                             <name>specific_heat_capacity</name>
                             <type>Constant</type>
-                            <value>6000000</value>
+                            <value>4000</value>
                         </property>
                         <property>
                             <name>thermal_expansivity</name>
@@ -208,7 +208,7 @@
         <parameter>
             <name>T0</name>
             <type>Constant</type>
-            <value>293.15</value>
+            <value>0.0</value>
         </parameter>
     </parameters>
     <curves>
@@ -269,7 +269,7 @@
         <nonlinear_solver>
             <name>basic_newton</name>
             <type>Newton</type>
-            <max_iter>550</max_iter>
+            <max_iter>500</max_iter>
             <linear_solver>general_linear_solver</linear_solver>
         </nonlinear_solver>
     </nonlinear_solvers>
