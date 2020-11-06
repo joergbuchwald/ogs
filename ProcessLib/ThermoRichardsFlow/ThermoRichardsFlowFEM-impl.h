@@ -254,6 +254,13 @@ void ThermoRichardsFlowLocalAssembler<
             medium->property(MPL::PropertyType::biot_coefficient)
                 .template value<double>(variables, x_position, t, dt);
 
+        auto const storage_correction =
+            medium->property(MPL::PropertyType::storage_correction)
+                .template value<double>(variables, x_position, t, dt);
+        auto const thermal_expansivity_correction =
+            medium->property(MPL::PropertyType::thermal_expansivity_correction)
+                .template value<double>(variables, x_position, t, dt);
+
         //bulk_modulus correct name for bulk modulus of solid skeleton
         auto const K_S =
             solid_phase.property(MPL::PropertyType::bulk_modulus)
@@ -353,11 +360,12 @@ void ThermoRichardsFlowLocalAssembler<
             dNdx_p.transpose() * k_rel * rho_Ki_over_mu * dNdx_p * w;
 
         double const a0 = (alpha > phi) ? 0.0 : (alpha - phi) * beta_SR;
-        double const specific_storage_a_p = S_L * (phi / K_LR + S_L * a0);
+        double const specific_storage_a_p = S_L * (phi / K_LR + S_L * a0 +
+                storage_correction);
         double const specific_storage_a_S = phi - p_cap_ip * S_L * a0;
 
         double const dspecific_storage_a_p_dp_cap =
-            dS_L_dp_cap * (phi / K_LR + 2 * S_L * a0);
+            dS_L_dp_cap * (phi / K_LR + 2 * S_L * a0 + storage_correction);
         double const dspecific_storage_a_S_dp_cap =
             -a0 * (S_L + p_cap_ip * dS_L_dp_cap);
 
@@ -417,8 +425,9 @@ void ThermoRichardsFlowLocalAssembler<
             const double eff_thermal_expansion =
                 (alpha - phi) *
                     solid_linear_thermal_expansion_coefficient.trace() +
-                phi * fluid_volumetric_thermal_expansion_coefficient;
-
+                phi * fluid_volumetric_thermal_expansion_coefficient +
+                thermal_expansivity_correction;
+            DBUG("TH. expansion:'{:f}'", eff_thermal_expansion);
             M_pT.noalias() -=
                 N_p.transpose() * rho_LR * eff_thermal_expansion * N_p * w;
         }
