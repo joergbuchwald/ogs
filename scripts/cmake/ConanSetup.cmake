@@ -3,7 +3,7 @@ if(NOT OGS_USE_CONAN)
 endif()
 string(TOLOWER ${OGS_USE_CONAN} OGS_USE_CONAN_lower)
 if(OGS_USE_CONAN_lower STREQUAL "auto" AND POETRY)
-    execute_process(COMMAND ${CMD_COMMAND} poetry add conan=${ogs.minimum_version.conan})
+    execute_process(COMMAND ${CMD_COMMAND} poetry add conan)
     find_program(CONAN_CMD conan HINTS ${LOCAL_VIRTUALENV_BIN_DIRS}
         REQUIRED NO_DEFAULT_PATH
     )
@@ -21,7 +21,8 @@ endif()
 
 if(CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
     message(FATAL_ERROR "Multi-config generators are not yet supported when "
-        "using Conan. Specify CMAKE_BUILD_TYPE!")
+        "using Conan. Specify CMAKE_BUILD_TYPE, e.g. via cmd line: "
+        "cmake . -DCMAKE_BUILD_TYPE=Release!")
 endif()
 
 # Treat Conan includes as system includes to suppress warnings
@@ -40,6 +41,7 @@ set(CONAN_OPTIONS
     boost:header_only=True
     vtk:minimal=True
     vtk:ioxml=True
+    vtk:ioxdmf3=True
     CACHE INTERNAL ""
 )
 

@@ -65,8 +65,9 @@ public:
 
     /// Calculates secondary variables, e.g. stress and strain for deformation
     /// analysis, only after nonlinear solver being successfully conducted.
-    void postNonLinearSolver(GlobalVector const& x, const double t,
-                             double const dt, int const process_id);
+    void postNonLinearSolver(GlobalVector const& x, GlobalVector const& xdot,
+                             const double t, double const dt,
+                             int const process_id);
 
     void preIteration(const unsigned iter, GlobalVector const& x) final;
 
@@ -206,7 +207,8 @@ private:
     virtual void initializeBoundaryConditions();
 
     virtual void setInitialConditionsConcreteProcess(GlobalVector const& /*x*/,
-                                                     double const /*t*/)
+                                                     double const /*t*/,
+                                                     int const /*process_id*/)
     {
     }
 
@@ -244,10 +246,9 @@ private:
     {
     }
 
-    virtual void postNonLinearSolverConcreteProcess(GlobalVector const& /*x*/,
-                                                    const double /*t*/,
-                                                    double const /*dt*/,
-                                                    int const /*process_id*/)
+    virtual void postNonLinearSolverConcreteProcess(
+        GlobalVector const& /*x*/, GlobalVector const& /*xdot*/,
+        const double /*t*/, double const /*dt*/, int const /*process_id*/)
     {
     }
 
@@ -291,7 +292,7 @@ protected:
      * which is stored in the
      * member of this class, @c _local_to_global_index_map.
      */
-    void constructDofTableOfSpecifiedProsessStaggerdScheme(
+    void constructDofTableOfSpecifiedProsessStaggeredScheme(
         const int specified_prosess_id);
 
     /**

@@ -18,13 +18,13 @@
     "petsc": "3.11.2",
     "qt": "5.12.4",
     "python": "3.6",
-    "snakemake": "5.19.3",
+    "snakemake": "5.27.4",
     "parsl": "1.0.0"
   },
   "tested_version": {
     "vtk": "8.2.0",
     "qt": {
-      "linux": "5.14.1",
+      "linux": "5.14.2",
       "win": "5.13.2"
     },
     "ubuntu": "20.04"

@@ -35,10 +35,11 @@ class LocalAssemblerInterface
 public:
     virtual ~LocalAssemblerInterface() = default;
 
-    virtual void setInitialConditions(
-        std::size_t const mesh_item_id,
-        NumLib::LocalToGlobalIndexMap const& dof_table, GlobalVector const& x,
-        double const t);
+    void setInitialConditions(std::size_t const mesh_item_id,
+                              NumLib::LocalToGlobalIndexMap const& dof_table,
+                              GlobalVector const& x, double const t,
+                              bool const use_monolithic_scheme,
+                              int const process_id);
 
     virtual void initialize(std::size_t const mesh_item_id,
                             NumLib::LocalToGlobalIndexMap const& dof_table);
@@ -95,8 +96,10 @@ public:
 
     void postNonLinearSolver(std::size_t const mesh_item_id,
                              NumLib::LocalToGlobalIndexMap const& dof_table,
-                             GlobalVector const& x, double const t,
-                             double const dt, bool const use_monolithic_scheme);
+                             GlobalVector const& x, GlobalVector const& xdot,
+                             double const t, double const dt,
+                             bool const use_monolithic_scheme,
+                             int const process_id);
 
     virtual std::vector<double> interpolateNodalValuesToIntegrationPoints(
         std::vector<double> const& /*local_x*/)
@@ -126,7 +129,8 @@ public:
 
 private:
     virtual void setInitialConditionsConcrete(
-        std::vector<double> const& /*local_x*/, double const /*t*/)
+        std::vector<double> const& /*local_x*/, double const /*t*/,
+        bool const /*use_monolithic_scheme*/, int const /*process_id*/)
     {
     }
 
@@ -143,8 +147,10 @@ private:
     }
 
     virtual void postNonLinearSolverConcrete(
-        std::vector<double> const& /*local_x*/, double const /*t*/,
-        double const /*dt*/, bool const /*use_monolithic_scheme*/)
+        std::vector<double> const& /*local_x*/,
+        std::vector<double> const& /*local_xdot*/, double const /*t*/,
+        double const /*dt*/, bool const /*use_monolithic_scheme*/,
+        int const /*process_id*/)
     {
     }
 

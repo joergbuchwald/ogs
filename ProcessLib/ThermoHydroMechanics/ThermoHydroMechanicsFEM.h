@@ -127,8 +127,10 @@ public:
         std::vector<double> const& local_x_dot) override;
 
     void postNonLinearSolverConcrete(std::vector<double> const& local_x,
+                                     std::vector<double> const& local_xdot,
                                      double const t, double const dt,
-                                     bool const use_monolithic_scheme) override;
+                                     bool const use_monolithic_scheme,
+                                     int const process_id) override;
 
     Eigen::Map<const Eigen::RowVectorXd> getShapeMatrix(
         const unsigned integration_point) const override

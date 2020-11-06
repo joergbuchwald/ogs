@@ -26,7 +26,7 @@
                     <grout>
                         <density>2190.0</density>
                         <porosity>0.0</porosity>
-                        <heat_capacity>1735.160</heat_capacity>
+                        <specific_heat_capacity>1735.160</specific_heat_capacity>
                         <thermal_conductivity>0.806</thermal_conductivity>
                     </grout>
                     <pipes>
@@ -165,7 +165,7 @@
         </processes>
         <output>
             <type>VTK</type>
-            <prefix>fixed_power_constant_flow_pcs_{:process_id}</prefix>
+            <prefix>fixed_power_constant_flow</prefix>
             <timesteps>
                 <pair>
                     <repeat> 1</repeat>

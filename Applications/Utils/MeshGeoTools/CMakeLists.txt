@@ -1,8 +1,10 @@
 set(TOOLS
+    AssignRasterDataToMesh
     computeSurfaceNodeIDsInPolygonalRegion
     constructMeshesFromGeometry
     createIntermediateRasters
     identifySubdomains
+    IntegrateBoreholesIntoMesh
     Raster2Mesh
 )
 foreach(TOOL ${TOOLS})

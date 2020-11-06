@@ -363,9 +363,9 @@ void HydroMechanicsProcess<DisplacementDim>::initializeBoundaryConditions()
 {
     if (_use_monolithic_scheme)
     {
-        const int process_id_of_hydromechancs = 0;
+        const int process_id_of_hydromechanics = 0;
         initializeProcessBoundaryConditionsAndSourceTerms(
-            *_local_to_global_index_map, process_id_of_hydromechancs);
+            *_local_to_global_index_map, process_id_of_hydromechanics);
         return;
     }
 
@@ -502,8 +502,8 @@ void HydroMechanicsProcess<DisplacementDim>::postTimestepConcreteProcess(
 
 template <int DisplacementDim>
 void HydroMechanicsProcess<DisplacementDim>::postNonLinearSolverConcreteProcess(
-    GlobalVector const& x, const double t, double const dt,
-    const int process_id)
+    GlobalVector const& x, GlobalVector const& xdot, const double t,
+    double const dt, const int process_id)
 {
     if (!hasMechanicalProcess(process_id))
     {
@@ -515,8 +515,23 @@ void HydroMechanicsProcess<DisplacementDim>::postNonLinearSolverConcreteProcess(
     ProcessLib::ProcessVariable const& pv = getProcessVariables(process_id)[0];
     GlobalExecutor::executeSelectedMemberOnDereferenced(
         &LocalAssemblerIF::postNonLinearSolver, _local_assemblers,
-        pv.getActiveElementIDs(), getDOFTable(process_id), x, t, dt,
-        _use_monolithic_scheme);
+        pv.getActiveElementIDs(), getDOFTable(process_id), x, xdot, t, dt,
+        _use_monolithic_scheme, process_id);
+}
+
+template <int DisplacementDim>
+void HydroMechanicsProcess<
+    DisplacementDim>::setInitialConditionsConcreteProcess(GlobalVector const& x,
+                                                          double const t,
+                                                          int const process_id)
+{
+    DBUG("Set initial conditions of HydroMechanicsProcess.");
+
+    ProcessLib::ProcessVariable const& pv = getProcessVariables(process_id)[0];
+    GlobalExecutor::executeSelectedMemberOnDereferenced(
+        &LocalAssemblerIF::setInitialConditions, _local_assemblers,
+        pv.getActiveElementIDs(), getDOFTable(process_id), x, t,
+        _use_monolithic_scheme, process_id);
 }
 
 template <int DisplacementDim>

@@ -94,7 +94,7 @@ void PhaseFieldProcess<DisplacementDim>::constructDofTable()
 {
     // For displacement equation.
     const int mechanics_process_id = 0;
-    constructDofTableOfSpecifiedProsessStaggerdScheme(mechanics_process_id);
+    constructDofTableOfSpecifiedProsessStaggeredScheme(mechanics_process_id);
 
     // TODO move the two data members somewhere else.
     // for extrapolation of secondary variables of stress or strain
@@ -289,8 +289,8 @@ void PhaseFieldProcess<DisplacementDim>::postTimestepConcreteProcess(
 
 template <int DisplacementDim>
 void PhaseFieldProcess<DisplacementDim>::postNonLinearSolverConcreteProcess(
-    GlobalVector const& x, const double t, double const /*dt*/,
-    const int process_id)
+    GlobalVector const& x, GlobalVector const& /*xdot*/, const double t,
+    double const /*dt*/, const int process_id)
 {
     _process_data.crack_volume = 0.0;
 

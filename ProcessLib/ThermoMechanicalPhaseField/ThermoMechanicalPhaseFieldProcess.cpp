@@ -105,7 +105,7 @@ template <int DisplacementDim>
 void ThermoMechanicalPhaseFieldProcess<DisplacementDim>::constructDofTable()
 {
     // For displacement equation.
-    constructDofTableOfSpecifiedProsessStaggerdScheme(
+    constructDofTableOfSpecifiedProsessStaggeredScheme(
         _mechanics_related_process_id);
 
     // TODO move the two data members somewhere else.
@@ -297,11 +297,10 @@ void ThermoMechanicalPhaseFieldProcess<DisplacementDim>::
 }
 
 template <int DisplacementDim>
-void ThermoMechanicalPhaseFieldProcess<
-    DisplacementDim>::postNonLinearSolverConcreteProcess(GlobalVector const& x,
-                                                         const double t,
-                                                         double const dt,
-                                                         const int process_id)
+void ThermoMechanicalPhaseFieldProcess<DisplacementDim>::
+    postNonLinearSolverConcreteProcess(GlobalVector const& x,
+                                       GlobalVector const& xdot, const double t,
+                                       double const dt, const int process_id)
 {
     if (process_id != _mechanics_related_process_id)
     {
@@ -315,8 +314,8 @@ void ThermoMechanicalPhaseFieldProcess<
 
     GlobalExecutor::executeSelectedMemberOnDereferenced(
         &LocalAssemblerInterface::postNonLinearSolver, _local_assemblers,
-        pv.getActiveElementIDs(), getDOFTable(process_id), x, t, dt,
-        use_monolithic_scheme);
+        pv.getActiveElementIDs(), getDOFTable(process_id), x, xdot, t, dt,
+        use_monolithic_scheme, process_id);
 }
 
 template class ThermoMechanicalPhaseFieldProcess<2>;

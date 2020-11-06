@@ -8,6 +8,7 @@ set(TOOLS
     createQuadraticMesh
     editMaterialID
     ExtractBoundary
+    ExtractMaterials
     ExtractSurface
     MapGeometryToMeshSurface
     MoveMesh
@@ -18,7 +19,6 @@ set(TOOLS
     ResetPropertiesInPolygonalRegion
     reviseMesh
     swapNodeCoordinateAxes
-    UnityPreprocessing
     Vtu2Grid)
 if(OGS_BUILD_GUI)
     add_executable(RemoveGhostData

@@ -181,11 +181,13 @@ std::size_t RichardsMechanicsLocalAssembler<
 
 template <typename ShapeFunctionDisplacement, typename ShapeFunctionPressure,
           typename IntegrationMethod, int DisplacementDim>
-void RichardsMechanicsLocalAssembler<
-    ShapeFunctionDisplacement, ShapeFunctionPressure, IntegrationMethod,
-    DisplacementDim>::setInitialConditionsConcrete(std::vector<double> const&
-                                                       local_x,
-                                                   double const t)
+void RichardsMechanicsLocalAssembler<ShapeFunctionDisplacement,
+                                     ShapeFunctionPressure, IntegrationMethod,
+                                     DisplacementDim>::
+    setInitialConditionsConcrete(std::vector<double> const& local_x,
+                                 double const t,
+                                 bool const /*use_monolithic_scheme*/,
+                                 int const /*process_id*/)
 {
     assert(local_x.size() == pressure_size + displacement_size);
 
@@ -401,6 +403,14 @@ void RichardsMechanicsLocalAssembler<
                                               x_position, t, dt);
         }
         variables[static_cast<int>(MPL::Variable::porosity)] = phi;
+
+        if (alpha < phi)
+        {
+            OGS_FATAL(
+                "RichardsMechanics: Biot-coefficient {} is smaller than "
+                "porosity {} in element/integration point {}/{}.",
+                alpha, phi, _element.getID(), ip);
+        }
 
         // Swelling and possibly volumetric strain rate update.
         auto& sigma_sw = _ip_data[ip].sigma_sw;
@@ -733,6 +743,14 @@ void RichardsMechanicsLocalAssembler<ShapeFunctionDisplacement,
                       .template value<double>(variables, variables_prev,
                                               x_position, t, dt);
             variables[static_cast<int>(MPL::Variable::porosity)] = phi;
+        }
+
+        if (alpha < phi)
+        {
+            OGS_FATAL(
+                "RichardsMechanics: Biot-coefficient {} is smaller than "
+                "porosity {} in element/integration point {}/{}.",
+                alpha, phi, _element.getID(), ip);
         }
 
         // Swelling and possibly volumetric strain rate update.
@@ -1284,8 +1302,10 @@ void RichardsMechanicsLocalAssembler<ShapeFunctionDisplacement,
                                      ShapeFunctionPressure, IntegrationMethod,
                                      DisplacementDim>::
     postNonLinearSolverConcrete(std::vector<double> const& local_x,
+                                std::vector<double> const& /*local_xdot*/,
                                 double const t, double const dt,
-                                bool const use_monolithic_scheme)
+                                bool const use_monolithic_scheme,
+                                int const /*process_id*/)
 {
     const int displacement_offset =
         use_monolithic_scheme ? displacement_index : 0;

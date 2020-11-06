@@ -4,7 +4,7 @@ AddTest(
     PATH MeshGeoToolsLib/Ammer
     WORKING_DIRECTORY ${Data_SOURCE_DIR}/MeshGeoToolsLib/Ammer
     EXECUTABLE MapGeometryToMeshSurface
-    EXECUTABLE_ARGS -m Ammer-Homogen100m-Final-TopSurface.vtu -i Ammer-Rivers.gml -o ${Data_BINARY_DIR}/MeshGeoToolsLib/Ammer/Ammer-Rivers-Mapped.gml
+    EXECUTABLE_ARGS -m Ammer-Homogen100m-Final-TopSurface.vtu -i Ammer-Rivers.gml -a -o ${Data_BINARY_DIR}/MeshGeoToolsLib/Ammer/Ammer-Rivers-Mapped.gml
     TESTER diff
     REQUIREMENTS NOT OGS_USE_MPI
     DIFF_DATA Ammer-Rivers-Mapped.gml
@@ -17,7 +17,7 @@ if(NOT "${HOSTNAME}" MATCHES "frontend.*")
         PATH MeshGeoToolsLib/Bode
         WORKING_DIRECTORY ${Data_SOURCE_DIR}/MeshGeoToolsLib/Bode
         EXECUTABLE MapGeometryToMeshSurface
-        EXECUTABLE_ARGS -m BodeComplex.msh -i BodeEZG_Fliessgewaesser.gml -o ${Data_BINARY_DIR}/MeshGeoToolsLib/Bode/BodeEZG_Fliessgewaesser-Mapped.gml
+        EXECUTABLE_ARGS -m BodeComplex.msh -i BodeEZG_Fliessgewaesser.gml -a -o ${Data_BINARY_DIR}/MeshGeoToolsLib/Bode/BodeEZG_Fliessgewaesser-Mapped.gml
         REQUIREMENTS NOT OGS_USE_MPI
         TESTER diff
         DIFF_DATA BodeEZG_Fliessgewaesser-Mapped.gml
@@ -29,7 +29,7 @@ AddTest(
     PATH MeshGeoToolsLib/Naegelstedt
     WORKING_DIRECTORY ${Data_SOURCE_DIR}/MeshGeoToolsLib/Naegelstedt
     EXECUTABLE MapGeometryToMeshSurface
-    EXECUTABLE_ARGS -m SmallTest.vtu -i RiverNetwork.gml -o ${Data_BINARY_DIR}/MeshGeoToolsLib/Naegelstedt/RiverNetwork-Mapped.gml
+    EXECUTABLE_ARGS -m SmallTest.vtu -i RiverNetwork.gml -a -o ${Data_BINARY_DIR}/MeshGeoToolsLib/Naegelstedt/RiverNetwork-Mapped.gml
     REQUIREMENTS NOT OGS_USE_MPI
     TESTER diff
     DIFF_DATA RiverNetwork-Mapped.gml
@@ -40,11 +40,11 @@ AddTest(
     PATH LIE/PostProcessing
     WORKING_DIRECTORY ${Data_SOURCE_DIR}/LIE/PostProcessing
     EXECUTABLE postLIE
-    EXECUTABLE_ARGS -i single_joint_pcs_0.pvd -o ${Data_BINARY_DIR}/LIE/PostProcessing/post_single_joint_pcs_0.pvd
+    EXECUTABLE_ARGS -i single_joint.pvd -o ${Data_BINARY_DIR}/LIE/PostProcessing/post_single_joint.pvd
     REQUIREMENTS NOT OGS_USE_MPI AND OGS_BUILD_PROCESS_LIE
     TESTER vtkdiff
     DIFF_DATA
-    expected_post_single_joint_pcs_0_ts_1_t_1.000000.vtu post_single_joint_pcs_0_ts_1_t_1.000000.vtu u u 1e-14 1e-14
+    expected_post_single_joint_ts_1_t_1.000000.vtu post_single_joint_ts_1_t_1.000000.vtu u u 1e-14 1e-14
 )
 
 AddTest(
@@ -105,8 +105,16 @@ AddTest(
     river_bc_prism.vtu prism_river_bc.vtu number_bulk_elements number_bulk_elements 0 0
 )
 
-# Mac is producing slightly different partitioning, so the results are not
-# comparable.
+AddTest(
+    NAME partmesh_2Dmesh_ogs2metis
+    PATH NodePartitionedMesh/partmesh_2Dmesh_3partitions/Binary
+    WORKING_DIRECTORY ${Data_SOURCE_DIR}/NodePartitionedMesh/partmesh_2Dmesh_3partitions/Binary
+    EXECUTABLE partmesh
+    EXECUTABLE_ARGS -i 2Dmesh.vtu --ogs2metis
+                    -o ${Data_BINARY_DIR}/NodePartitionedMesh/partmesh_2Dmesh_3partitions/Binary
+    REQUIREMENTS NOT (OGS_USE_MPI)
+)
+
 AddTest(
     NAME partmesh_2Dmesh_3partitions_binary
     PATH NodePartitionedMesh/partmesh_2Dmesh_3partitions/Binary
@@ -120,7 +128,10 @@ AddTest(
                     2Dmesh_PLY_SOUTH.vtu
                     2Dmesh_POINT4.vtu
                     2Dmesh_POINT5.vtu
+    # Mac is producing slightly different partitioning, so the results are not
+    # comparable.
     REQUIREMENTS NOT (OGS_USE_MPI OR APPLE)
+    DEPENDS partmesh-partmesh_2Dmesh_ogs2metis
     TESTER diff
     DIFF_DATA 2Dmesh_partitioned_node_properties_val3.bin
               2Dmesh_partitioned_node_properties_cfg3.bin
@@ -312,7 +323,7 @@ AddTest(
     PATH NodePartitionedMesh/partmesh
     WORKING_DIRECTORY ${Data_SOURCE_DIR}/NodePartitionedMesh/partmesh
     EXECUTABLE partmesh
-    EXECUTABLE_ARGS -n 2 -i cube_1x1x1_hex_8.vtu -o ${Data_BINARY_DIR}/NodePartitionedMesh/partmesh
+    EXECUTABLE_ARGS -n 2 -i cube_1x1x1_hex_8.vtu -x cube_1x1x1_hex_8 -o ${Data_BINARY_DIR}/NodePartitionedMesh/partmesh
     TESTER diff
     REQUIREMENTS NOT OGS_USE_MPI
     DIFF_DATA
@@ -422,4 +433,67 @@ AddTest(
     TESTER vtkdiff
     DIFF_DATA
     RainEvent30-scalars.vtu RainEvent30-scalars.vtu ScalarValues ScalarValues 0 0
+)
+
+AddTest(
+    NAME AssignRasterDataToMesh2D_Test
+    PATH MeshGeoToolsLib/Ammer
+    WORKING_DIRECTORY ${Data_SOURCE_DIR}/MeshGeoToolsLib/Ammer
+    EXECUTABLE AssignRasterDataToMesh
+    EXECUTABLE_ARGS -i Ammer-Homogen100m-Final-TopSurface.vtu -r AmmerGWN.asc -o ${Data_BINARY_DIR}/MeshGeoToolsLib/Ammer/AmmerGWN.vtu -s GWN -c -n
+    REQUIREMENTS NOT OGS_USE_MPI
+    TESTER vtkdiff
+    DIFF_DATA
+    AmmerGWN.vtu AmmerGWN.vtu GWN GWN 0 0
+    AmmerGWN.vtu AmmerGWN.vtu GWN-2 GWN-2 0 0
+)
+
+AddTest(
+    NAME AssignRasterDataToMesh1D_Test
+    PATH MeshGeoToolsLib/Ammer
+    WORKING_DIRECTORY ${Data_SOURCE_DIR}/MeshGeoToolsLib/Ammer
+    EXECUTABLE AssignRasterDataToMesh
+    EXECUTABLE_ARGS -i AmmerRivers.vtu -r AmmerGWN.asc -o ${Data_BINARY_DIR}/MeshGeoToolsLib/Ammer/AmmerRiversGWN.vtu -s GWN -c -n
+    REQUIREMENTS NOT OGS_USE_MPI
+    TESTER vtkdiff
+    DIFF_DATA
+    AmmerRiversGWN.vtu AmmerRiversGWN.vtu GWN GWN 0 0
+    AmmerRiversGWN.vtu AmmerRiversGWN.vtu GWN-2 GWN-2 0 0
+)
+
+AddTest(
+    NAME ExtractMaterials_Test
+    PATH MeshGeoToolsLib/Naegelstedt
+    WORKING_DIRECTORY ${Data_SOURCE_DIR}/MeshGeoToolsLib/Naegelstedt
+    EXECUTABLE ExtractMaterials
+    EXECUTABLE_ARGS -i SmallTest.vtu -o ${Data_BINARY_DIR}/MeshGeoToolsLib/Naegelstedt/SmallTest.vtu
+    REQUIREMENTS NOT OGS_USE_MPI
+    TESTER diff
+    DIFF_DATA SmallTest_Layer1.vtu
+              SmallTest_Layer2.vtu
+              SmallTest_Layer3.vtu
+)
+
+AddTest(
+    NAME IntegrateBoreholesIntoMesh_MatOnly_Test
+    PATH MeshGeoToolsLib/
+    WORKING_DIRECTORY ${Data_SOURCE_DIR}/MeshGeoToolsLib
+    EXECUTABLE IntegrateBoreholesIntoMesh
+    EXECUTABLE_ARGS -i PrismCube10x10x10.vtu -o ${Data_BINARY_DIR}/MeshGeoToolsLib/PrismBHE_mat.vtu -g testpoints.gml --min-id 4 --max-id 8
+    REQUIREMENTS NOT OGS_USE_MPI
+    TESTER diff
+    DIFF_DATA
+    PrismBHE_mat.vtu
+)
+
+AddTest(
+    NAME IntegrateBoreholesIntoMesh_ElevationAndMat_Test
+    PATH MeshGeoToolsLib/
+    WORKING_DIRECTORY ${Data_SOURCE_DIR}/MeshGeoToolsLib
+    EXECUTABLE IntegrateBoreholesIntoMesh
+    EXECUTABLE_ARGS -i PrismCube10x10x10.vtu -o ${Data_BINARY_DIR}/MeshGeoToolsLib/PrismBHE_elev.vtu -g testpoints.gml --min-id 4 --max-id 8 --min-elevation 4.5 --max-elevation 10
+    REQUIREMENTS NOT OGS_USE_MPI
+    TESTER diff
+    DIFF_DATA
+    PrismBHE_elev.vtu
 )

@@ -88,7 +88,9 @@ public:
         int const integration_order) override;
 
     void setInitialConditionsConcrete(std::vector<double> const& local_x,
-                                      double const t) override;
+                                      double const t,
+                                      bool const use_monolithic_scheme,
+                                      int const process_id) override;
 
     void assemble(double const t, double const dt,
                   std::vector<double> const& local_x,
@@ -163,8 +165,10 @@ public:
         std::vector<double> const& local_x_dot) override;
 
     void postNonLinearSolverConcrete(std::vector<double> const& local_x,
+                                     std::vector<double> const& local_xdot,
                                      double const t, double const dt,
-                                     bool const use_monolithic_scheme) override;
+                                     bool const use_monolithic_scheme,
+                                     int const process_id) override;
 
     Eigen::Map<const Eigen::RowVectorXd> getShapeMatrix(
         const unsigned integration_point) const override
