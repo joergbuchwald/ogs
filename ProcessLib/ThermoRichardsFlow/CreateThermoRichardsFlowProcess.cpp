@@ -148,8 +148,8 @@ std::unique_ptr<Process> createThermoRichardsFlowProcess(
     DBUG("Media properties verified.");
 
     bool mass_lumping = false;
-    //! \ogs_file_param{prj__processes__process__THERMO_RICHARDS_FLOW__mass_lumping}
     if (auto const mass_lumping_ptr =
+            //! \ogs_file_param{prj__processes__process__THERMO_RICHARDS_MECHANICS__mass_lumping}
             config.getConfigParameterOptional<bool>("mass_lumping"))
     {
         DBUG("Using mass lumping for the Richards flow equation.");
