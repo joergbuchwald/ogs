@@ -15,9 +15,11 @@
 #include "MaterialLib/MPL/Utils/FormEffectiveThermalConductivity.h"
 #include "MaterialLib/MPL/Utils/FormEigenTensor.h"
 #include "MaterialLib/MPL/Utils/GetLiquidThermalExpansivity.h"
+#include "MaterialLib/PhysicalConstant.h"
 #include "MaterialLib/SolidModels/SelectSolidConstitutiveRelation.h"
 #include "NumLib/Function/Interpolation.h"
 #include "ProcessLib/Utils/SetOrGetIntegrationPointData.h"
+#include "WaterVaporProperty.h"
 
 namespace ProcessLib
 {
@@ -109,7 +111,8 @@ template <typename ShapeFunction, typename IntegrationMethod,
 void ThermoRichardsFlowLocalAssembler<
     ShapeFunction, IntegrationMethod,
     GlobalDim>::setInitialConditionsConcrete(std::vector<double> const& local_x,
-                                             double const t)
+                                             double const t, bool const /*use_monolithic_scheme*/,
+                                             int const /*process_id*/)
 {
     assert(local_x.size() == temperature_size + pressure_size);
 
@@ -341,8 +344,8 @@ void ThermoRichardsFlowLocalAssembler<
                         MaterialPropertyLib::PropertyType::thermal_expansivity)
                     .value(variables, x_position, t, dt));
 
-        double const dthermal_strain =
-            solid_linear_thermal_expansion_coefficient.trace() * T_dot_ip * dt;
+        //double const dthermal_strain =
+        //    solid_linear_thermal_expansion_coefficient.trace() * T_dot_ip * dt;
 
         double const p_FR = -chi_S_L * p_cap_ip;
         // p_SR
@@ -351,7 +354,7 @@ void ThermoRichardsFlowLocalAssembler<
             solid_phase.property(MPL::PropertyType::density)
                 .template value<double>(variables, x_position, t, dt);
 
-        double const rho = rho_SR * (1 - phi) + S_L * phi * rho_LR;
+        //double const rho = rho_SR * (1 - phi) + S_L * phi * rho_LR;
 
         //
         // pressure equation, pressure part.
@@ -486,6 +489,48 @@ void ThermoRichardsFlowLocalAssembler<
             K_Tp.noalias() -= rho_LR * specific_heat_capacity_fluid *
                               N_p.transpose() * (dNdx_p * T).transpose() *
                               Ki_over_mu * dNdx_p * w;
+        }
+
+        if (process_data_.has_water_vaporization)
+        {
+            double const p_L_ip = -p_cap_ip;
+            double const rho_wv = waterVaporDensity(T_ip, p_L_ip, rho_LR);
+            double const storage_coefficient_by_water_vapor =
+                phi * rho_wv *
+                (dS_L_dp_cap +
+                 (1 - S_L) / (rho_LR * T_ip *
+                              MaterialLib::PhysicalConstant::
+                                  SpecificGasConstant::WaterVapour));
+            storage_p_a_p.noalias() +=
+                N_p.transpose() * storage_coefficient_by_water_vapor * N_p * w;
+
+            double const vapor_expansion =
+                phi * (1 - S_L) * dwaterVaporDensitydT(T_ip, p_L_ip, rho_LR);
+            M_pT.noalias() += N_p.transpose() * vapor_expansion * N_p * w;
+
+            auto const f_Tv =
+                liquid_phase
+                    .property(MaterialPropertyLib::PropertyType::
+                                  thermal_diffusion_enhancement_factor)
+                    .template value<double>(variables, x_position, t, dt);
+
+            auto const tortuosity =
+                medium->property(MaterialPropertyLib::PropertyType::tortuosity)
+                    .template value<double>(variables, x_position, t, dt);
+            double const f_Tv_D_Tv =
+                f_Tv * DTv(T_ip, p_L_ip, rho_LR, S_L, phi, tortuosity);
+
+            local_Jac
+                .template block<pressure_size, temperature_size>(
+                    pressure_index, temperature_index)
+                .noalias() += dNdx_p.transpose() * f_Tv_D_Tv * dNdx_p * w;
+
+            local_rhs.template segment<pressure_size>(pressure_index)
+                .noalias() -= f_Tv_D_Tv * dNdx_p.transpose() * (dNdx_p * T) * w;
+
+            laplace_p.noalias() +=
+                dNdx_p.transpose() *
+                Dpv(T_ip, p_L_ip, rho_LR, S_L, phi, tortuosity) * dNdx_p * w;
         }
     }
 
@@ -651,7 +696,8 @@ void ThermoRichardsFlowLocalAssembler<ShapeFunction, IntegrationMethod,
     postNonLinearSolverConcrete(std::vector<double> const& local_x,
                                 std::vector<double> const& local_xdot,
                                 double const t, double const dt,
-                                bool const use_monolithic_scheme)
+                                bool const /*use_monolithic_scheme*/,
+                                int const /*process_id*/)
 {
     auto const T = Eigen::Map<typename ShapeMatricesType::template VectorType<
         temperature_size> const>(local_x.data() + temperature_index,
@@ -689,8 +735,8 @@ void ThermoRichardsFlowLocalAssembler<ShapeFunction, IntegrationMethod,
                         MaterialPropertyLib::PropertyType::thermal_expansivity)
                     .value(variables, x_position, t, dt));
 
-        double const dthermal_strain =
-            solid_linear_thermal_expansion_coefficient.trace() * T_dot_ip * dt;
+        //double const dthermal_strain =
+        //    solid_linear_thermal_expansion_coefficient.trace() * T_dot_ip * dt;
     }
 }
 
@@ -836,8 +882,8 @@ void ThermoRichardsFlowLocalAssembler<ShapeFunction, IntegrationMethod,
                         MaterialPropertyLib::PropertyType::thermal_expansivity)
                     .value(variables, x_position, t, dt));
 
-        double const dthermal_strain =
-            solid_linear_thermal_expansion_coefficient.trace() * T_dot_ip * dt;
+        //double const dthermal_strain =
+        //    solid_linear_thermal_expansion_coefficient.trace() * T_dot_ip * dt;
 
         auto const& b = _process_data.specific_body_force;
 
