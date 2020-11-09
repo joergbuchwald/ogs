@@ -203,13 +203,13 @@ void ThermoRichardsFlowProcess::initializeBoundaryConditions()
 }
 
 void ThermoRichardsFlowProcess::setInitialConditionsConcreteProcess(
-    GlobalVector const& x, double const t)
+    GlobalVector const& x, double const t, int const process_id)
 {
     DBUG("SetInitialConditions ThermoRichardsFlowProcess.");
 
     GlobalExecutor::executeMemberOnDereferenced(
         &LocalAssemblerIF::setInitialConditions, _local_assemblers,
-        *_local_to_global_index_map, x, t);
+        *_local_to_global_index_map, x, t, _use_monolithic_scheme, process_id);
 }
 
 void ThermoRichardsFlowProcess::assembleConcreteProcess(
@@ -277,7 +277,7 @@ void ThermoRichardsFlowProcess::postNonLinearSolverConcreteProcess(
     GlobalExecutor::executeSelectedMemberOnDereferenced(
         &LocalAssemblerIF::postNonLinearSolver, _local_assemblers,
         pv.getActiveElementIDs(), getDOFTable(process_id), x, xdot, t, dt,
-        _use_monolithic_scheme);
+        _use_monolithic_scheme, process_id);
 }
 
 void ThermoRichardsFlowProcess::computeSecondaryVariableConcrete(

@@ -34,6 +34,7 @@ struct ThermoRichardsFlowProcessData
     Eigen::VectorXd const specific_body_force;
 
     bool const apply_mass_lumping;
+    bool const has_water_vaporization;
 
     MeshLib::PropertyVector<double>* element_saturation = nullptr;
     MeshLib::PropertyVector<double>* element_porosity = nullptr;
