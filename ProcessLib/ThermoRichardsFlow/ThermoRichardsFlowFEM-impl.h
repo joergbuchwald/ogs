@@ -257,12 +257,20 @@ void ThermoRichardsFlowLocalAssembler<
             medium->property(MPL::PropertyType::biot_coefficient)
                 .template value<double>(variables, x_position, t, dt);
 
-        auto const storage_correction =
-            medium->property(MPL::PropertyType::storage_correction)
-                .template value<double>(variables, x_position, t, dt);
-        auto const thermal_expansivity_correction =
-            medium->property(MPL::PropertyType::thermal_expansivity_correction)
-                .template value<double>(variables, x_position, t, dt);
+        auto storage_correction = 0.0;
+        if (medium->hasProperty(MPL::PropertyType::storage_correction))
+        {
+            storage_correction =
+                medium->property(MPL::PropertyType::storage_correction)
+                    .template value<double>(variables, x_position, t, dt);
+        }
+        auto thermal_expansivity_correction = 0.0;
+        if (medium->hasProperty(MPL::PropertyType::storage_correction))
+        {
+            thermal_expansivity_correction =
+                medium->property(MPL::PropertyType::thermal_expansivity_correction)
+                    .template value<double>(variables, x_position, t, dt);
+        }
 
         //bulk_modulus correct name for bulk modulus of solid skeleton
         auto const K_S =
@@ -430,7 +438,6 @@ void ThermoRichardsFlowLocalAssembler<
                     solid_linear_thermal_expansion_coefficient.trace() +
                 phi * fluid_volumetric_thermal_expansion_coefficient +
                 thermal_expansivity_correction;
-            DBUG("TH. expansion:'{:f}'", eff_thermal_expansion);
             M_pT.noalias() -=
                 N_p.transpose() * rho_LR * eff_thermal_expansion * N_p * w;
         }
@@ -491,7 +498,7 @@ void ThermoRichardsFlowLocalAssembler<
                               Ki_over_mu * dNdx_p * w;
         }
 
-        if (process_data_.has_water_vaporization)
+        if (_process_data.has_water_vaporization)
         {
             double const p_L_ip = -p_cap_ip;
             double const rho_wv = waterVaporDensity(T_ip, p_L_ip, rho_LR);
@@ -695,7 +702,7 @@ void ThermoRichardsFlowLocalAssembler<ShapeFunction, IntegrationMethod,
                                       GlobalDim>::
     postNonLinearSolverConcrete(std::vector<double> const& local_x,
                                 std::vector<double> const& local_xdot,
-                                double const t, double const dt,
+                                double const /*t*/, double const /*dt*/,
                                 bool const /*use_monolithic_scheme*/,
                                 int const /*process_id*/)
 {
@@ -707,11 +714,11 @@ void ThermoRichardsFlowLocalAssembler<ShapeFunction, IntegrationMethod,
             temperature_size> const>(local_xdot.data() + temperature_index,
                                      temperature_size);
 
-    auto const& medium = _process_data.media_map->getMedium(_element.getID());
+    //auto const& medium = _process_data.media_map->getMedium(_element.getID());
     MPL::VariableArray variables;
     ParameterLib::SpatialPosition x_position;
     x_position.setElementID(_element.getID());
-    auto const& solid_phase = medium->phase("Solid");
+    //auto const& solid_phase = medium->phase("Solid");
 
     int const n_integration_points = _integration_method.getNumberOfPoints();
     for (int ip = 0; ip < n_integration_points; ip++)
@@ -727,14 +734,14 @@ void ThermoRichardsFlowLocalAssembler<ShapeFunction, IntegrationMethod,
         // Consider anisotropic thermal expansion.
         // Read in 3x3 tensor. 2D case also requires expansion coeff. for z-
         // component.
-        Eigen::Matrix<double, 3,
+        /*Eigen::Matrix<double, 3,
                       3> const solid_linear_thermal_expansion_coefficient =
             MaterialPropertyLib::formEigenTensor<3>(
                 solid_phase
                     .property(
                         MaterialPropertyLib::PropertyType::thermal_expansivity)
                     .value(variables, x_position, t, dt));
-
+        */
         //double const dthermal_strain =
         //    solid_linear_thermal_expansion_coefficient.trace() * T_dot_ip * dt;
     }
@@ -874,14 +881,14 @@ void ThermoRichardsFlowLocalAssembler<ShapeFunction, IntegrationMethod,
         // Consider anisotropic thermal expansion.
         // Read in 3x3 tensor. 2D case also requires expansion coeff. for z-
         // component.
-        Eigen::Matrix<double, 3,
+        /*Eigen::Matrix<double, 3,
                       3> const solid_linear_thermal_expansion_coefficient =
             MaterialPropertyLib::formEigenTensor<3>(
                 solid_phase
                     .property(
                         MaterialPropertyLib::PropertyType::thermal_expansivity)
                     .value(variables, x_position, t, dt));
-
+        */
         //double const dthermal_strain =
         //    solid_linear_thermal_expansion_coefficient.trace() * T_dot_ip * dt;
 
