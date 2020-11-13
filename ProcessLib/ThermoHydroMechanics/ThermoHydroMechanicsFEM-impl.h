@@ -15,6 +15,7 @@
 #include "MaterialLib/SolidModels/SelectSolidConstitutiveRelation.h"
 
 #include "MaterialLib/MPL/Utils/GetLiquidThermalExpansivity.h"
+#include "MaterialLib/MPL/Utils/GetLiquidCompressibility.h"
 #include "MaterialLib/MPL/Medium.h"
 #include "MaterialLib/MPL/Property.h"
 #include "MaterialLib/MPL/Utils/FormEffectiveThermalConductivity.h"
@@ -279,12 +280,15 @@ void ThermoHydroMechanicsLocalAssembler<ShapeFunctionDisplacement,
             liquid_phase.property(MaterialPropertyLib::PropertyType::density)
                 .template value<double>(vars, x_position, t, dt);
 
-        auto const drho_dp =
+        /*auto const drho_dp =
                 liquid_phase.property(MaterialPropertyLib::PropertyType::density)
                 .template dValue<double>(
                     vars, MaterialPropertyLib::Variable::phase_pressure, x_position, t, dt);
 
-        auto const fluid_compressibility = 1 / fluid_density * drho_dp;
+        auto const fluid_compressibility = 1 / fluid_density * drho_dp;*/
+        auto const fluid_compressibility =
+            MaterialPropertyLib::getLiquidCompressibility(
+                liquid_phase, vars, fluid_density, x_position, t, dt);
 
         double const fluid_volumetric_thermal_expansion_coefficient =
             MaterialPropertyLib::getLiquidThermalExpansivity(
