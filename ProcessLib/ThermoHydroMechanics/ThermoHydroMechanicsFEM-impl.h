@@ -290,6 +290,20 @@ void ThermoHydroMechanicsLocalAssembler<ShapeFunctionDisplacement,
             MaterialPropertyLib::getLiquidCompressibility(
                 liquid_phase, vars, fluid_density, x_position, t, dt);
 
+        auto specific_storage = 0.0;
+        if (medium->hasProperty(
+            MaterialPropertyLib::PropertyType::storage))
+        {
+            specific_storage = medium
+                ->property(MaterialPropertyLib::PropertyType::storage)
+                .template value<double>(vars, x_position, t, dt);
+        }
+        else
+        {
+            specific_storage = porosity * fluid_compressibility
+                + (alpha - porosity) * beta_SR;
+        }
+
         double const fluid_volumetric_thermal_expansion_coefficient =
             MaterialPropertyLib::getLiquidThermalExpansivity(
                 liquid_phase, vars, fluid_density, x_position, t, dt);
@@ -348,7 +362,7 @@ void ThermoHydroMechanicsLocalAssembler<ShapeFunctionDisplacement,
         //
         laplace_p.noalias() += dNdx_p.transpose() * K_over_mu * dNdx_p * w;
 
-        storage_p.noalias() += N_p.transpose() * (porosity * fluid_compressibility + (alpha - porosity) * beta_SR) * N_p * w;
+        storage_p.noalias() += N_p.transpose() * specific_storage * N_p * w;
         //
         //  RHS, pressure part
         //
