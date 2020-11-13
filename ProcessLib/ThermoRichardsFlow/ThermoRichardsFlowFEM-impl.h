@@ -371,12 +371,12 @@ void ThermoRichardsFlowLocalAssembler<
             dNdx_p.transpose() * k_rel * rho_Ki_over_mu * dNdx_p * w;
 
         double const a0 = (alpha > phi) ? 0.0 : (alpha - phi) * beta_SR;
-        double const specific_storage_a_p = S_L * (phi / K_LR + S_L * a0 +
-                storage_correction);
+        double const specific_storage_a_p = S_L * (phi / K_LR + S_L * (a0 +
+                storage_correction));
         double const specific_storage_a_S = phi - p_cap_ip * S_L * a0;
 
         double const dspecific_storage_a_p_dp_cap =
-            dS_L_dp_cap * (phi / K_LR + 2 * S_L * a0 + storage_correction);
+            dS_L_dp_cap * (phi / K_LR + 2 * S_L * (a0 + storage_correction));
         double const dspecific_storage_a_S_dp_cap =
             -a0 * (S_L + p_cap_ip * dS_L_dp_cap);
 
