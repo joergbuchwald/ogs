@@ -752,24 +752,26 @@ template <typename ShapeFunction, typename IntegrationMethod,
 void ThermoRichardsFlowLocalAssembler<ShapeFunction, IntegrationMethod,
                                       GlobalDim>::
     computeSecondaryVariableConcrete(double const t, double const dt,
-                                     std::vector<double> const& local_x,
-                                     std::vector<double> const& local_x_dot)
+                                     Eigen::VectorXd const& local_x,
+                                     Eigen::VectorXd const& local_x_dot)
 {
-    auto const T = Eigen::Map<typename ShapeMatricesType::template VectorType<
-        temperature_size> const>(local_x.data() + temperature_index,
-                                 temperature_size);
-    auto const T_dot =
-        Eigen::Map<typename ShapeMatricesType::template VectorType<
-            temperature_size> const>(local_x_dot.data() + temperature_index,
-                                     temperature_size);
+    auto const T = local_x.template segment<temperature_size>(temperature_index);
+        //Eigen::Map<typename ShapeMatricesType::template VectorType<
+        //temperature_size> const>(local_x.data() + temperature_index,
+        //                         temperature_size);
 
-    auto const p_L = Eigen::Map<
-        typename ShapeMatricesType::template VectorType<pressure_size> const>(
-        local_x.data() + pressure_index, pressure_size);
+    auto const T_dot = local_x_dot.template segment<temperature_size>(temperature_index);
+       // Eigen::Map<typename ShapeMatricesType::template VectorType<
+       //     temperature_size> const>(local_x_dot.data() + temperature_index,
+       //                              temperature_size);
 
-    auto p_L_dot = Eigen::Map<
-        typename ShapeMatricesType::template VectorType<pressure_size> const>(
-        local_x_dot.data() + pressure_index, pressure_size);
+    auto const p_L = local_x.template segment<pressure_size>(pressure_index);
+        //Eigen::Map<typename ShapeMatricesType::template VectorType<pressure_size> const>(
+        //local_x.data() + pressure_index, pressure_size);
+
+    auto p_L_dot = local_x_dot.template segment<pressure_size>(pressure_index);
+        //Eigen::Map<typename ShapeMatricesType::template VectorType<pressure_size> const>(
+        //local_x_dot.data() + pressure_index, pressure_size);
 
     auto const& medium = _process_data.media_map->getMedium(_element.getID());
     auto const& liquid_phase = medium->phase("AqueousLiquid");

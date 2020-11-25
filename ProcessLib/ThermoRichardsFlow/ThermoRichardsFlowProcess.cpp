@@ -258,13 +258,25 @@ void ThermoRichardsFlowProcess::postTimestepConcreteProcess(
     std::vector<GlobalVector*> const& x, double const t, double const dt,
     const int process_id)
 {
+    if (process_id != 0)
+    {
+        return;
+    }
+
     DBUG("PostTimestep ThermoRichardsFlowProcess.");
+
+    std::vector<NumLib::LocalToGlobalIndexMap const*> dof_tables;
+    auto const n_processes = x.size();
+    dof_tables.reserve(n_processes);
+    for (std::size_t process_id = 0; process_id < n_processes; ++process_id)
+    {
+        dof_tables.push_back(&getDOFTable(process_id));
+    }
 
     ProcessLib::ProcessVariable const& pv = getProcessVariables(process_id)[0];
     GlobalExecutor::executeSelectedMemberOnDereferenced(
         &LocalAssemblerIF::postTimestep, _local_assemblers,
-        pv.getActiveElementIDs(), *_local_to_global_index_map, *x[process_id],
-        t, dt);
+        pv.getActiveElementIDs(), dof_tables, x, t, dt);
 }
 
 void ThermoRichardsFlowProcess::postNonLinearSolverConcreteProcess(
@@ -281,17 +293,28 @@ void ThermoRichardsFlowProcess::postNonLinearSolverConcreteProcess(
 }
 
 void ThermoRichardsFlowProcess::computeSecondaryVariableConcrete(
-    const double t, const double dt, GlobalVector const& x,
+    const double t, const double dt, std::vector<GlobalVector*> const& x,
     GlobalVector const& x_dot, int const process_id)
 {
+    if (process_id != 0)
+    {
+        return;
+    }
     DBUG(
         "Compute the secondary variables for "
         "ThermoRichardsFlowProcess.");
+    std::vector<NumLib::LocalToGlobalIndexMap const*> dof_tables;
+    auto const n_processes = x.size();
+    dof_tables.reserve(n_processes);
+    for (std::size_t process_id = 0; process_id < n_processes; ++process_id)
+    {
+        dof_tables.push_back(&getDOFTable(process_id));
+    }
     ProcessLib::ProcessVariable const& pv = getProcessVariables(process_id)[0];
 
     GlobalExecutor::executeSelectedMemberOnDereferenced(
         &LocalAssemblerIF::computeSecondaryVariable, _local_assemblers,
-        pv.getActiveElementIDs(), getDOFTable(process_id), t, dt, x, x_dot);
+        pv.getActiveElementIDs(), dof_tables, t, dt, x, x_dot, process_id);
 }
 
 NumLib::LocalToGlobalIndexMap const& ThermoRichardsFlowProcess::getDOFTable(
