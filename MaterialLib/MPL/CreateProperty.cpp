@@ -192,6 +192,10 @@ std::unique_ptr<MaterialPropertyLib::Property> createProperty(
     {
         return createLinearSaturationSwellingStress(config);
     }
+    if (boost::iequals(property_type, "HeatConductionSaturationDependent"))
+    {
+        return createHeatConductionSaturation(config);
+    }
 
     // If none of the above property types are found, OGS throws an error.
     OGS_FATAL("The specified component property type '{:s}' was not recognized",
