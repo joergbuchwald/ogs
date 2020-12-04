@@ -12,7 +12,10 @@
 
 namespace MaterialPropertyLib
 {
-/// Bishop's power law for effective stress.
+/// saturation dependend model for effective heat conduction
+/// \details This property must be a medium property, it
+/// computes the effetive heat conductivity based on a wet
+/// and a dry value
 class HeatConductionSaturationDependent final : public Property
 {
 public:
