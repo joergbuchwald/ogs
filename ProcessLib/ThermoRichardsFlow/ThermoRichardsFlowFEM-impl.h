@@ -464,24 +464,26 @@ void ThermoRichardsFlowLocalAssembler<
                 N_p.transpose() * N_p;
 
             GlobalDimMatrixType thermal_conductivity;
-            if (medium.hasProperty(
-            MaterialPropertyLib::PropertyType::thermal_conductivity))
+            if (medium->hasProperty(
+                    MaterialPropertyLib::PropertyType::thermal_conductivity))
             {
                 if (solid_phase.hasProperty(
             MaterialPropertyLib::PropertyType::thermal_conductivity) ||
                     liquid_phase.hasProperty(
             MaterialPropertyLib::PropertyType::thermal_conductivity))
                 {
-                    OGS_FATAL("Conflicting thermal conductivities
-                            given in phase and medium");
+                    OGS_FATAL(
+                        "Conflicting thermal conductivities"
+                        "given in phase and medium");
                 }
                 else
                 {
                     thermal_conductivity =
                         MaterialPropertyLib::formEigenTensor<GlobalDim>(
-                                medium..property(
-                        MaterialPropertyLib::PropertyType::thermal_conductivity)
-                    .value(variables, x_position, t, dt));
+                            medium
+                                ->property(MaterialPropertyLib::PropertyType::
+                                               thermal_conductivity)
+                                .value(variables, x_position, t, dt));
                 }
 
             }
