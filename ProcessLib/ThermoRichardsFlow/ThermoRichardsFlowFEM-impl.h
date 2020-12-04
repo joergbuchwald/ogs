@@ -463,23 +463,48 @@ void ThermoRichardsFlowLocalAssembler<
                  (S_L * rho_LR * specific_heat_capacity_fluid) * phi) *
                 N_p.transpose() * N_p;
 
-            auto const thermal_conductivity_solid =
-                solid_phase
-                    .property(
+            GlobalDimMatrixType thermal_conductivity;
+            if (medium.hasProperty(
+            MaterialPropertyLib::PropertyType::thermal_conductivity))
+            {
+                if (solid_phase.hasProperty(
+            MaterialPropertyLib::PropertyType::thermal_conductivity) ||
+                    liquid_phase.hasProperty(
+            MaterialPropertyLib::PropertyType::thermal_conductivity))
+                {
+                    OGS_FATAL("Conflicting thermal conductivities
+                            given in phase and medium");
+                }
+                else
+                {
+                    thermal_conductivity =
+                        MaterialPropertyLib::formEigenTensor<GlobalDim>(
+                                medium..property(
                         MaterialPropertyLib::PropertyType::thermal_conductivity)
-                    .value(variables, x_position, t, dt);
+                    .value(variables, x_position, t, dt));
+                }
 
-            auto const thermal_conductivity_fluid =
-                liquid_phase
-                    .property(
-                        MaterialPropertyLib::PropertyType::thermal_conductivity)
-                    .template value<double>(variables, x_position, t, dt) *
-                S_L;
+            }
+            else
+            {
+                auto const thermal_conductivity_solid =
+                    solid_phase
+                        .property(
+                            MaterialPropertyLib::PropertyType::thermal_conductivity)
+                        .value(variables, x_position, t, dt);
 
-            GlobalDimMatrixType const thermal_conductivity =
-                MaterialPropertyLib::formEffectiveThermalConductivity<
-                    GlobalDim>(thermal_conductivity_solid,
+                auto const thermal_conductivity_fluid =
+                    liquid_phase
+                        .property(
+                            MaterialPropertyLib::PropertyType::thermal_conductivity)
+                        .template value<double>(variables, x_position, t, dt) *
+                    S_L;
+
+                thermal_conductivity =
+                    MaterialPropertyLib::formEffectiveThermalConductivity<
+                        GlobalDim>(thermal_conductivity_solid,
                                thermal_conductivity_fluid, phi);
+            }
 
             GlobalDimVectorType const velocity_l =
                 GlobalDimVectorType(-Ki_over_mu * (dNdx_p * p_L - rho_LR * b));

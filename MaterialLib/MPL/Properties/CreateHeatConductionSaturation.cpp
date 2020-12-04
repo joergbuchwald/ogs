@@ -26,12 +26,12 @@ createHeatConductionSaturation(BaseLib::ConfigTree const& config)
          property_name);
 
     auto const K_dry =
-        //! \ogs_file_param{properties__property__HeatConductionSaturationDependent__value_dry}
-        config.getConfigParameter<double>("value_dry");
+        //! \ogs_file_param{properties__property__HeatConductionSaturationDependent__dry}
+        config.getConfigParameter<double>("dry");
 
     auto const K_wet =
-        //! \ogs_file_param{properties__property__HeatConductionSaturationDependent__value_wet}
-        config.getConfigParameter<double>("value_wet");
+        //! \ogs_file_param{properties__property__HeatConductionSaturationDependent__wet}
+        config.getConfigParameter<double>("wet");
 
     return std::make_unique<
         MaterialPropertyLib::HeatConductionSaturationDependent>(
