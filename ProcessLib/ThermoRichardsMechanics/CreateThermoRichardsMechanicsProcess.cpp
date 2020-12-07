@@ -176,13 +176,23 @@ std::unique_ptr<Process> createThermoRichardsMechanicsProcess(
         mass_lumping = *mass_lumping_ptr;
     }
 
+    bool has_water_vaporization = false;
+    if (auto const has_water_vaporization_ptr =
+            //! \ogs_file_param{prj__processes__process__THERMO_RICHARDS_MECHANICS__has_water_vaporization}
+        config.getConfigParameterOptional<bool>("has_water_vaporization"))
+    {
+        DBUG("Consider water vaporization.");
+        has_water_vaporization = *has_water_vaporization_ptr;
+    }
+
     ThermoRichardsMechanicsProcessData<DisplacementDim> process_data{
         materialIDs(mesh),
         std::move(media_map),
         std::move(solid_constitutive_relations),
         initial_stress,
         specific_body_force,
-        mass_lumping};
+        mass_lumping,
+        has_water_vaporization};
 
     SecondaryVariableCollection secondary_variables;
 

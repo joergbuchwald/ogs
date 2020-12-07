@@ -51,6 +51,7 @@ struct ThermoRichardsMechanicsProcessData
     /// A vector of displacement dimension's length.
     Eigen::Matrix<double, DisplacementDim, 1> const specific_body_force;
 
+    bool const has_water_vaporization;
     bool const apply_mass_lumping;
 
     MeshLib::PropertyVector<double>* element_saturation = nullptr;
