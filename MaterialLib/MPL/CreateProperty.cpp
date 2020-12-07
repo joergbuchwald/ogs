@@ -14,15 +14,13 @@
 
 #include <string>
 #include <vector>
+
 #include "BaseLib/ConfigTree.h"
-
-#include "Properties/CreateProperties.h"
-
-#include "Properties/Properties.h"
-
 #include "Component.h"
 #include "Medium.h"
 #include "Phase.h"
+#include "Properties/CreateProperties.h"
+#include "Properties/Properties.h"
 
 namespace
 {
@@ -156,6 +154,11 @@ std::unique_ptr<MaterialPropertyLib::Property> createProperty(
     if (boost::iequals(property_type, "LinearSaturationSwellingStress"))
     {
         return createLinearSaturationSwellingStress(config);
+    }
+
+    if (boost::iequals(property_type, "SaturationDependentHeatConduction"))
+    {
+        return createSaturationDependentHeatConduction(config);
     }
 
     // If none of the above property types are found, OGS throws an error.

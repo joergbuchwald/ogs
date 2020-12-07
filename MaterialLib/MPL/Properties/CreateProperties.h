@@ -28,6 +28,7 @@
 #include "CreatePermeabilityMohrCoulombFailureIndexModel.h"
 #include "CreatePermeabilityOrthotropicPowerLaw.h"
 #include "CreatePorosityFromMassBalance.h"
+#include "CreateSaturationDependentHeatConduction.h"
 #include "CreateSaturationDependentSwelling.h"
 #include "CreateTransportPorosityFromMassBalance.h"
 #include "RelativePermeability/CreateRelPermBrooksCorey.h"
