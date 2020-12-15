@@ -34,7 +34,6 @@
 #include "CreateSaturationDependentHeatConduction.h"
 #include "CreateStrainDependentPermeability.h"
 #include "CreateTransportPorosityFromMassBalance.h"
-#include "CreateHeatConductionSaturation.h"
 #include "RelativePermeability/CreateRelPermBrooksCorey.h"
 #include "RelativePermeability/CreateRelPermLiakopoulos.h"
 #include "RelativePermeability/CreateRelPermUdell.h"
