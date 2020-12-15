@@ -26,7 +26,6 @@
 #include "Linear.h"
 #include "Parameter.h"
 #include "PorosityFromMassBalance.h"
-#include "HeatConductionSaturation.h"
 #include "RelativePermeability/RelPermBrooksCorey.h"
 #include "RelativePermeability/RelPermLiakopoulos.h"
 #include "RelativePermeability/RelPermUdell.h"
