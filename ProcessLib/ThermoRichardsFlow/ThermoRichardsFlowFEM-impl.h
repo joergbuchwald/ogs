@@ -280,14 +280,27 @@ void ThermoRichardsFlowLocalAssembler<
         variables[static_cast<int>(MPL::Variable::grain_compressibility)] =
             beta_SR;
 
-        auto const K_LR =
-            liquid_phase.property(MPL::PropertyType::bulk_modulus)
-                .template value<double>(variables, x_position, t, dt);
 
         auto const rho_LR =
             liquid_phase.property(MPL::PropertyType::density)
                 .template value<double>(variables, x_position, t, dt);
         auto const& b = _process_data.specific_body_force;
+
+        auto beta_LR = 0.0;
+        if (liquid_phase.hasProperty(MPL::PropertyType::bulk_modulus))
+        {
+            beta_LR =
+                1 / liquid_phase.property(MPL::PropertyType::bulk_modulus)
+                        .template value<double>(variables, x_position, t, dt);
+        }
+        else
+        {
+            beta_LR = 1 / rho_LR *
+                      liquid_phase.property(MPL::PropertyType::density)
+                          .template dValue<double>(
+                              variables, MPL::Variable::phase_pressure,
+                              x_position, t, dt);
+        }
 
         S_L = medium->property(MPL::PropertyType::saturation)
                   .template value<double>(variables, x_position, t, dt);
@@ -371,12 +384,12 @@ void ThermoRichardsFlowLocalAssembler<
             dNdx_p.transpose() * k_rel * rho_Ki_over_mu * dNdx_p * w;
 
         double const a0 = (alpha > phi) ? 0.0 : (alpha - phi) * beta_SR;
-        double const specific_storage_a_p = S_L * (phi / K_LR + S_L * (a0 +
-                storage_correction));
+        double const specific_storage_a_p =
+            S_L * (phi * beta_LR + S_L * (a0 + storage_correction));
         double const specific_storage_a_S = phi - p_cap_ip * S_L * a0;
 
         double const dspecific_storage_a_p_dp_cap =
-            dS_L_dp_cap * (phi / K_LR + 2 * S_L * (a0 + storage_correction));
+            dS_L_dp_cap * (phi * beta_LR + 2 * S_L * (a0 + storage_correction));
         double const dspecific_storage_a_S_dp_cap =
             -a0 * (S_L + p_cap_ip * dS_L_dp_cap);
 
