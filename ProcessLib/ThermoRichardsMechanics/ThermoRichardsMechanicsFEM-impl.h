@@ -622,7 +622,11 @@ void ThermoRichardsMechanicsLocalAssembler<ShapeFunctionDisplacement,
         double const a0 = alphaB_minus_phi * beta_SR;
         double const specific_storage_a_p = S_L * (phi * beta_LR + S_L * a0);
         double const specific_storage_a_S = phi - p_cap_ip * S_L * a0;
-
+        if (ip == 42)
+        {
+                DBUG("specific storage a_p: '{:f}'", specific_storage_a_p);
+                DBUG("specific storage a_S: '{:f}'", specific_storage_a_S);
+        }
         double const dspecific_storage_a_p_dp_cap =
             dS_L_dp_cap * (phi * beta_LR + 2 * S_L * a0);
         double const dspecific_storage_a_S_dp_cap =
@@ -692,6 +696,11 @@ void ThermoRichardsMechanicsLocalAssembler<ShapeFunctionDisplacement,
                     solid_linear_thermal_expansion_coefficient.trace() +
                 phi * fluid_volumetric_thermal_expansion_coefficient;
 
+            if (ip == 42)
+            {
+                DBUG("eff. th. expansion: '{:f}'", eff_thermal_expansion);
+                DBUG("rho_LR: '{:f}'", rho_LR);
+            }
             M_pT.noalias() -=
                 N_p.transpose() * rho_LR * eff_thermal_expansion * N_p * w;
         }
