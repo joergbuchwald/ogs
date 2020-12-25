@@ -388,7 +388,7 @@ void ThermoRichardsFlowLocalAssembler<
         double const specific_storage_a_p =
             S_L * (phi * beta_LR + S_L * (a0 + storage_correction));
         double const specific_storage_a_S = phi - p_cap_ip * S_L * a0;
-        if (ip == 42)
+        if (ip == 0)
         {
                 DBUG("specific storage a_p: '{:f}'", specific_storage_a_p);
                 DBUG("specific storage a_S: '{:f}'", specific_storage_a_S);
@@ -457,7 +457,7 @@ void ThermoRichardsFlowLocalAssembler<
                     solid_linear_thermal_expansion_coefficient.trace() +
                 phi * fluid_volumetric_thermal_expansion_coefficient +
                 thermal_expansivity_correction;
-            if (ip == 42)
+            if (ip == 0)
             {
                 DBUG("eff. th. expansion: '{:f}'", eff_thermal_expansion);
                 DBUG("rho_LR: '{:f}'", rho_LR);
