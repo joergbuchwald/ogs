@@ -35,35 +35,22 @@ AddTest(
     REQUIREMENTS NOT (OGS_USE_LIS OR OGS_USE_MPI)
     RUNTIME 17
     DIFF_DATA
-    ref_t_1600.000000.vtu Richards_2D_small_pcs_0_ts_1100_t_1600.000000.vtu pressure pressure 5e-3 1e-8
-    ref_t_1600.000000.vtu Richards_2D_small_pcs_0_ts_1100_t_1600.000000.vtu saturation saturation 5e-3 1e-8
+    ref_t_1600.000000.vtu Richards_2D_small_pcs_ts_1100_t_1600.000000.vtu pressure pressure 5e-3 1e-8
+    ref_t_1600.000000.vtu Richards_2D_small_pcs_ts_1100_t_1600.000000.vtu saturation saturation 5e-3 1e-8
 )
-AddTest(
-    NAME ThermoRichardsFlow_RichardsFlow2DSmall_adapativeTimeStepping
-    PATH ThermoRichardsFlow/RichardsFlow2D
-    EXECUTABLE ogs
-    EXECUTABLE_ARGS RichardsFlow_2d_small_PID_adaptive_dt.prj
-    WRAPPER time
-    TESTER vtkdiff
-    REQUIREMENTS NOT (OGS_USE_LIS OR OGS_USE_MPI)
-    RUNTIME 25
-    DIFF_DATA
-    ref_t_1600.000000.vtu richards_pcs_PID_adaptive_dt_t_1600.vtu pressure pressure 5e-3 1e-8
-    ref_t_1600.000000.vtu richards_pcs_PID_adaptive_dt_t_1600.vtu saturation saturation 5e-3 1e-8
-)
-AddTest(
-    NAME ThermoRichardsFlow_RichardsFlow2DSmall_masslumping
-    PATH ThermoRichardsFlow/RichardsFlow2D
-    EXECUTABLE ogs
-    EXECUTABLE_ARGS RichardsFlow_2d_small_masslumping.prj
-    WRAPPER time
-    TESTER vtkdiff
-    REQUIREMENTS NOT (OGS_USE_LIS OR OGS_USE_MPI)
-    RUNTIME 17
-    DIFF_DATA
-    expected_RichardsFlow_2d_small_masslumping_pcs_0_ts_104_t_2000.000000.vtu RichardsFlow_2d_small_masslumping_pcs_0_ts_104_t_2000.000000.vtu pressure pressure 5e-3 1e-10
-    expected_RichardsFlow_2d_small_masslumping_pcs_0_ts_104_t_2000.000000.vtu RichardsFlow_2d_small_masslumping_pcs_0_ts_104_t_2000.000000.vtu saturation saturation 1e-10 1e-10
-)
+#AddTest(
+#    NAME ThermoRichardsFlow_RichardsFlow2DSmall_adapativeTimeStepping
+#    PATH ThermoRichardsFlow/RichardsFlow2D
+#    EXECUTABLE ogs
+#    EXECUTABLE_ARGS RichardsFlow_2d_small_PID_adaptive_dt.prj
+#    WRAPPER time
+#    TESTER vtkdiff
+#    REQUIREMENTS NOT (OGS_USE_LIS OR OGS_USE_MPI)
+#    RUNTIME 25
+#    DIFF_DATA
+#    ref_t_1600.000000.vtu richards_pcs_PID_adaptive_dt_t_1600.vtu pressure pressure 5e-3 1e-8
+#    ref_t_1600.000000.vtu richards_pcs_PID_adaptive_dt_t_1600.vtu saturation saturation 5e-3 1e-8
+#)
 AddTest(
     NAME ThermoRichardsFlow_RichardsFlow2DSmall_ogs5
     PATH ThermoRichardsFlow/RichardsFlow2D
@@ -74,17 +61,61 @@ AddTest(
     REQUIREMENTS NOT (OGS_USE_LIS OR OGS_USE_MPI)
     RUNTIME 17
     DIFF_DATA
-    h_us_quad_1000.vtu richards_ogs5_pcs_0_ts_100_t_100.000000.vtu PRESSURE1 pressure 5e-3 1e-10
+    h_us_quad_1000.vtu richards_ogs5_pcs_ts_100_t_100.000000.vtu PRESSURE1 pressure 5e-3 1e-10
 )
 AddTest(
-    NAME ThermoRichardsFlow_RichardsFlow2DSmall_fully_sat_HTm_small
-    PATH ThermoRichardsFlow/HTm
+    NAME ThermoRichardsFlow_comp_TRMuni_sat-TRuni_sat
+    PATH ThermoRichardsFlow/SimplifiedMechanics
     EXECUTABLE ogs
-    EXECUTABLE_ARGS RichardsFlow.prj
+    EXECUTABLE_ARGS TRuni_sat.prj
     WRAPPER time
     TESTER vtkdiff
     REQUIREMENTS NOT (OGS_USE_LIS OR OGS_USE_MPI)
-    RUNTIME 2
+    RUNTIME 1
     DIFF_DATA
-    HT_singleelementts_10_t_1.000000.vtu RichardsFlow_singleelementts_10_t_1.000000.vtu pressure pressure 5e-6 1e-10
+    expected_TRMuni_sat_ts_10_t_1.000000.vtu TRuni_sat_ts_10_t_1.000000.vtu temperature temperature 5e-5 1e-10
+    expected_TRMuni_sat_ts_10_t_1.000000.vtu TRuni_sat_ts_10_t_1.000000.vtu pressure pressure 5e-5 1e-10
+    expected_TRMuni_sat_ts_10_t_1.000000.vtu TRuni_sat_ts_10_t_1.000000.vtu saturation saturation 5e-5 1e-10
+)
+AddTest(
+    NAME ThermoRichardsFlow_comp_TRMuni_unsat-TRuni_unsat
+    PATH ThermoRichardsFlow/SimplifiedMechanics
+    EXECUTABLE ogs
+    EXECUTABLE_ARGS TRuni_unsat.prj
+    WRAPPER time
+    TESTER vtkdiff
+    REQUIREMENTS NOT (OGS_USE_LIS OR OGS_USE_MPI)
+    RUNTIME 1
+    DIFF_DATA
+    expected_TRMuni_unsat_ts_10_t_1.000000.vtu TRuni_unsat_ts_10_t_1.000000.vtu temperature temperature 5e-5 1e-10
+    expected_TRMuni_unsat_ts_10_t_1.000000.vtu TRuni_unsat_ts_10_t_1.000000.vtu pressure pressure 5e-3 1e-6
+    expected_TRMuni_unsat_ts_10_t_1.000000.vtu TRuni_unsat_ts_10_t_1.000000.vtu saturation saturation 5e-5 1e-10
+)
+AddTest(
+    NAME ThermoRichardsFlow_comp_TRMiso_sat-TRiso_sat
+    PATH ThermoRichardsFlow/SimplifiedMechanics
+    EXECUTABLE ogs
+    EXECUTABLE_ARGS TRiso_sat.prj
+    WRAPPER time
+    TESTER vtkdiff
+    REQUIREMENTS NOT (OGS_USE_LIS OR OGS_USE_MPI)
+    RUNTIME 1
+    DIFF_DATA
+    expected_TRMiso_sat_ts_10_t_1.000000.vtu TRiso_sat_ts_10_t_1.000000.vtu temperature temperature 5e-5 1e-10
+    expected_TRMiso_sat_ts_10_t_1.000000.vtu TRiso_sat_ts_10_t_1.000000.vtu pressure pressure 5e-5 1e-10
+    expected_TRMiso_sat_ts_10_t_1.000000.vtu TRiso_sat_ts_10_t_1.000000.vtu saturation saturation 5e-5 1e-10
+)
+AddTest(
+    NAME ThermoRichardsFlow_comp_TRMiso_unsat-TRiso_unsat
+    PATH ThermoRichardsFlow/SimplifiedMechanics
+    EXECUTABLE ogs
+    EXECUTABLE_ARGS TRiso_unsat.prj
+    WRAPPER time
+    TESTER vtkdiff
+    REQUIREMENTS NOT (OGS_USE_LIS OR OGS_USE_MPI)
+    RUNTIME 1
+    DIFF_DATA
+    expected_TRMiso_unsat_ts_10_t_1.000000.vtu TRiso_unsat_ts_10_t_1.000000.vtu temperature temperature 5e-5 1e-10
+    expected_TRMiso_unsat_ts_10_t_1.000000.vtu TRiso_unsat_ts_10_t_1.000000.vtu pressure pressure 5e-3 1e-6
+    expected_TRMiso_unsat_ts_10_t_1.000000.vtu TRiso_unsat_ts_10_t_1.000000.vtu saturation saturation 5e-5 1e-10
 )
