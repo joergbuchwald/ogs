@@ -11,19 +11,21 @@
     </meshes>
     <processes>
         <process>
-            <name>HT</name>
+            <name>THERMO_HYDRO_MECHANICS</name>
             <type>THERMO_RICHARDS_FLOW</type>
-            <integration_order>2</integration_order>
+            <integration_order>4</integration_order>
             <process_variables>
-                <temperature>temperature</temperature>
                 <pressure>pressure</pressure>
+                <temperature>temperature</temperature>
             </process_variables>
-            <specific_body_force>0 0 0</specific_body_force>
             <secondary_variables>
-                <secondary_variable internal_name="velocity" output_name="darcy_velocity"/>
+                <secondary_variable internal_name="velocity" output_name="velocity"/>
+                <secondary_variable internal_name="saturation" output_name="saturation"/>
             </secondary_variables>
+            <specific_body_force>0 0 0</specific_body_force>
         </process>
     </processes>
+
     <media>
         <medium id="0">
             <phases>
@@ -42,25 +44,34 @@
                         </property>
                         <property>
                             <name>density</name>
-                            <type>Constant</type>
-                            <value>999.1</value>
-                        </property>
-                        <property>
-                            <name>viscosity</name>
-                            <type>Constant</type>
-                            <value>1.0e-3</value>
-                        </property>
-                        <property>
-                            <name>bulk_modulus</name>
-                            <type>Constant</type>
-                            <!-- beta_f=4.6e-10//-->
-                            <value>2173913043.478261</value>
+                            <type>Linear</type>
+                            <reference_value>999.1</reference_value>
+                                <independent_variable>
+                                    <variable_name>temperature</variable_name>
+                                    <reference_condition>293.15</reference_condition>
+                                    <slope>-3.98e-4</slope>
+                                </independent_variable>
+                                <independent_variable>
+                                    <variable_name>phase_pressure</variable_name>
+                                    <reference_condition>1e5</reference_condition>
+                                    <slope>4.5999999999999996e-10</slope>
+                                </independent_variable>
                         </property>
                         <property>
                             <name>thermal_expansivity</name>
                             <type>Constant</type>
                             <value>3.98e-4</value>
                         </property>
+                        <property>
+                            <name>viscosity</name>
+                            <type>Constant</type>
+                            <value>1.e-3</value>
+                        </property>
+                        <!--<property>
+                            <name>bulk_modulus</name>
+                            <type>Constant</type>
+                            <value>2.173913043478261e9</value>
+                        </property>//-->
                     </properties>
                 </phase>
                 <phase>
@@ -69,7 +80,7 @@
                         <property>
                             <name>bulk_modulus</name>
                             <type>Constant</type>
-                            <value>1.0e100</value>
+                            <value>2.647058823529412e9</value>
                         </property>
                         <property>
                             <name>density</name>
@@ -96,24 +107,14 @@
             </phases>
             <properties>
                 <property>
-                    <name>biot_coefficient</name>
-                    <type>Constant</type>
-                    <value>1.0</value>
-                </property>
-                <property>
-                    <name>saturation</name>
-                    <type>Constant</type>
-                    <value>1</value>
-                </property>
-                <property>
-                    <name>bishops_effective_stress</name>
-                    <type>BishopsPowerLaw</type>
-                    <exponent>1</exponent>
-                </property>
-                <property>
                     <name>permeability</name>
                     <type>Constant</type>
                     <value>3e-20 0 0 0 3e-20 0 0 0 3e-20</value>
+                </property>
+                <property>
+                    <name>biot_coefficient</name>
+                    <type>Constant</type>
+                    <value>0.3</value>
                 </property>
                 <property>
                     <name>porosity</name>
@@ -126,36 +127,47 @@
                     <value>1</value>
                 </property>
                 <property>
+                    <name>saturation</name>
+                    <type>Constant</type>
+                    <value>1</value>
+                </property>
+                <property>
+                    <name>bishops_effective_stress</name>
+                    <type>BishopsPowerLaw</type>
+                    <exponent>1</exponent>
+                </property>
+                <property>
                     <name>thermal_expansivity_correction</name>
                     <type>Constant</type>
-                        <!-- ((-1.4e-6*3) //-->
-                    <value>-4.2e-06</value>
+                        <!-- (-alpha_B*3*beta_s) //-->
+                    <value>-1.26e-6</value>
                 </property>
                 <property>
                     <name>storage_correction</name>
                     <type>Constant</type>
-                        <!-- 1/K_s //-->
-                    <value>3.777777777777778e-10</value>
+                        <!-- \alpha_B^2/K //-->
+                    <value>3.4e-11</value>
                 </property>
             </properties>
         </medium>
     </media>
+
     <time_loop>
         <processes>
-            <process ref="HT">
+            <process ref="THERMO_HYDRO_MECHANICS">
                 <nonlinear_solver>basic_newton</nonlinear_solver>
                 <convergence_criterion>
                     <type>PerComponentDeltaX</type>
                     <norm_type>NORM2</norm_type>
-                    <abstols>1.e-5 1.e-2</abstols>
+                    <abstols>1e-5 1e-2</abstols>
                 </convergence_criterion>
                 <time_discretization>
                     <type>BackwardEuler</type>
                 </time_discretization>
                 <time_stepping>
                     <type>FixedTimeStepping</type>
-                    <t_initial> 0.0 </t_initial>
-                    <t_end> 1 </t_end>
+                    <t_initial>0</t_initial>
+                    <t_end>1</t_end>
                     <timesteps>
                         <pair>
                             <repeat>10</repeat>
@@ -167,35 +179,36 @@
         </processes>
         <output>
             <type>VTK</type>
-            <prefix>RichardsFlow_singleelement</prefix>
+            <prefix>TRiso_sat</prefix>
             <timesteps>
                 <pair>
-                    <repeat> 100 </repeat>
-                    <each_steps> 10 </each_steps>
+                    <repeat>100</repeat>
+                    <each_steps>1</each_steps>
                 </pair>
             </timesteps>
             <variables>
-                <variable>temperature</variable>
                 <variable>pressure</variable>
-                <variable>darcy_velocity</variable>
+                <variable>temperature</variable>
+                <variable>velocity</variable>
+                <variable>saturation</variable>
             </variables>
         </output>
     </time_loop>
     <parameters>
         <parameter>
-            <name>alpha_l</name>
+            <name>E</name>
             <type>Constant</type>
-            <value>0.0</value>
+            <value>2.7e9</value>
         </parameter>
         <parameter>
-            <name>alpha_t</name>
+            <name>nu</name>
             <type>Constant</type>
-            <value>0.0</value>
+            <value>0.33</value>
         </parameter>
         <parameter>
-            <name>temperature0</name>
+            <name>displacement0</name>
             <type>Constant</type>
-            <value>293.15</value>
+            <values>0 0 0</values>
         </parameter>
         <parameter>
             <name>pressure_ic</name>
@@ -208,24 +221,19 @@
             <value>0</value>
         </parameter>
         <parameter>
+            <name>neumann0</name>
+            <type>Constant</type>
+            <value>0</value>
+        </parameter>
+        <parameter>
             <name>pressure_bc_left</name>
             <type>Constant</type>
             <value>0</value>
         </parameter>
         <parameter>
-            <name>t_Dirichlet_bottom</name>
+            <name>temperature0</name>
             <type>Constant</type>
-            <value>170</value>
-        </parameter>
-        <parameter>
-            <name>t_Dirichlet_top</name>
-            <type>Constant</type>
-            <value>20</value>
-        </parameter>
-        <parameter>
-            <name>temperature_source_term</name>
-            <type>Constant</type>
-            <value>350</value>
+            <value>293.15</value>
         </parameter>
         <parameter>
             <name>Tvalue</name>
@@ -247,6 +255,32 @@
         </curve>
     </curves>
     <process_variables>
+        <process_variable>
+            <name>pressure</name>
+            <components>1</components>
+            <order>1</order>
+            <initial_condition>pressure_ic</initial_condition>
+            <boundary_conditions>
+                <!--boundary_condition>
+                    <mesh>single_cube_x10_surface</mesh>
+                    <type>Dirichlet</type>
+                    <component>0</component>
+                    <parameter>dirichlet0</parameter>
+                </boundary_condition>
+                <boundary_condition>
+                    <mesh>single_cube_y10_surface</mesh>
+                    <type>Dirichlet</type>
+                    <component>0</component>
+                    <parameter>dirichlet0</parameter>
+                </boundary_condition>
+                <boundary_condition>
+                    <mesh>single_cube_z10_surface</mesh>
+                    <type>Dirichlet</type>
+                    <component>0</component>
+                    <parameter>dirichlet0</parameter>
+                </boundary_condition-->
+            </boundary_conditions>
+        </process_variable>
         <process_variable>
             <name>temperature</name>
             <components>1</components>
@@ -290,64 +324,31 @@
                     <parameter>temperature1</parameter>
                 </boundary_condition>
             </boundary_conditions>
-            <!--<source_terms>
-                <source_term>
-                    <mesh>cube_source</mesh>
-                    <type>Nodal</type>
-                    <component>0</component>
-                    <parameter>temperature_source_term</parameter>
-                </source_term>
-            </source_terms>//-->
-        </process_variable>
-        <process_variable>
-            <name>pressure</name>
-            <components>1</components>
-            <order>1</order>
-            <initial_condition>pressure_ic</initial_condition>
-            <boundary_conditions>
-                <!--<boundary_condition>
-                    <mesh>single_cube_x10_surface</mesh>
-                    <type>Dirichlet</type>
-                    <component>0</component>
-                    <parameter>dirichlet0</parameter>
-                </boundary_condition>
-                <boundary_condition>
-                    <mesh>single_cube_y10_surface</mesh>
-                    <type>Dirichlet</type>
-                    <component>0</component>
-                    <parameter>dirichlet0</parameter>
-                </boundary_condition>
-                <boundary_condition>
-                    <mesh>single_cube_z10_surface</mesh>
-                    <type>Dirichlet</type>
-                    <component>0</component>
-                    <parameter>dirichlet0</parameter>
-                </boundary_condition>//-->
-            </boundary_conditions>
         </process_variable>
     </process_variables>
     <nonlinear_solvers>
         <nonlinear_solver>
             <name>basic_newton</name>
             <type>Newton</type>
-            <max_iter>1000</max_iter>
+            <max_iter>50</max_iter>
             <linear_solver>general_linear_solver</linear_solver>
         </nonlinear_solver>
     </nonlinear_solvers>
     <linear_solvers>
         <linear_solver>
             <name>general_linear_solver</name>
-            <lis>-i bicgstab -p jacobi -tol 1e-12 -maxiter 10000</lis>
-            <petsc>
-                <prefix>T</prefix>
-                <parameters> -T_ksp_type bcgs -T_pc_type bjacobi  -T_ksp_rtol 1e-16 -T_ksp_max_it 4000</parameters>
-            </petsc>
+            <lis>-i bicgstab -p ilu -tol 1e-16 -maxiter 10000</lis>
             <eigen>
                 <solver_type>SparseLU</solver_type>
-                <precon_type>DIAGONAL</precon_type>
-                <max_iteration_step>10000</max_iteration_step>
-                <error_tolerance>1e-12</error_tolerance>
+                <precon_type>DIAGONAL</precon_type> 
+                <max_iteration_step>1000000</max_iteration_step>
+                <error_tolerance>1e-16</error_tolerance>
+                                <!-- <scaling>1</scaling> //-->
             </eigen>
+            <petsc>
+                <prefix>sd</prefix>
+                <parameters>-sd_ksp_type cg -sd_pc_type bjacobi -sd_ksp_rtol 1e-16 -sd_ksp_max_it 10000</parameters>
+            </petsc>
         </linear_solver>
     </linear_solvers>
 </OpenGeoSysProject>
