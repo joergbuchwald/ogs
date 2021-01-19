@@ -447,24 +447,24 @@ void ThermoRichardsFlowLocalAssembler<
         // Note:  d (rho_l * beta _T)/dp * dotT
         // Add the thermal expansion term is the point is in the fully
         // saturated zone.
-        if (p_cap_ip <= 0.0)  // p_l>0.0
-        {
-            double const fluid_volumetric_thermal_expansion_coefficient =
+        /*if (p_cap_ip <= 0.0)  // p_l>0.0
+        {*/
+        double const fluid_volumetric_thermal_expansion_coefficient =
                 MPL::getLiquidThermalExpansivity(liquid_phase, variables,
                                                  rho_LR, x_position, t, dt);
-            const double eff_thermal_expansion =
-                alphaB_minus_phi *
+        const double eff_thermal_expansion =
+                S_L * (alphaB_minus_phi *
                     solid_linear_thermal_expansion_coefficient.trace() +
                 phi * fluid_volumetric_thermal_expansion_coefficient +
-                thermal_expansivity_correction;
-            if (ip == 0)
-            {
+                thermal_expansivity_correction);
+        if (ip == 0)
+        {
                 DBUG("eff. th. expansion: '{:f}'", eff_thermal_expansion);
                 DBUG("rho_LR: '{:f}'", rho_LR);
-            }
-            M_pT.noalias() -=
-                N_p.transpose() * rho_LR * eff_thermal_expansion * N_p * w;
         }
+        M_pT.noalias() -=
+                N_p.transpose() * rho_LR * eff_thermal_expansion * N_p * w;
+        //}
 
         //
         // temperature equation.
