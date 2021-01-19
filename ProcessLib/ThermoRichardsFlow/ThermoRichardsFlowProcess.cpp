@@ -203,13 +203,17 @@ void ThermoRichardsFlowProcess::initializeBoundaryConditions()
 }
 
 void ThermoRichardsFlowProcess::setInitialConditionsConcreteProcess(
-    GlobalVector const& x, double const t, int const process_id)
+    std::vector<GlobalVector*>& x, double const t, int const process_id)
 {
+    if (process_id != 0)
+    {
+        return;
+    }
     DBUG("SetInitialConditions ThermoRichardsFlowProcess.");
 
     GlobalExecutor::executeMemberOnDereferenced(
         &LocalAssemblerIF::setInitialConditions, _local_assemblers,
-        *_local_to_global_index_map, x, t, _use_monolithic_scheme, process_id);
+        *_local_to_global_index_map, *x[process_id], t, _use_monolithic_scheme, process_id);
 }
 
 void ThermoRichardsFlowProcess::assembleConcreteProcess(
