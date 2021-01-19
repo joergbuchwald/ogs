@@ -1,10 +1,13 @@
-### xdmfdiff ###
-if(OGS_USE_XDMF)
-    add_subdirectory(xdmfdiff)
-endif()
+### ctest dependencies
+foreach(tool vtkdiff xdmfdiff)
+    if(TARGET ${tool})
+        list(APPEND test_dependencies ${tool})
+    endif()
+endforeach()
+add_dependencies(ctest ${test_dependencies})
+add_dependencies(ctest-large ${test_dependencies})
 
 ### testrunner ###
-include(${PROJECT_SOURCE_DIR}/scripts/cmake/OGSEnabledElements.cmake)
 
 # VS2012 doesn't support correctly the tuples yet See
 # http://code.google.com/p/googletest/issues/detail?id=412
@@ -54,6 +57,7 @@ target_link_libraries(testrunner
         gtest
         MeshGeoToolsLib
         MaterialLib
+        MathLib
         MeshLib
         NumLib
         ParameterLib
@@ -72,6 +76,7 @@ if(OGS_USE_PETSC)
 endif()
 
 if(OGS_BUILD_GUI)
+    target_compile_definitions(testrunner PUBLIC OGS_BUILD_GUI)
     target_link_libraries(testrunner
         PRIVATE
             GitInfoLib

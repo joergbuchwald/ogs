@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -59,12 +59,12 @@ public:
     template <int NPoints, typename SingleUnknownMatrixType,
               typename RMatrixType, typename RPiSMatrixType,
               typename RSMatrixType>
-    void assembleRMatrices(
+    static void assembleRMatrices(
         int const idx_bhe_unknowns,
         Eigen::MatrixBase<SingleUnknownMatrixType> const& matBHE_loc_R,
         Eigen::MatrixBase<RMatrixType>& R_matrix,
         Eigen::MatrixBase<RPiSMatrixType>& R_pi_s_matrix,
-        Eigen::MatrixBase<RSMatrixType>& R_s_matrix) const
+        Eigen::MatrixBase<RSMatrixType>& R_s_matrix)
     {
         switch (idx_bhe_unknowns)
         {

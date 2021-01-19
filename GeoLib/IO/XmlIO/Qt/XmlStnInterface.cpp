@@ -5,7 +5,7 @@
  * \brief  Implementation of the XmlStnInterface class.
  *
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -208,7 +208,9 @@ void XmlStnInterface::readStratigraphy( const QDomNode &stratRoot,
             /* add other horizon features here */
 
             double depth (horizon.attribute("z").toDouble());
-            if (fabs(depth - depth_check) > std::numeric_limits<double>::epsilon()) // skip soil-layer if its thickness is zero
+            if (std::abs(depth - depth_check) >
+                std::numeric_limits<double>::
+                    epsilon())  // skip soil-layer if its thickness is zero
             {
                 borehole->addSoilLayer(horizon.attribute("x").toDouble(),
                                        horizon.attribute("y").toDouble(),
@@ -326,7 +328,7 @@ void XmlStnInterface::writeBoreholeData(QDomDocument &doc,
     boreholeTag.appendChild(stationDepthTag);
     QDomText stationDepthText = doc.createTextNode(QString::number(borehole->getDepth(), 'f'));
     stationDepthTag.appendChild(stationDepthText);
-    if (fabs(borehole->getDate()) > 0)
+    if (std::abs(borehole->getDate()) > 0)
     {
         QDomElement stationDateTag = doc.createElement("bdate");
         boreholeTag.appendChild(stationDateTag);

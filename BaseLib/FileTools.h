@@ -5,7 +5,7 @@
  * \brief Filename manipulation routines.
  *
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -44,7 +44,8 @@ getParenthesizedString(std::string const& in,
 std::string constructFormattedFileName(std::string const& format_specification,
                                        std::string const& mesh_name,
                                        int const timestep,
-                                       double const t);
+                                       double const t,
+                                       int const iteration);
 
 /**
  * \brief write value as binary into the given output stream

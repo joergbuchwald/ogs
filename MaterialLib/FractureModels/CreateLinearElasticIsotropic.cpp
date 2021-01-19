@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -27,11 +27,11 @@ createLinearElasticIsotropic(
     config.checkConfigParameter("type", "LinearElasticIsotropic");
     DBUG("Create LinearElasticIsotropic material");
 
-    auto& Kn = ParameterLib::findParameter<double>(
+    auto const& Kn = ParameterLib::findParameter<double>(
         //! \ogs_file_param_special{material__fracture_model__LinearElasticIsotropic__normal_stiffness}
         config, "normal_stiffness", parameters, 1);
 
-    auto& Ks = ParameterLib::findParameter<double>(
+    auto const& Ks = ParameterLib::findParameter<double>(
         //! \ogs_file_param_special{material__fracture_model__LinearElasticIsotropic__shear_stiffness}
         config, "shear_stiffness", parameters, 1);
 

@@ -3,7 +3,7 @@
  * \date   Nov 28, 2017
  *
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -30,8 +30,8 @@ Medium const* MaterialSpatialDistributionMap::getMedium(
     return media_.at(material_id).get();
 }
 
-
-void MaterialSpatialDistributionMap::checkElementHasMedium(std::size_t const element_id)
+void MaterialSpatialDistributionMap::checkElementHasMedium(
+    std::size_t const element_id) const
 {
     auto const material_id =
         material_ids_ == nullptr ? 0 : (*material_ids_)[element_id];

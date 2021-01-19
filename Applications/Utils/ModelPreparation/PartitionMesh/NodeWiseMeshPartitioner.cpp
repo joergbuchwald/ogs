@@ -5,7 +5,7 @@
   \brief  Define the members of class NodeWiseMeshPartitioner
 
   \copyright
-  Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+  Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
              Distributed under a Modified BSD License.
                See accompanying file LICENSE.txt or
                http://www.opengeosys.org/project/license
@@ -381,7 +381,7 @@ bool copyPropertyVector(
     MeshLib::Properties& partitioned_properties,
     std::vector<Partition> const& partitions,
     MeshLib::PropertyVector<T> const* const pv,
-    std::map<MeshLib::MeshItemType, std::size_t> const total_number_of_tuples)
+    std::map<MeshLib::MeshItemType, std::size_t> const& total_number_of_tuples)
 {
     if (pv == nullptr)
     {

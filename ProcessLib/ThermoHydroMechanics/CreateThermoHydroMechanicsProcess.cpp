@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -129,7 +129,7 @@ std::unique_ptr<Process> createThermoHydroMechanicsProcess(
             parameters, local_coordinate_system, config);
 
     // reference temperature
-    auto& reference_temperature = ParameterLib::findParameter<double>(
+    auto const& reference_temperature = ParameterLib::findParameter<double>(
         config,
         //! \ogs_file_param_special{prj__processes__process__THERMO_HYDRO_MECHANICS__reference_temperature}
         "reference_temperature", parameters, 1, &mesh);

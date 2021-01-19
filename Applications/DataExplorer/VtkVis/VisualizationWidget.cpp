@@ -5,7 +5,7 @@
  * \brief  Implementation of the VisualizationWidget class.
  *
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -121,7 +121,7 @@ void VisualizationWidget::showAll(int x, int y, int z)
     vtkCamera* cam = _vtkRender->GetActiveCamera();
     double* fp = cam->GetFocalPoint();
     double* p = cam->GetPosition();
-    double dist = sqrt(vtkMath::Distance2BetweenPoints(p, fp));
+    double dist = std::sqrt(vtkMath::Distance2BetweenPoints(p, fp));
     cam->SetPosition(fp[0]+(x*dist), fp[1]+(y*dist), fp[2]+(z*dist));
 
     if (x != 0 || y != 0)

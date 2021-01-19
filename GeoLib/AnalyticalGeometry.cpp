@@ -5,7 +5,7 @@
  * \brief  Implementation of analytical geometry functions.
  *
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -249,8 +249,9 @@ bool lineSegmentIntersect(GeoLib::LineSegment const& s0,
     GeoLib::Point const p0(a[0]+rhs[0]*v[0], a[1]+rhs[0]*v[1], a[2]+rhs[0]*v[2]);
     GeoLib::Point const p1(c[0]+rhs[1]*w[0], c[1]+rhs[1]*w[1], c[2]+rhs[1]*w[2]);
 
-    double const min_dist(sqrt(MathLib::sqrDist(p0, p1)));
-    double const min_seg_len(std::min(sqrt(sqr_len_v), sqrt(sqr_len_w)));
+    double const min_dist(std::sqrt(MathLib::sqrDist(p0, p1)));
+    double const min_seg_len(
+        std::min(std::sqrt(sqr_len_v), std::sqrt(sqr_len_w)));
     if (min_dist < min_seg_len * 1e-6) {
         s[0] = 0.5 * (p0[0] + p1[0]);
         s[1] = 0.5 * (p0[1] + p1[1]);
@@ -292,6 +293,69 @@ void rotatePoints(Eigen::Matrix3d const& rot_mat,
     rotatePoints(rot_mat, pnts.begin(), pnts.end());
 }
 
+Eigen::Matrix3d computeRotationMatrixToXY(Eigen::Vector3d const& n)
+{
+    Eigen::Matrix3d rot_mat = Eigen::Matrix3d::Zero();
+    // check if normal points already in the right direction
+    if (n[0] == 0 && n[1] == 0)
+    {
+        rot_mat(1, 1) = 1.0;
+
+        if (n[2] > 0)
+        {
+            // identity matrix
+            rot_mat(0, 0) = 1.0;
+            rot_mat(2, 2) = 1.0;
+        }
+        else
+        {
+            // rotate by pi about the y-axis
+            rot_mat(0, 0) = -1.0;
+            rot_mat(2, 2) = -1.0;
+        }
+
+        return rot_mat;
+    }
+
+    // sqrt (n_1^2 + n_3^2)
+    double const h0(std::sqrt(n[0] * n[0] + n[2] * n[2]));
+
+    // In case the x and z components of the normal are both zero the rotation
+    // to the x-z-plane is not required, i.e. only the rotation in the z-axis is
+    // required. The angle is either pi/2 or 3/2*pi. Thus the components of
+    // rot_mat are as follows.
+    if (h0 < std::numeric_limits<double>::epsilon())
+    {
+        rot_mat(0, 0) = 1.0;
+        if (n[1] > 0)
+        {
+            rot_mat(1, 2) = -1.0;
+            rot_mat(2, 1) = 1.0;
+        }
+        else
+        {
+            rot_mat(1, 2) = 1.0;
+            rot_mat(2, 1) = -1.0;
+        }
+        return rot_mat;
+    }
+
+    double const h1(1 / n.norm());
+
+    // general case: calculate entries of rotation matrix
+    rot_mat(0, 0) = n[2] / h0;
+    rot_mat(0, 1) = 0;
+    rot_mat(0, 2) = -n[0] / h0;
+    rot_mat(1, 0) = -n[1] * n[0] / h0 * h1;
+    rot_mat(1, 1) = h0 * h1;
+    rot_mat(1, 2) = -n[1] * n[2] / h0 * h1;
+    rot_mat(2, 0) = n[0] * h1;
+    rot_mat(2, 1) = n[1] * h1;
+    rot_mat(2, 2) = n[2] * h1;
+
+    return rot_mat;
+}
+
 Eigen::Matrix3d rotatePointsToXY(std::vector<GeoLib::Point*>& pnts)
 {
     return rotatePointsToXY(pnts.begin(), pnts.end(), pnts.begin(), pnts.end());
@@ -313,17 +377,17 @@ std::unique_ptr<GeoLib::Point> triangleLineIntersection(
     Eigen::Vector3d const pb = vb - vp;
     Eigen::Vector3d const pc = vc - vp;
 
-    double u(MathLib::scalarTriple(pq, pc, pb));
+    double u = pq.cross(pc).dot(pb);
     if (u < 0)
     {
         return nullptr;
     }
-    double v(MathLib::scalarTriple(pq, pa, pc));
+    double v = pq.cross(pa).dot(pc);
     if (v < 0)
     {
         return nullptr;
     }
-    double w(MathLib::scalarTriple(pq, pb, pa));
+    double w = pq.cross(pb).dot(pa);
     if (w < 0)
     {
         return nullptr;
@@ -382,8 +446,8 @@ GeoLib::Polygon rotatePolygonToXY(GeoLib::Polygon const& polygon_in,
     // 2 rotate points
     double d_polygon;
     std::tie(plane_normal, d_polygon) = GeoLib::getNewellPlane(*polygon_pnts);
-    Eigen::Matrix3d rot_mat;
-    GeoLib::computeRotationMatrixToXY(plane_normal, rot_mat);
+    Eigen::Matrix3d const rot_mat =
+        GeoLib::computeRotationMatrixToXY(plane_normal);
     GeoLib::rotatePoints(rot_mat, *polygon_pnts);
 
     // 3 set z coord to zero
@@ -615,6 +679,58 @@ void sortSegments(
             findNextSegment(new_seg_beg_pnt, sub_segments, seg_it);
         }
     }
+}
+
+Eigen::Matrix3d compute2DRotationMatrixToX(Eigen::Vector3d const& v)
+{
+    Eigen::Matrix3d rot_mat = Eigen::Matrix3d::Zero();
+    const double cos_theta = v[0];
+    const double sin_theta = v[1];
+    rot_mat(0,0) = rot_mat(1,1) = cos_theta;
+    rot_mat(0,1) = sin_theta;
+    rot_mat(1,0) = -sin_theta;
+    rot_mat(2,2) = 1.0;
+    return rot_mat;
+}
+
+Eigen::Matrix3d compute3DRotationMatrixToX(Eigen::Vector3d const& v)
+{
+    // a vector on the plane
+    Eigen::Vector3d yy = Eigen::Vector3d::Zero();
+    auto const eps = std::numeric_limits<double>::epsilon();
+    if (std::abs(v[0]) > 0.0 && std::abs(v[1]) + std::abs(v[2]) < eps)
+    {
+        yy[2] = 1.0;
+    }
+    else if (std::abs(v[1]) > 0.0 && std::abs(v[0]) + std::abs(v[2]) < eps)
+    {
+        yy[0] = 1.0;
+    }
+    else if (std::abs(v[2]) > 0.0 && std::abs(v[0]) + std::abs(v[1]) < eps)
+    {
+        yy[1] = 1.0;
+    }
+    else
+    {
+        for (unsigned i = 0; i < 3; i++)
+        {
+            if (std::abs(v[i]) > 0.0)
+            {
+                yy[i] = -v[i];
+                break;
+            }
+        }
+    }
+    // z"_vec
+    Eigen::Vector3d const zz = v.cross(yy).normalized();
+    // y"_vec
+    yy = zz.cross(v).normalized();
+
+    Eigen::Matrix3d rot_mat;
+    rot_mat.row(0) = v;
+    rot_mat.row(1) = yy;
+    rot_mat.row(2) = zz;
+    return rot_mat;
 }
 
 } // end namespace GeoLib

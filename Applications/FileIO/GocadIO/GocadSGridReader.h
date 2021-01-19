@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -74,8 +74,9 @@ private:
     void applySplitInformation(
         std::vector<MeshLib::Node*>& nodes,
         std::vector<MeshLib::Element*> const& elements) const;
-    void modifyElement(MeshLib::Element* hex, MeshLib::Node const* node2sub,
-                       MeshLib::Node* substitute_node) const;
+    static void modifyElement(MeshLib::Element* hex,
+                              MeshLib::Node const* node2sub,
+                              MeshLib::Node* substitute_node);
 
     void addFaceSetQuad(
         GocadNode* face_set_node, std::size_t face_set_number,

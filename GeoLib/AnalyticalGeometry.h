@@ -5,7 +5,7 @@
  * \brief  Definition of analytical geometry functions.
  *
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -15,9 +15,6 @@
 #pragma once
 
 #include <memory>
-
-#include "MathLib/LinAlg/Dense/DenseMatrix.h"
-#include "MathLib/Vector3.h"
 
 #include "Polygon.h"
 
@@ -81,29 +78,28 @@ std::pair<Eigen::Vector3d, double> getNewellPlane(
     const std::vector<T_POINT>& pnts);
 
 /**
- * Computes a rotation matrix that rotates the given 2D normal vector parallel to X-axis
- * @param v        a 2D normal vector to be rotated
- * @param rot_mat  a 2x2 rotation matrix
+ * Computes a rotation matrix that rotates the given 2D normal vector parallel
+ * to X-axis
+ * @param v a 2D normal vector to be rotated
+ * @return a 3x3 rotation matrix where the upper, left, 2x2 block
+ * contains the entries necessary for the 2D rotation
  */
-template<class T_MATRIX>
-void compute2DRotationMatrixToX(MathLib::Vector3 const& v, T_MATRIX & rot_mat);
+Eigen::Matrix3d compute2DRotationMatrixToX(Eigen::Vector3d const& v);
 
 /**
  * Computes a rotation matrix that rotates the given 3D normal vector parallel to X-axis
  * @param v        a 3D normal vector to be rotated
- * @param rot_mat  a 3x3 rotation matrix
+ * @return a 3x3 rotation matrix
  */
-template <class T_MATRIX>
-void compute3DRotationMatrixToX(MathLib::Vector3 const& v, T_MATRIX& rot_mat);
+Eigen::Matrix3d compute3DRotationMatrixToX(Eigen::Vector3d const& v);
 
 /**
  * Method computes the rotation matrix that rotates the given vector parallel to
  * the \f$z\f$ axis.
  * @param n the (3d) vector that is rotated parallel to the \f$z\f$ axis
- * @param rot_mat 3x3 rotation matrix
+ * @return rot_mat 3x3 rotation matrix
  */
-template <class T_MATRIX>
-void computeRotationMatrixToXY(Eigen::Vector3d const& n, T_MATRIX& rot_mat);
+Eigen::Matrix3d computeRotationMatrixToXY(Eigen::Vector3d const& n);
 
 /**
  * rotate points according to the rotation matrix

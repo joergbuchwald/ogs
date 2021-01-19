@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -180,17 +180,17 @@ public:
 #endif
     }
 
-    /// Sets the provided \c data_ptr to the newly created local assembler data.
+    /// Returns data pointer to the newly created local assembler data.
     ///
     /// \attention
     /// The index \c id is not necessarily the mesh item's id. Especially when
     /// having multiple meshes it will differ from the latter.
-    void operator()(std::size_t const /*id*/,
-                    MeshLib::Element const& mesh_item,
-                    LADataIntfPtr& data_ptr,
-                    std::unordered_map<std::size_t, BHE::BHETypes*> const&
-                        element_to_bhe_map,
-                    ConstructorArgs&&... args) const
+    LADataIntfPtr operator()(
+        std::size_t const /*id*/,
+        MeshLib::Element const& mesh_item,
+        std::unordered_map<std::size_t, BHE::BHETypes*> const&
+            element_to_bhe_map,
+        ConstructorArgs&&... args) const
     {
         auto const type_idx = std::type_index(typeid(mesh_item));
         auto const it = _builder.find(type_idx);
@@ -205,9 +205,9 @@ public:
                 type_idx.name());
         }
 
-        data_ptr = it->second(mesh_item,
-                              element_to_bhe_map,
-                              std::forward<ConstructorArgs>(args)...);
+        return it->second(mesh_item,
+                          element_to_bhe_map,
+                          std::forward<ConstructorArgs>(args)...);
     }
 
 private:

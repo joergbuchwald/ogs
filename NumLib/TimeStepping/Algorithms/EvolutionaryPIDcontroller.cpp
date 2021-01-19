@@ -1,6 +1,6 @@
 /**
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -116,7 +116,7 @@ double EvolutionaryPIDcontroller::limitStepSize(
         // If the last time step was rejected and the new predicted time step
         // size is identical to that of the previous rejected step, the new
         // step size is then reduced by half.
-        if (std::fabs(limited_h - _ts_current.dt()) <
+        if (std::abs(limited_h - _ts_current.dt()) <
             std::numeric_limits<double>::min())
         {
             limited_h = std::max(_h_min, 0.5 * limited_h);

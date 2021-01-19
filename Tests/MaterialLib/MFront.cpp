@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -122,12 +122,12 @@ struct MaterialLib_SolidModelsMFront : public testing::Test
     {
         variable_array_prev[static_cast<int>(MPL::Variable::stress)]
             .emplace<KelvinVector<Dim>>(KelvinVector<Dim>::Zero());
-        variable_array_prev[static_cast<int>(MPL::Variable::strain)]
+        variable_array_prev[static_cast<int>(MPL::Variable::mechanical_strain)]
             .emplace<KelvinVector<Dim>>(KelvinVector<Dim>::Zero());
         variable_array_prev[static_cast<int>(MPL::Variable::temperature)]
             .emplace<double>(0);
 
-        variable_array[static_cast<int>(MPL::Variable::strain)]
+        variable_array[static_cast<int>(MPL::Variable::mechanical_strain)]
             .emplace<KelvinVector<Dim>>(KelvinVector<Dim>::Zero());
         variable_array[static_cast<int>(MPL::Variable::temperature)]
             .emplace<double>(0);
@@ -157,8 +157,8 @@ using TestBehaviourTypes =
     ::testing::Types<StandardElasticityBrickBehaviour<Dim>,
                      ElasticBehaviour<Dim>, MohrCoulombAbboSloanBehaviour<Dim>>;
 
-TYPED_TEST_CASE(MaterialLib_SolidModelsMFront2, TestBehaviourTypes<2>);
-TYPED_TEST_CASE(MaterialLib_SolidModelsMFront3, TestBehaviourTypes<3>);
+TYPED_TEST_SUITE(MaterialLib_SolidModelsMFront2, TestBehaviourTypes<2>);
+TYPED_TEST_SUITE(MaterialLib_SolidModelsMFront3, TestBehaviourTypes<3>);
 
 TYPED_TEST(MaterialLib_SolidModelsMFront2, IntegrateZeroDisplacement)
 {
@@ -168,6 +168,12 @@ TYPED_TEST(MaterialLib_SolidModelsMFront2, IntegrateZeroDisplacement)
     auto solution = this->constitutive_relation->integrateStress(
         this->variable_array_prev, this->variable_array, this->t, this->x,
         this->dt, *state);
+
+    double const epls_strain = state->getEquivalentPlasticStrain();
+    double const expected_epls_strain = 0.0;
+    ASSERT_LE(std::fabs(expected_epls_strain - epls_strain), 1e-10)
+        << "for expected equivalent plastic strain " << expected_epls_strain
+        << " and for computed equivalent plastic strain " << epls_strain;
 
     ASSERT_TRUE(solution != std::nullopt);
     state = std::move(std::get<1>(*solution));
@@ -184,6 +190,12 @@ TYPED_TEST(MaterialLib_SolidModelsMFront3, IntegrateZeroDisplacement)
     auto solution = this->constitutive_relation->integrateStress(
         this->variable_array_prev, this->variable_array, this->t, this->x,
         this->dt, *state);
+
+    double const epls_strain = state->getEquivalentPlasticStrain();
+    double const expected_epls_strain = 0.0;
+    ASSERT_LE(std::fabs(expected_epls_strain - epls_strain), 1e-10)
+        << "for expected equivalent plastic strain " << expected_epls_strain
+        << " and for computed equivalent plastic strain " << epls_strain;
 
     ASSERT_TRUE(solution != std::nullopt);
     state = std::move(std::get<1>(*solution));

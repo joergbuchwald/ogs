@@ -5,7 +5,7 @@
  * \brief Filename manipulation routines implementation.
  *
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -111,7 +111,8 @@ bool substituteKeyword(std::string& result, std::string& parenthesized_string,
 std::string constructFormattedFileName(std::string const& format_specification,
                                        std::string const& mesh_name,
                                        int const timestep,
-                                       double const t)
+                                       double const t,
+                                       int const iteration)
 {
     char const open_char = '{';
     char const close_char = '}';
@@ -127,7 +128,8 @@ std::string constructFormattedFileName(std::string const& format_specification,
         std::tie(str, begin, end) =
             getParenthesizedString(result, open_char, close_char, begin);
         if (!substituteKeyword(result, str, begin, end, "timestep", timestep) &&
-            !substituteKeyword(result, str, begin, end, "time", t))
+            !substituteKeyword(result, str, begin, end, "time", t) &&
+            !substituteKeyword(result, str, begin, end, "iteration", iteration))
         {
             substituteKeyword(result, str, begin, end, "meshname", mesh_name);
         }

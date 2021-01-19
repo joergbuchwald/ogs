@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -10,6 +10,7 @@
 
 #include "LineRule2.h"
 
+#include "MathLib/MathTools.h"
 #include "MeshLib/Node.h"
 
 namespace MeshLib {
@@ -21,7 +22,7 @@ const unsigned LineRule2::edge_nodes[1][2] =
 
 double LineRule2::computeVolume(Node const* const* _nodes)
 {
-    return sqrt(MathLib::sqrDist(*_nodes[0], *_nodes[1]));
+    return std::sqrt(MathLib::sqrDist(*_nodes[0], *_nodes[1]));
 }
 
 bool LineRule2::isPntInElement(Node const* const* nodes,

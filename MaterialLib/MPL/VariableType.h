@@ -4,7 +4,7 @@
  * \date   Sep 7, 2017
  *
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -48,15 +48,17 @@ enum class Variable : int
     density,
     displacement,
     effective_pore_pressure,
+    enthalpy_of_evaporation,
     equivalent_plastic_strain,
     grain_compressibility,
     liquid_saturation,
+    mechanical_strain,
     phase_pressure,
     porosity,
     solid_grain_pressure,
-    strain,
     stress,
     temperature,
+    total_strain,
     total_stress,
     transport_porosity,
     volumetric_strain,

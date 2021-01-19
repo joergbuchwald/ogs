@@ -2,7 +2,7 @@
  * \file
  *
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -319,7 +319,7 @@ void PhaseFieldProcess<DisplacementDim>::postNonLinearSolverConcreteProcess(
             _process_data.pressure =
                 _process_data.injected_volume / _process_data.crack_volume;
             _process_data.pressure_error =
-                std::fabs(_process_data.pressure_old - _process_data.pressure) /
+                std::abs(_process_data.pressure_old - _process_data.pressure) /
                 _process_data.pressure;
             INFO("Internal pressure: {:g} and Pressure error: {:.4e}",
                  _process_data.pressure, _process_data.pressure_error);

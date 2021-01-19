@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -219,15 +219,15 @@ public:
     }
 
 private:
-    std::vector<double> const& getIntPtSigma(
-        std::vector<double>& cache, std::size_t const /*component*/) const
+    static std::vector<double> const& getIntPtSigma(
+        std::vector<double>& cache, std::size_t const /*component*/)
     {
         cache.resize(0);
         return cache;
     }
 
-    std::vector<double> const& getIntPtEpsilon(
-        std::vector<double>& cache, std::size_t const /*component*/) const
+    static std::vector<double> const& getIntPtEpsilon(
+        std::vector<double>& cache, std::size_t const /*component*/)
     {
         cache.resize(0);
 

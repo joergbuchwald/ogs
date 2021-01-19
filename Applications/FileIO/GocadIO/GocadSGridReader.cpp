@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -715,7 +715,7 @@ void GocadSGridReader::applySplitInformation(
 
 void GocadSGridReader::modifyElement(MeshLib::Element* hex,
                                      MeshLib::Node const* node2sub,
-                                     MeshLib::Node* substitute_node) const
+                                     MeshLib::Node* substitute_node)
 {
     // get the node pointers of the cell
     MeshLib::Node* const* hex_nodes(hex->getNodes());

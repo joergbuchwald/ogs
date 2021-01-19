@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -33,7 +33,7 @@ struct IntegrationPointData final
 {
     explicit IntegrationPointData(
         NodalRowVectorType const& N_, GlobalDimNodalMatrixType const& dNdx_,
-        ThermalTwoPhaseFlowWithPPMaterialProperties& material_property_,
+        ThermalTwoPhaseFlowWithPPMaterialProperties const& material_property_,
         double const& integration_weight_, NodalMatrixType const mass_operator_,
         NodalMatrixType const diffusion_operator_)
         : N(N_),

@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -20,8 +20,7 @@
 #include "IntegrationPointWriter.h"
 #include "MathLib/LinAlg/LinAlg.h"
 #include "MeshLib/IO/VtkIO/VtuInterface.h"
-#include "MeshLib/IO/XDMF/Xdmf3Writer.h"
-#include "MeshLib/IO/XDMF/transformData.h"
+#include "MeshLib/IO/XDMF/XdmfHdfWriter.h"
 #include "NumLib/DOF/LocalToGlobalIndexMap.h"
 
 /// Copies the ogs_version string containing the release number and the git
@@ -286,10 +285,8 @@ void makeOutput(std::string const& file_name, MeshLib::Mesh const& mesh,
         case OutputType::xdmf:
         {
 #ifdef OGS_USE_XDMF
-            MeshLib::IO::Xdmf3Writer writer(
-                file_name, MeshLib::IO::transformGeometry(mesh),
-                MeshLib::IO::transformTopology(mesh),
-                MeshLib::IO::transformAttributes(mesh), time_step);
+            MeshLib::IO::XdmfHdfWriter writer(
+                mesh, file_name, time_step);
             writer.writeStep(time_step, time);
 #else
             // silence compiler warnings

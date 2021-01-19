@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -72,7 +72,7 @@ std::unique_ptr<Process> createSmallDeformationProcess(
             parameters, local_coordinate_system, config);
 
     // Solid density
-    auto& solid_density = ParameterLib::findParameter<double>(
+    auto const& solid_density = ParameterLib::findParameter<double>(
         config,
         //! \ogs_file_param_special{prj__processes__process__SMALL_DEFORMATION__solid_density}
         "solid_density", parameters, 1, &mesh);

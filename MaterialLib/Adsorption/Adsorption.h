@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -45,7 +45,8 @@ protected:
     virtual double dCharacteristicCurve(const double A) const = 0;
 
 private:
-    double getPotential(const double p_Ads, const double T_Ads, const double M_Ads) const;
+    static double getPotential(const double p_Ads, const double T_Ads,
+                               const double M_Ads);
     double getEntropy(const double T_Ads, const double A) const;
 };
 

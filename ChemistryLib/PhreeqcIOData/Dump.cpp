@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -16,7 +16,7 @@ namespace ChemistryLib
 {
 namespace PhreeqcIOData
 {
-void Dump::print(std::ostream& os, std::size_t const num_chemical_systems)
+void Dump::print(std::ostream& os, std::size_t const num_chemical_systems) const
 {
     os << "DUMP" << "\n";
     os << "-file " << dump_file << "\n";

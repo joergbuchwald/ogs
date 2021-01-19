@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -48,7 +48,7 @@ struct IntegrationPointData final
 
     typename ShapeMatrixTypeDisplacement::template MatrixType<
         DisplacementDim, NPoints * DisplacementDim>
-        N_u_op;
+        N_u_op; /**< for interpolation of the displacement vector, whereas N_u interpolates one component (scalar) */
     typename BMatricesType::KelvinVectorType sigma_eff, sigma_eff_prev;
     typename BMatricesType::KelvinVectorType eps, eps_prev;
 
@@ -85,8 +85,8 @@ struct IntegrationPointData final
                                 MaterialPropertyLib::Variable::stress)]
             .emplace<MathLib::KelvinVector::KelvinVectorType<DisplacementDim>>(
                 sigma_eff_prev);
-        variable_array_prev[static_cast<int>(
-                                MaterialPropertyLib::Variable::strain)]
+        variable_array_prev[static_cast<int>(MaterialPropertyLib::Variable::
+                                                 mechanical_strain)]
             .emplace<MathLib::KelvinVector::KelvinVectorType<DisplacementDim>>(
                 eps_prev);
         variable_array_prev[static_cast<int>(

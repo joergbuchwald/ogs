@@ -1,6 +1,6 @@
 /**
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -26,7 +26,7 @@ class MathLibRegulaFalsi : public ::testing::Test
 namespace NL = MathLib::Nonlinear;
 using RegulaFalsiTypes = ::testing::Types<NL::Unmodified, NL::Illinois, NL::Pegasus, NL::AndersonBjorck>;
 
-TYPED_TEST_CASE(MathLibRegulaFalsi, RegulaFalsiTypes);
+TYPED_TEST_SUITE(MathLibRegulaFalsi, RegulaFalsiTypes);
 
 TYPED_TEST(MathLibRegulaFalsi, QuadraticFunction)
 {
@@ -53,10 +53,13 @@ TYPED_TEST(MathLibRegulaFalsi, QuadraticFunction)
 
     auto const error = std::abs(f(rf.getResult()));
 
-    if (!std::is_same<NL::Unmodified, TypeParam>::value) {
+    if (!std::is_same_v<NL::Unmodified, TypeParam>)
+    {
         EXPECT_GT(std::numeric_limits<double>::epsilon(), old_range);
         EXPECT_GT(std::numeric_limits<double>::epsilon(), error);
-    } else {
+    }
+    else
+    {
         // The unmodified regula falsi method converges very slowly.
         EXPECT_GT(100.0*std::numeric_limits<double>::epsilon(), error);
     }

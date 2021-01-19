@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -152,14 +152,15 @@ private:
     /** Complementary condition 1
     * for calculating molar fraction of light component in the liquid phase
     */
-    double calculateEquilibiumRhoWetLight(double const pg, double const Sw,
-                                          double const rho_wet_h2) const;
+    static double calculateEquilibiumRhoWetLight(double const pg,
+                                                 double const Sw,
+                                                 double const rho_wet_h2);
     /** Complementary condition 2
     * for calculating the saturation
     */
-    double calculateSaturation(double /*PL*/, double X, double Sw,
-                               double rho_wet_h2, double rho_nonwet_h2,
-                               double /*T*/) const;
+    static double calculateSaturation(double /*PL*/, double X, double Sw,
+                                      double rho_wet_h2, double rho_nonwet_h2,
+                                      double /*T*/);
     /**
     * Calculate the derivatives using the analytical way
     */

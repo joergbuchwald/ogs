@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -82,8 +82,11 @@ public:
 
     void initialize();
 
-    void setInitialConditions(const int process_id, const double t,
-                              GlobalVector& x);
+    void setInitialConditions(
+        std::vector<GlobalVector*>& process_solutions,
+        std::vector<GlobalVector*> const& process_solutions_prev,
+        double const t,
+        int const process_id);
 
     MathLib::MatrixSpecifications getMatrixSpecifications(
         const int process_id) const override;
@@ -100,12 +103,6 @@ public:
     virtual void setCoupledTermForTheStaggeredSchemeToLocalAssemblers(
         int const /*process_id*/)
     {
-    }
-
-    virtual std::vector<GlobalVector> interpolateNodalValuesToIntegrationPoints(
-        std::vector<GlobalVector*> const& /*nodal_values_vectors*/) const
-    {
-        return {};
     }
 
     virtual void extrapolateIntegrationPointValuesToNodes(
@@ -176,6 +173,11 @@ public:
         return Eigen::Vector3d{};
     }
 
+    virtual void solveReactionEquation(std::vector<GlobalVector*>& /*x*/,
+                                       double const /*t*/, double const /*dt*/)
+    {
+    }
+
 protected:
     NumLib::Extrapolator& getExtrapolator() const
     {
@@ -206,9 +208,10 @@ private:
     /// processes. It is called by initialize().
     virtual void initializeBoundaryConditions();
 
-    virtual void setInitialConditionsConcreteProcess(GlobalVector const& /*x*/,
-                                                     double const /*t*/,
-                                                     int const /*process_id*/)
+    virtual void setInitialConditionsConcreteProcess(
+        std::vector<GlobalVector*>& /*x*/,
+        double const /*t*/,
+        int const /*process_id*/)
     {
     }
 

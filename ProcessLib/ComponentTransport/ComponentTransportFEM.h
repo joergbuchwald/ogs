@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -14,6 +14,7 @@
 #include <numeric>
 #include <vector>
 
+#include "ChemistryLib/ChemicalSolverInterface.h"
 #include "ComponentTransportProcessData.h"
 #include "MaterialLib/MPL/MaterialSpatialDistributionMap.h"
 #include "MaterialLib/MPL/Medium.h"
@@ -44,11 +45,16 @@ struct IntegrationPointData final
         : N(N_), dNdx(dNdx_), integration_weight(integration_weight_)
     {}
 
+    void pushBackState() { porosity_prev = porosity; }
+
     NodalRowVectorType const N;
     GlobalDimNodalMatrixType const dNdx;
     double const integration_weight;
 
+    GlobalIndexType chemical_system_id = 0;
+
     double porosity = std::numeric_limits<double>::quiet_NaN();
+    double porosity_prev = std::numeric_limits<double>::quiet_NaN();
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
 };
 
@@ -66,6 +72,54 @@ public:
         _coupled_solutions = coupling_term;
     }
 
+    virtual void setChemicalSystemID(std::size_t const /*mesh_item_id*/) = 0;
+
+    void initializeChemicalSystem(
+        std::size_t const mesh_item_id,
+        std::vector<NumLib::LocalToGlobalIndexMap const*> const& dof_tables,
+        std::vector<GlobalVector*> const& x, double const t)
+    {
+        std::vector<double> local_x_vec;
+
+        auto const n_processes = x.size();
+        for (std::size_t process_id = 0; process_id < n_processes; ++process_id)
+        {
+            auto const indices =
+                NumLib::getIndices(mesh_item_id, *dof_tables[process_id]);
+            assert(!indices.empty());
+            auto const local_solution = x[process_id]->get(indices);
+            local_x_vec.insert(std::end(local_x_vec),
+                               std::begin(local_solution),
+                               std::end(local_solution));
+        }
+        auto const local_x = MathLib::toVector(local_x_vec);
+
+        initializeChemicalSystemConcrete(local_x, t);
+    }
+
+    void setChemicalSystem(
+        std::size_t const mesh_item_id,
+        std::vector<NumLib::LocalToGlobalIndexMap const*> const& dof_tables,
+        std::vector<GlobalVector*> const& x, double const t, double const dt)
+    {
+        std::vector<double> local_x_vec;
+
+        auto const n_processes = x.size();
+        for (std::size_t process_id = 0; process_id < n_processes; ++process_id)
+        {
+            auto const indices =
+                NumLib::getIndices(mesh_item_id, *dof_tables[process_id]);
+            assert(!indices.empty());
+            auto const local_solution = x[process_id]->get(indices);
+            local_x_vec.insert(std::end(local_x_vec),
+                               std::begin(local_solution),
+                               std::end(local_solution));
+        }
+        auto const local_x = MathLib::toVector(local_x_vec);
+
+        setChemicalSystemConcrete(local_x, t, dt);
+    }
+
     virtual std::vector<double> const& getIntPtDarcyVelocity(
         const double t,
         std::vector<GlobalVector*> const& x,
@@ -77,6 +131,14 @@ public:
         std::vector<GlobalVector*> const& int_pt_x,
         std::vector<NumLib::LocalToGlobalIndexMap const*> const& /*dof_table*/,
         std::vector<double>& cache) const = 0;
+
+private:
+    virtual void initializeChemicalSystemConcrete(
+        Eigen::VectorXd const& /*local_x*/, double const /*t*/) = 0;
+
+    virtual void setChemicalSystemConcrete(Eigen::VectorXd const& /*local_x*/,
+                                           double const /*t*/,
+                                           double const /*dt*/) = 0;
 
 protected:
     CoupledSolutionsForStaggeredScheme* _coupled_solutions{nullptr};
@@ -123,7 +185,7 @@ public:
         bool is_axially_symmetric,
         unsigned const integration_order,
         ComponentTransportProcessData const& process_data,
-        std::vector<std::reference_wrapper<ProcessVariable>>
+        std::vector<std::reference_wrapper<ProcessVariable>> const&
             transport_process_variables)
         : _element(element),
           _process_data(process_data),
@@ -157,25 +219,103 @@ public:
 
             _ip_data[ip].porosity =
                 medium->property(MaterialPropertyLib::PropertyType::porosity)
-                    .template initialValue<double>(pos, 0.);
+                    .template initialValue<double>(
+                        pos, std::numeric_limits<double>::quiet_NaN() /*t*/);
+
+            _ip_data[ip].pushBackState();
         }
+    }
 
-        if (_process_data.chemical_process_data)
+    void setChemicalSystemID(std::size_t const /*mesh_item_id*/) override
+    {
+        assert(_process_data.chemical_solver_interface);
+        // chemical system index map
+        auto& chemical_system_index_map =
+            _process_data.chemical_solver_interface->chemical_system_index_map;
+
+        unsigned const n_integration_points =
+            _integration_method.getNumberOfPoints();
+        for (unsigned ip = 0; ip < n_integration_points; ip++)
         {
-            // chemical system index map
-            auto& chemical_system_index_map =
-                _process_data.chemical_process_data->chemical_system_index_map;
+            _ip_data[ip].chemical_system_id = chemical_system_index_map.empty()
+                                     ? 0
+                                     : chemical_system_index_map.back() + 1;
+            chemical_system_index_map.push_back(_ip_data[ip].chemical_system_id);
+        }
+    }
 
-            GlobalIndexType const start_value =
-                chemical_system_index_map.empty()
-                    ? 0
-                    : chemical_system_index_map.back().back() + 1;
+    void initializeChemicalSystemConcrete(Eigen::VectorXd const& local_x,
+                                          double const t) override
+    {
+        assert(_process_data.chemical_solver_interface);
 
-            std::vector<GlobalIndexType> indices(
-                _integration_method.getNumberOfPoints());
-            std::iota(indices.begin(), indices.end(), start_value);
+        auto const& medium =
+            _process_data.media_map->getMedium(_element.getID());
 
-            chemical_system_index_map.push_back(std::move(indices));
+        ParameterLib::SpatialPosition pos;
+        pos.setElementID(_element.getID());
+
+        unsigned const n_integration_points =
+            _integration_method.getNumberOfPoints();
+        for (unsigned ip = 0; ip < n_integration_points; ip++)
+        {
+            auto& ip_data = _ip_data[ip];
+            auto const& N = ip_data.N;
+            auto const& chemical_system_id = ip_data.chemical_system_id;
+
+            auto const n_component = _transport_process_variables.size();
+            std::vector<double> C_int_pt(n_component);
+            for (unsigned component_id = 0; component_id < n_component;
+                 ++component_id)
+            {
+                auto const concentration_index =
+                    first_concentration_index +
+                    component_id * concentration_size;
+                auto const local_C =
+                    local_x.template segment<concentration_size>(
+                        concentration_index);
+
+                NumLib::shapeFunctionInterpolate(local_C, N,
+                                                 C_int_pt[component_id]);
+            }
+
+            _process_data.chemical_solver_interface
+                ->initializeChemicalSystemConcrete(C_int_pt, chemical_system_id,
+                                                   medium, pos, t);
+        }
+    }
+
+    void setChemicalSystemConcrete(Eigen::VectorXd const& local_x,
+                                   double const /*t*/, double /*dt*/) override
+    {
+        assert(_process_data.chemical_solver_interface);
+
+        unsigned const n_integration_points =
+            _integration_method.getNumberOfPoints();
+        for (unsigned ip = 0; ip < n_integration_points; ip++)
+        {
+            auto& ip_data = _ip_data[ip];
+            auto const& N = ip_data.N;
+            auto const& chemical_system_id = ip_data.chemical_system_id;
+
+            auto const n_component = _transport_process_variables.size();
+            std::vector<double> C_int_pt(n_component);
+            for (unsigned component_id = 0; component_id < n_component;
+                 ++component_id)
+            {
+                auto const concentration_index =
+                    first_concentration_index +
+                    component_id * concentration_size;
+                auto const local_C =
+                    local_x.template segment<concentration_size>(
+                        concentration_index);
+
+                NumLib::shapeFunctionInterpolate(local_C, N,
+                                                 C_int_pt[component_id]);
+            }
+
+            _process_data.chemical_solver_interface->setChemicalSystemConcrete(
+                C_int_pt, chemical_system_id);
         }
     }
 
@@ -483,6 +623,7 @@ public:
         auto const& phase = medium.phase("AqueousLiquid");
 
         MaterialPropertyLib::VariableArray vars;
+        MaterialPropertyLib::VariableArray vars_prev;
 
         for (unsigned ip(0); ip < n_integration_points; ++ip)
         {
@@ -493,6 +634,7 @@ public:
             auto const& dNdx = ip_data.dNdx;
             auto const& w = ip_data.integration_weight;
             auto& porosity = ip_data.porosity;
+            auto const& porosity_prev = ip_data.porosity_prev;
 
             double C_int_pt = 0.0;
             double p_int_pt = 0.0;
@@ -505,12 +647,16 @@ public:
             vars[static_cast<int>(
                 MaterialPropertyLib::Variable::phase_pressure)] = p_int_pt;
 
-            // update according to a particular porosity model
-            porosity =
-                medium.property(MaterialPropertyLib::PropertyType::porosity)
-                    .template value<double>(vars, pos, t, dt);
-            vars[static_cast<int>(MaterialPropertyLib::Variable::porosity)] =
-                porosity;
+            //  porosity
+            {
+                vars_prev[static_cast<int>(
+                    MaterialPropertyLib::Variable::porosity)] = porosity_prev;
+                porosity =
+                    medium.property(MaterialPropertyLib::PropertyType::porosity)
+                        .template value<double>(vars, vars_prev, pos, t, dt);
+                vars[static_cast<int>(MaterialPropertyLib::Variable::porosity)] =
+                        porosity;
+            }
 
             // Use the fluid density model to compute the density
             // TODO: Concentration of which component as one of arguments for
@@ -591,6 +737,7 @@ public:
         auto const& b = _process_data.specific_body_force;
 
         MaterialPropertyLib::VariableArray vars;
+        MaterialPropertyLib::VariableArray vars_prev;
 
         GlobalDimMatrixType const& I(
             GlobalDimMatrixType::Identity(GlobalDim, GlobalDim));
@@ -613,6 +760,7 @@ public:
             auto const& dNdx = ip_data.dNdx;
             auto const& w = ip_data.integration_weight;
             auto& porosity = ip_data.porosity;
+            auto const& porosity_prev = ip_data.porosity_prev;
 
             double C_int_pt = 0.0;
             double p_int_pt = 0.0;
@@ -625,12 +773,16 @@ public:
             vars[static_cast<int>(
                 MaterialPropertyLib::Variable::phase_pressure)] = p_int_pt;
 
-            // update according to a particular porosity model
-            porosity =
-                medium.property(MaterialPropertyLib::PropertyType::porosity)
-                    .template value<double>(vars, pos, t, dt);
-            vars[static_cast<int>(MaterialPropertyLib::Variable::porosity)] =
-                porosity;
+            // porosity
+            {
+                vars_prev[static_cast<int>(
+                    MaterialPropertyLib::Variable::porosity)] = porosity_prev;
+                porosity =
+                    medium.property(MaterialPropertyLib::PropertyType::porosity)
+                        .template value<double>(vars, vars_prev, pos, t, dt);
+                vars[static_cast<int>(MaterialPropertyLib::Variable::porosity)] =
+                        porosity;
+            }
 
             auto const& retardation_factor =
                 component
@@ -945,14 +1097,19 @@ public:
         std::vector<NumLib::LocalToGlobalIndexMap const*> const& /*dof_table*/,
         std::vector<double>& cache) const override
     {
-        assert(_process_data.chemical_process_data);
+        assert(_process_data.chemical_solver_interface);
         assert(int_pt_x.size() == 1);
 
         cache.clear();
-        auto const ele_id = _element.getID();
-        auto const& indices = _process_data.chemical_process_data
-                                  ->chemical_system_index_map[ele_id];
-        cache = int_pt_x[0]->get(indices);
+
+        unsigned const n_integration_points =
+            _integration_method.getNumberOfPoints();
+        for (unsigned ip(0); ip < n_integration_points; ++ip)
+        {
+            auto const& chemical_system_id = _ip_data[ip].chemical_system_id;
+            auto const c_int_pt = int_pt_x[0]->get(chemical_system_id);
+            cache.push_back(c_int_pt);
+        }
 
         return cache;
     }
@@ -976,16 +1133,36 @@ public:
         auto const ele_velocity_mat =
             MathLib::toMatrix(ele_velocity, GlobalDim, n_integration_points);
 
-        auto ele_id = _element.getID();
+        auto const ele_id = _element.getID();
         Eigen::Map<LocalVectorType>(
             &(*_process_data.mesh_prop_velocity)[ele_id * GlobalDim],
             GlobalDim) =
             ele_velocity_mat.rowwise().sum() / n_integration_points;
+
+        if (_process_data.chemical_solver_interface)
+        {
+            std::vector<GlobalIndexType> chemical_system_indices;
+            chemical_system_indices.reserve(n_integration_points);
+            std::transform(
+                _ip_data.begin(), _ip_data.end(),
+                std::back_inserter(chemical_system_indices),
+                [](auto const& ip_data) { return ip_data.chemical_system_id; });
+
+            _process_data.chemical_solver_interface->computeSecondaryVariable(
+                ele_id, chemical_system_indices);
+        }
     }
 
     void postTimestepConcrete(Eigen::VectorXd const& /*local_x*/,
                               double const /*t*/, double const /*dt*/) override
     {
+        unsigned const n_integration_points =
+            _integration_method.getNumberOfPoints();
+
+        for (unsigned ip = 0; ip < n_integration_points; ip++)
+        {
+            _ip_data[ip].pushBackState();
+        }
     }
 
 private:

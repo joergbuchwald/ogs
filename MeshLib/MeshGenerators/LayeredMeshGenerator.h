@@ -5,7 +5,7 @@
  * \brief  Definition of the SubsurfaceMapper class
  *
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -87,7 +87,8 @@ protected:
                                    std::size_t new_node_id) const;
 
     /// Calculates a data-dependent epsilon value
-    double calcEpsilon(GeoLib::Raster const& low, GeoLib::Raster const& high);
+    static double calcEpsilon(GeoLib::Raster const& low,
+                              GeoLib::Raster const& high);
 
     double _elevation_epsilon{0.0001};
     double _minimum_thickness{std::numeric_limits<float>::epsilon()};

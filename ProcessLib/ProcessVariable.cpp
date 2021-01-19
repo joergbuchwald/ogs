@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -331,7 +331,7 @@ std::vector<std::unique_ptr<SourceTerm>> ProcessVariable::createSourceTerms(
     std::vector<std::unique_ptr<SourceTerm>> source_terms;
 
     transform(cbegin(_source_term_configs), cend(_source_term_configs),
-              back_inserter(source_terms), [&](auto& config) {
+              back_inserter(source_terms), [&](auto const& config) {
                   return createSourceTerm(config, dof_table, config.mesh,
                                           variable_id, integration_order,
                                           _shapefunction_order, parameters);

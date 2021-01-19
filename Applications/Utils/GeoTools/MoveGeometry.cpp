@@ -5,7 +5,7 @@
  * \brief  A small tool to translate geometries.
  *
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -17,7 +17,6 @@
 #include "InfoLib/GitInfo.h"
 #include "GeoLib/GEOObjects.h"
 #include "GeoLib/IO/XmlIO/Qt/XmlGmlInterface.h"
-#include "MathLib/Vector3.h"
 
 #include <QCoreApplication>
 
@@ -30,7 +29,7 @@ int main(int argc, char *argv[])
         "OpenGeoSys-6 software, version " +
             GitInfoLib::GitInfo::ogs_version +
             ".\n"
-            "Copyright (c) 2012-2020, OpenGeoSys Community "
+            "Copyright (c) 2012-2021, OpenGeoSys Community "
             "(http://www.opengeosys.org)",
         ' ', GitInfoLib::GitInfo::ogs_version);
     TCLAP::ValueArg<double> z_arg
@@ -66,7 +65,7 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    MathLib::Vector3 displacement(0.0, 0.0, 0.0);
+    Eigen::Vector3d displacement = Eigen::Vector3d::Zero();
     if (x_arg.isSet())
     {
         displacement[0] = x_arg.getValue();

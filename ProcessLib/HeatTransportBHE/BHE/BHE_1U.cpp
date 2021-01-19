@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -67,7 +67,7 @@ std::array<double, BHE_1U::number_of_unknowns> BHE_1U::pipeHeatConductions()
     double const porosity_g = grout.porosity_g;
     double const lambda_g = grout.lambda_g;
 
-    double const velocity_norm = std::abs(_flow_velocity) * std::sqrt(2);
+    double const velocity_norm = std::abs(_flow_velocity);
 
     // Here we calculate the laplace coefficients in the governing
     // equations of BHE. These governing equations can be found in
@@ -184,7 +184,7 @@ std::array<double, BHE_1U::number_of_unknowns> BHE_1U::calcThermalResistances(
     // thermal resistance due to thermal conductivity of the pipe wall material
     // Eq. 49
     double const R_con_a =
-        std::log(_pipes.outlet.diameter / _pipes.inlet.diameter) /
+        std::log(_pipes.inlet.outsideDiameter() / _pipes.inlet.diameter) /
         (2.0 * pi * lambda_p);
 
     // the average outer diameter of the _pipes
@@ -232,7 +232,7 @@ std::array<std::pair<std::size_t /*node_id*/, int /*component*/>, 2>
 BHE_1U::getBHEInflowDirichletBCNodesAndComponents(
     std::size_t const top_node_id,
     std::size_t const /*bottom_node_id*/,
-    int const in_component_id) const
+    int const in_component_id)
 {
     return {std::make_pair(top_node_id, in_component_id),
             std::make_pair(top_node_id, in_component_id + 1)};
@@ -243,7 +243,7 @@ std::optional<
 BHE_1U::getBHEBottomDirichletBCNodesAndComponents(
     std::size_t const bottom_node_id,
     int const in_component_id,
-    int const out_component_id) const
+    int const out_component_id)
 {
     return {{std::make_pair(bottom_node_id, in_component_id),
              std::make_pair(bottom_node_id, out_component_id)}};

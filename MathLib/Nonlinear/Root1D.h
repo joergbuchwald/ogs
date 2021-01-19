@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -51,10 +51,9 @@ public:
     RegulaFalsi(Function const& f, double a, double b)
         : _f(f), _a(a), _b(b), _fa(f(a)), _fb(f(b))
     {
-        static_assert(
-                std::is_same<double, decltype(f(0.0))>::value,
-                "Using this class for functions that do not return double"
-                " involves a lot of casts. Hence it is disabled.");
+        static_assert(std::is_same_v<double, decltype(f(0.0))>,
+                      "Using this class for functions that do not return double"
+                      " involves a lot of casts. Hence it is disabled.");
 
         if (detail::almost_zero(_fa)) {
             _b = _a;
@@ -112,7 +111,7 @@ public:
     }
 
     //! Returns the size of the current search interval.
-    double getRange() const { return std::fabs(_a - _b); }
+    double getRange() const { return std::abs(_a - _b); }
 
 private:
     Function const& _f;

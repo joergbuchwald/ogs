@@ -1,6 +1,6 @@
 /**
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -185,7 +185,7 @@ const unsigned NumLibFemIsoTest<T>::n_sample_pt_order2;
 template <class T>
 const unsigned NumLibFemIsoTest<T>::n_sample_pt_order3;
 
-TYPED_TEST_CASE(NumLibFemIsoTest, TestTypes);
+TYPED_TEST_SUITE(NumLibFemIsoTest, TestTypes);
 
 TYPED_TEST(NumLibFemIsoTest, CheckMassMatrix)
 {

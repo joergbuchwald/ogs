@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -38,13 +38,6 @@ std::unique_ptr<Output> createOutput(
                 {"VTK", OutputType::vtk}, {"XDMF", OutputType::xdmf}};
             auto type = outputType_to_enum.at(output_type);
 
-#ifdef USE_PETSC
-            if (type == ProcessLib::OutputType::xdmf)
-            {
-                OGS_FATAL("Parallel XDMF output is not supported (yet).");
-            }
-#endif
-
             return type;
         }
         catch (std::out_of_range& e)
@@ -59,7 +52,7 @@ std::unique_ptr<Output> createOutput(
     auto const prefix =
         //! \ogs_file_param{prj__time_loop__output__prefix}
         config.getConfigParameter<std::string>("prefix",
-                                               "{:meshname}{:process_id}");
+                                               "{:meshname}");
 
     auto const suffix =
         //! \ogs_file_param{prj__time_loop__output__suffix}

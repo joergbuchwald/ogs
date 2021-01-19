@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -532,17 +532,22 @@ void HydroMechanicsProcess<DisplacementDim>::postNonLinearSolverConcreteProcess(
 }
 
 template <int DisplacementDim>
-void HydroMechanicsProcess<
-    DisplacementDim>::setInitialConditionsConcreteProcess(GlobalVector const& x,
-                                                          double const t,
-                                                          int const process_id)
+void HydroMechanicsProcess<DisplacementDim>::
+    setInitialConditionsConcreteProcess(std::vector<GlobalVector*>& x,
+                                        double const t,
+                                        int const process_id)
 {
+    if (process_id != _process_data.hydraulic_process_id)
+    {
+        return;
+    }
+
     DBUG("Set initial conditions of HydroMechanicsProcess.");
 
     ProcessLib::ProcessVariable const& pv = getProcessVariables(process_id)[0];
     GlobalExecutor::executeSelectedMemberOnDereferenced(
         &LocalAssemblerIF::setInitialConditions, _local_assemblers,
-        pv.getActiveElementIDs(), getDOFTable(process_id), x, t,
+        pv.getActiveElementIDs(), getDOFTable(process_id), *x[process_id], t,
         _use_monolithic_scheme, process_id);
 }
 

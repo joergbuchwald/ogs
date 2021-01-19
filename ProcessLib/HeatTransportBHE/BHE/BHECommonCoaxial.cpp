@@ -2,7 +2,7 @@
  * \file
  *
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -88,18 +88,18 @@ BHECommonCoaxial::pipeHeatConductions() const
 
 std::array<Eigen::Vector3d, BHECommonCoaxial::number_of_unknowns>
 BHECommonCoaxial::pipeAdvectionVectors(
-    Eigen::Vector3d const& /*elem_direction*/) const
+    Eigen::Vector3d const& elem_direction) const
 {
     double const rho_r = refrigerant.density;
     double const Cp_r = refrigerant.specific_heat_capacity;
-    auto v = velocities();
+    auto const v = velocities();
 
-    return {{// pipe i, Eq. 26 and Eq. 23
-             {0, 0, -rho_r * Cp_r * std::abs(v[0])},
-             // pipe o, Eq. 27 and Eq. 24
-             {0, 0, rho_r * Cp_r * std::abs(v[1])},
-             // grout g, Eq. 28 and Eq. 25
-             {0, 0, 0}}};
+    return {// pipe i, Eq. 26 and Eq. 23
+            rho_r * Cp_r * std::abs(v[0]) * elem_direction,
+            // pipe o, Eq. 27 and Eq. 24
+            -rho_r * Cp_r * std::abs(v[1]) * elem_direction,
+            // grout g, Eq. 28 and Eq. 25
+            {0, 0, 0}};
 }
 
 std::array<double, BHECommonCoaxial::number_of_unknowns>
@@ -135,7 +135,7 @@ std::array<std::pair<std::size_t /*node_id*/, int /*component*/>, 2>
 BHECommonCoaxial::getBHEInflowDirichletBCNodesAndComponents(
     std::size_t const top_node_id,
     std::size_t const /*bottom_node_id*/,
-    int const in_component_id) const
+    int const in_component_id)
 {
     return {std::make_pair(top_node_id, in_component_id),
             std::make_pair(top_node_id, in_component_id + 1)};
@@ -145,7 +145,7 @@ std::optional<
     std::array<std::pair<std::size_t /*node_id*/, int /*component*/>, 2>>
 BHECommonCoaxial::getBHEBottomDirichletBCNodesAndComponents(
     std::size_t const bottom_node_id, int const in_component_id,
-    int const out_component_id) const
+    int const out_component_id)
 {
     return {{std::make_pair(bottom_node_id, in_component_id),
              std::make_pair(bottom_node_id, out_component_id)}};

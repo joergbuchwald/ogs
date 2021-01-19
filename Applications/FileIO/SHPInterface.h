@@ -5,7 +5,7 @@
  * \brief  Implementation of the SHPInterface class.
  *
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -61,7 +61,8 @@ public:
     }
 
     /// Reads the header of the shape file.
-    bool readSHPInfo(const std::string &filename, int &shapeType, int &numberOfEntities);
+    static bool readSHPInfo(const std::string& filename, int& shapeType,
+                            int& numberOfEntities);
 
     /// Reads data from the shape file.
     void readSHPFile(const std::string& filename, OGSType choice,

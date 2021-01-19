@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -99,7 +99,7 @@ private:
                                             const double t, double const dt,
                                             int const process_id) override;
 
-    void setInitialConditionsConcreteProcess(GlobalVector const& x,
+    void setInitialConditionsConcreteProcess(std::vector<GlobalVector*>& x,
                                              double const t,
                                              int const process_id) override;
 

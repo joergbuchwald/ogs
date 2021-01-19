@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -38,12 +38,12 @@ public:
     SymmSegmentGenerator segment_generator2 = SymmSegmentGenerator{point_generator2,
         std::bind(ac::reflect, point_generator2.center, std::placeholders::_1)};
 
-    MathLib::Vector3 const translation_vector1 = {2,2,0};
+    Eigen::Vector3d const translation_vector1 = {2, 2, 0};
     PairSegmentGenerator pair_segment_generator1 = PairSegmentGenerator{
         segment_generator1,
         std::bind(ac::translate, translation_vector1, std::placeholders::_1)};
 
-    MathLib::Vector3 const translation_vector2 = {0,0,0};
+    Eigen::Vector3d const translation_vector2 = {0, 0, 0};
     PairSegmentGenerator pair_segment_generator2 = PairSegmentGenerator{
         segment_generator1,
         std::bind(ac::translate, translation_vector2, std::placeholders::_1)};

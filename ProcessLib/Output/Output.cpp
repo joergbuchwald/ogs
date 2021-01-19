@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -19,7 +19,6 @@
 #include "BaseLib/FileTools.h"
 #include "BaseLib/Logging.h"
 #include "BaseLib/RunTime.h"
-#include "MeshLib/IO/XDMF/transformData.h"
 #include "ProcessLib/Process.h"
 
 namespace
@@ -52,7 +51,7 @@ std::string constructPVDName(std::string const& output_directory,
 {
     return BaseLib::joinPaths(output_directory,
                               BaseLib::constructFormattedFileName(
-                                  output_file_prefix, mesh_name, 0, 0) +
+                                  output_file_prefix, mesh_name, 0, 0, 0) +
                                   ".pvd");
 }
 }  // namespace
@@ -64,7 +63,7 @@ bool Output::shallDoOutput(int timestep, double const t)
     auto const fixed_output_time = std::lower_bound(
         cbegin(_fixed_output_times), cend(_fixed_output_times), t);
     if ((fixed_output_time != cend(_fixed_output_times)) &&
-        (std::fabs(*fixed_output_time - t) <
+        (std::abs(*fixed_output_time - t) <
          std::numeric_limits<double>::epsilon()))
     {
         return true;
@@ -179,8 +178,10 @@ struct Output::OutputFile
     OutputFile(std::string const& directory, OutputType const type,
                std::string const& prefix, std::string const& suffix,
                std::string const& mesh_name, int const timestep, double const t,
-               int const data_mode_, bool const compression_)
-        : name(constructFilename(type, prefix, suffix, mesh_name, timestep, t)),
+               int const iteration, int const data_mode_,
+               bool const compression_)
+        : name(constructFilename(type, prefix, suffix, mesh_name, timestep, t,
+                                 iteration)),
           path(BaseLib::joinPaths(directory, name)),
           type(type),
           data_mode(data_mode_),
@@ -203,7 +204,8 @@ struct Output::OutputFile
     static std::string constructFilename(OutputType const type,
                                          std::string prefix, std::string suffix,
                                          std::string mesh_name,
-                                         int const timestep, double const t)
+                                         int const timestep, double const t,
+                                         int const iteration)
     {
         std::map<OutputType, std::string> filetype_to_extension = {
             {OutputType::vtk, "vtu"}, {OutputType::xdmf, "xdmf"}};
@@ -212,9 +214,9 @@ struct Output::OutputFile
         {
             std::string extension = filetype_to_extension.at(type);
             return BaseLib::constructFormattedFileName(prefix, mesh_name,
-                                                       timestep, t) +
+                                                       timestep, t, iteration) +
                    BaseLib::constructFormattedFileName(suffix, mesh_name,
-                                                       timestep, t) +
+                                                       timestep, t, iteration) +
                    "." + extension;
         }
         catch (std::out_of_range& e)
@@ -234,17 +236,15 @@ void Output::outputMeshXdmf(OutputFile const& output_file,
                             double const t)
 {
     // \TODO (tm) Refactor to a dedicated VTKOutput and XdmfOutput
-    // The XdmfOutput will create on contruction the Xdmf3Writer
-    if (!_mesh_xdmf_writer)
+    // The XdmfOutput will create on construction the XdmfHdfWriter
+    if (!_mesh_xdmf_hdf_writer)
     {
         std::filesystem::path path(output_file.path);
-        _mesh_xdmf_writer =
-            std::make_unique<MeshLib::IO::Xdmf3Writer>(MeshLib::IO::Xdmf3Writer(
-                path, MeshLib::IO::transformGeometry(mesh),
-                MeshLib::IO::transformTopology(mesh),
-                MeshLib::IO::transformAttributes(mesh), timestep));
+        _mesh_xdmf_hdf_writer =
+            std::make_unique<MeshLib::IO::XdmfHdfWriter>(MeshLib::IO::XdmfHdfWriter(
+                mesh, path, timestep));
     }
-    _mesh_xdmf_writer->writeStep(timestep, t);
+    _mesh_xdmf_hdf_writer->writeStep(timestep, t);
 }
 #endif
 
@@ -252,7 +252,7 @@ void Output::outputMesh(OutputFile const& output_file,
                         MeshLib::IO::PVDFile* const pvd_file,
                         MeshLib::Mesh const& mesh,
                         int const timestep,
-                        double const t) const
+                        double const t)
 {
     DBUG("output to {:s}", output_file.path);
 
@@ -269,6 +269,7 @@ void Output::doOutputAlways(Process const& process,
                             const int process_id,
                             int const timestep,
                             const double t,
+                            int const iteration,
                             std::vector<GlobalVector*> const& x)
 {
     BaseLib::RunTime time_output;
@@ -301,13 +302,13 @@ void Output::doOutputAlways(Process const& process,
         return;
     }
 
-    auto output_bulk_mesh = [&](MeshLib::Mesh& mesh) {
+    auto output_bulk_mesh = [&](MeshLib::Mesh const& mesh) {
         MeshLib::IO::PVDFile* pvd_file = nullptr;
         if (_output_file_type == ProcessLib::OutputType::vtk)
         {
             OutputFile const file(
                 _output_directory, _output_file_type, _output_file_prefix,
-                _output_file_suffix, mesh.getName(), timestep, t,
+                _output_file_suffix, mesh.getName(), timestep, t, iteration,
                 _output_file_data_mode, _output_file_compression);
 
             pvd_file = findPVDFile(process, process_id, mesh.getName());
@@ -318,7 +319,7 @@ void Output::doOutputAlways(Process const& process,
 #ifdef OGS_USE_XDMF
             OutputFile const file(_output_directory, _output_file_type,
                                   _output_file_prefix, "", mesh.getName(),
-                                  timestep, t, _output_file_data_mode,
+                                  timestep, t, iteration, _output_file_data_mode,
                                   _output_file_compression);
 
             outputMeshXdmf(file, mesh, timestep, t);
@@ -391,11 +392,12 @@ void Output::doOutput(Process const& process,
                       const int process_id,
                       int const timestep,
                       const double t,
+                      int const iteration,
                       std::vector<GlobalVector*> const& x)
 {
     if (shallDoOutput(timestep, t))
     {
-        doOutputAlways(process, process_id, timestep, t, x);
+        doOutputAlways(process, process_id, timestep, t, iteration, x);
     }
 #ifdef USE_INSITU
     // Note: last time step may be output twice: here and in
@@ -409,11 +411,12 @@ void Output::doOutputLastTimestep(Process const& process,
                                   const int process_id,
                                   int const timestep,
                                   const double t,
+                                  int const iteration,
                                   std::vector<GlobalVector*> const& x)
 {
     if (!shallDoOutput(timestep, t))
     {
-        doOutputAlways(process, process_id, timestep, t, x);
+        doOutputAlways(process, process_id, timestep, t, iteration, x);
     }
 #ifdef USE_INSITU
     InSituLib::CoProcess(process.getMesh(), t, timestep, true,
@@ -424,8 +427,8 @@ void Output::doOutputLastTimestep(Process const& process,
 void Output::doOutputNonlinearIteration(Process const& process,
                                         const int process_id,
                                         int const timestep, const double t,
-                                        std::vector<GlobalVector*> const& x,
-                                        const int iteration)
+                                        int const iteration,
+                                        std::vector<GlobalVector*> const& x)
 {
     if (!_output_nonlinear_iteration_results)
     {
@@ -462,9 +465,8 @@ void Output::doOutputNonlinearIteration(Process const& process,
     findPVDFile(process, process_id, process.getMesh().getName());
 
     std::string const output_file_name = OutputFile::constructFilename(
-        _output_file_type, _output_file_prefix,
-        "_ts_{:timestep}_nliter_{:time}", process.getMesh().getName(), timestep,
-        iteration);
+        _output_file_type, _output_file_prefix, _output_file_suffix,
+        process.getMesh().getName(), timestep, t, iteration);
 
     std::string const output_file_path =
         BaseLib::joinPaths(_output_directory, output_file_name);

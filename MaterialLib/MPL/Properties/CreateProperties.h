@@ -4,7 +4,7 @@
  * \date   Sep 10, 2019
  *
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -19,6 +19,7 @@
 #include "CreateAverageMolarMass.h"
 #include "CreateBishopsPowerLaw.h"
 #include "CreateBishopsSaturationCutoff.h"
+#include "CreateClausiusClapeyron.h"
 #include "CreateConstant.h"
 #include "CreateCurve.h"
 #include "CreateDupuitPermeability.h"
@@ -27,6 +28,7 @@
 #include "CreateKozenyCarmanModel.h"
 #include "CreateLinear.h"
 #include "CreateParameter.h"
+#include "CreateEmbeddedFracturePermeability.h"
 #include "CreatePermeabilityMohrCoulombFailureIndexModel.h"
 #include "CreatePermeabilityOrthotropicPowerLaw.h"
 #include "CreatePorosityFromMassBalance.h"

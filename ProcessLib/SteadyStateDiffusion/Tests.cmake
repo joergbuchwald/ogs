@@ -373,6 +373,7 @@ AddTest(
 AddTest(
     NAME ParallelFEM_GroundWaterFlow2D
     PATH EllipticPETSc
+    EXECUTABLE ogs
     EXECUTABLE_ARGS quad_20x10_GroundWaterFlow.prj
     WRAPPER mpirun
     WRAPPER_ARGS -np 3
@@ -387,6 +388,7 @@ AddTest(
 AddTest(
     NAME ParallelFEM_GroundWaterFlow3D_DirichletBC
     PATH EllipticPETSc
+    EXECUTABLE ogs
     EXECUTABLE_ARGS cube_1e3.prj
     WRAPPER mpirun
     WRAPPER_ARGS -np 3
@@ -401,6 +403,7 @@ AddTest(
 AddTest(
     NAME ParallelFEM_GroundWaterFlow3D_NeumannBC
     PATH EllipticPETSc
+    EXECUTABLE ogs
     EXECUTABLE_ARGS cube_1e3_neumann.prj
     WRAPPER mpirun
     WRAPPER_ARGS -np 3
@@ -413,8 +416,23 @@ AddTest(
 )
 
 AddTest(
+    NAME ParallelFEM_GroundWaterFlow3D_NeumannBC_XDMF
+    PATH EllipticPETSc/Xdmf
+    EXECUTABLE ogs
+    EXECUTABLE_ARGS cube_1e3.prj
+    WRAPPER mpirun
+    WRAPPER_ARGS -np 3
+    TESTER xdmfdiff
+    REQUIREMENTS (OGS_USE_MPI AND OGS_USE_XDMF)
+    DIFF_DATA
+    cube_1e3.xdmf cube_1e.xdmf pressure pressure 1e-2 1e-2
+    cube_1e3.xdmf cube_1e.xdmf D1_left_front_N1_right D1_left_front_N1_right 0 0
+)
+
+AddTest(
     NAME ParallelFEM_GroundWaterFlow2D_NeumannBC
     PATH EllipticPETSc
+    EXECUTABLE ogs
     EXECUTABLE_ARGS square_1e1_neumann.prj
     WRAPPER mpirun
     WRAPPER_ARGS -np 2
@@ -433,6 +451,7 @@ foreach(mesh_size 1e0 1e1 1e2 1e3)
     AddTest(
         NAME SteadyStateDiffusion_cube_1x1x1_${mesh_size}
         PATH Elliptic/cube_1x1x1_SteadyStateDiffusion
+        EXECUTABLE ogs
         EXECUTABLE_ARGS cube_${mesh_size}.prj
         WRAPPER mpirun
         WRAPPER_ARGS -np 1
@@ -445,6 +464,7 @@ foreach(mesh_size 1e0 1e1 1e2 1e3)
     AddTest(
         NAME SteadyStateDiffusion_cube_1x1x1_Neumann_${mesh_size}
         PATH Elliptic/cube_1x1x1_SteadyStateDiffusion
+        EXECUTABLE ogs
         EXECUTABLE_ARGS cube_${mesh_size}_neumann.prj
         WRAPPER mpirun
         WRAPPER_ARGS -np 1
@@ -467,6 +487,7 @@ foreach(mesh_size 1e4 2e4 3e4 4e4 5e4 1e5 1e6)
     AddTest(
         NAME SteadyStateDiffusion_cube_1x1x1_${mesh_size}
         PATH Elliptic/cube_1x1x1_SteadyStateDiffusion
+        EXECUTABLE ogs
         RUNTIME ${RUNTIME}
         EXECUTABLE_ARGS cube_${mesh_size}.prj
         WRAPPER mpirun
@@ -480,6 +501,7 @@ foreach(mesh_size 1e4 2e4 3e4 4e4 5e4 1e5 1e6)
     AddTest(
         NAME SteadyStateDiffusion_cube_1x1x1_Neumann_${mesh_size}
         PATH Elliptic/cube_1x1x1_SteadyStateDiffusion
+        EXECUTABLE ogs
         RUNTIME ${RUNTIME}
         EXECUTABLE_ARGS cube_${mesh_size}_neumann.prj
         WRAPPER mpirun
@@ -496,6 +518,7 @@ foreach(mesh_size 1e0 1e1 1e2 1e3 1e4)
     AddTest(
         NAME SteadyStateDiffusion_square_1x1_${mesh_size}
         PATH Elliptic/square_1x1_SteadyStateDiffusion
+        EXECUTABLE ogs
         EXECUTABLE_ARGS square_${mesh_size}.prj
         WRAPPER mpirun
         WRAPPER_ARGS -np 1
@@ -508,6 +531,7 @@ foreach(mesh_size 1e0 1e1 1e2 1e3 1e4)
     AddTest(
         NAME SteadyStateDiffusion_square_1x1_Neumann_${mesh_size}
         PATH Elliptic/square_1x1_SteadyStateDiffusion
+        EXECUTABLE ogs
         EXECUTABLE_ARGS square_${mesh_size}_neumann.prj
         WRAPPER mpirun
         WRAPPER_ARGS -np 1
@@ -529,6 +553,7 @@ foreach(mesh_size 1e5 1e6)
     AddTest(
         NAME SteadyStateDiffusion_square_1x1_${mesh_size}
         PATH Elliptic/square_1x1_SteadyStateDiffusion
+        EXECUTABLE ogs
         RUNTIME ${RUNTIME}
         EXECUTABLE_ARGS square_${mesh_size}.prj
         WRAPPER mpirun
@@ -542,6 +567,7 @@ foreach(mesh_size 1e5 1e6)
     AddTest(
         NAME SteadyStateDiffusion_square_1x1_Neumann_${mesh_size}
         PATH Elliptic/square_1x1_SteadyStateDiffusion
+        EXECUTABLE ogs
         RUNTIME ${RUNTIME}
         EXECUTABLE_ARGS square_${mesh_size}_neumann.prj
         WRAPPER mpirun
@@ -558,6 +584,7 @@ foreach(mesh_size 1e1)
     AddTest(
         NAME SteadyStateDiffusion_line_1_${mesh_size}
         PATH Elliptic/line_1_SteadyStateDiffusion
+        EXECUTABLE ogs
         EXECUTABLE_ARGS line_${mesh_size}.prj
         WRAPPER mpirun
         WRAPPER_ARGS -np 1
@@ -570,6 +597,7 @@ foreach(mesh_size 1e1)
     AddTest(
         NAME SteadyStateDiffusion_line_1_Neumann_${mesh_size}
         PATH Elliptic/line_1_SteadyStateDiffusion
+        EXECUTABLE ogs
         EXECUTABLE_ARGS line_${mesh_size}_neumann.prj
         WRAPPER mpirun
         WRAPPER_ARGS -np 1

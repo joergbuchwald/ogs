@@ -2,7 +2,7 @@
  *  \brief Define members of the class for dimensionless Gibbs free energy.
  *
  *  \copyright
- *   Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ *   Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *              Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -43,7 +43,7 @@ static const double ji[34] = {
     3,  17, -4, 0, 6, -5, -2, 10, -8, -11, -6, -29, -31, -38, -39, -40, -41};
 
 double DimensionLessGibbsFreeEnergyRegion1::get_gamma(const double tau,
-                                                      const double pi) const
+                                                      const double pi)
 {
     double val = 0.;
     for (int i = 0; i < 34; i++)
@@ -55,7 +55,7 @@ double DimensionLessGibbsFreeEnergyRegion1::get_gamma(const double tau,
 }
 
 double DimensionLessGibbsFreeEnergyRegion1::get_dgamma_dtau(
-    const double tau, const double pi) const
+    const double tau, const double pi)
 {
     double val = 0.;
     for (int i = 0; i < 34; i++)
@@ -68,7 +68,7 @@ double DimensionLessGibbsFreeEnergyRegion1::get_dgamma_dtau(
 }
 
 double DimensionLessGibbsFreeEnergyRegion1::get_dgamma_dtau_dtau(
-    const double tau, const double pi) const
+    const double tau, const double pi)
 {
     double val = 0.;
     for (int i = 0; i < 34; i++)
@@ -81,7 +81,7 @@ double DimensionLessGibbsFreeEnergyRegion1::get_dgamma_dtau_dtau(
 }
 
 double DimensionLessGibbsFreeEnergyRegion1::get_dgamma_dpi(
-    const double tau, const double pi) const
+    const double tau, const double pi)
 {
     double val = 0.;
     for (int i = 0; i < 34; i++)
@@ -94,7 +94,7 @@ double DimensionLessGibbsFreeEnergyRegion1::get_dgamma_dpi(
 }
 
 double DimensionLessGibbsFreeEnergyRegion1::get_dgamma_dpi_dpi(
-    const double tau, const double pi) const
+    const double tau, const double pi)
 {
     double val = 0.;
     for (int i = 0; i < 34; i++)
@@ -107,7 +107,7 @@ double DimensionLessGibbsFreeEnergyRegion1::get_dgamma_dpi_dpi(
 }
 
 double DimensionLessGibbsFreeEnergyRegion1::get_dgamma_dtau_dpi(
-    const double tau, const double pi) const
+    const double tau, const double pi)
 {
     double val = 0.;
     for (int i = 0; i < 34; i++)

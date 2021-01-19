@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -14,6 +14,11 @@
 #include "ComponentTransportProcessData.h"
 #include "NumLib/Extrapolation/LocalLinearLeastSquaresExtrapolator.h"
 #include "ProcessLib/Process.h"
+
+namespace ChemistryLib
+{
+class ChemicalSolverInterface;
+}
 
 namespace ProcessLib
 {
@@ -102,7 +107,9 @@ public:
         ComponentTransportProcessData&& process_data,
         SecondaryVariableCollection&& secondary_variables,
         bool const use_monolithic_scheme,
-        std::unique_ptr<ProcessLib::SurfaceFluxData>&& surfaceflux);
+        std::unique_ptr<ProcessLib::SurfaceFluxData>&& surfaceflux,
+        std::unique_ptr<ChemistryLib::ChemicalSolverInterface>&&
+            chemical_solver_interface);
 
     //! \name ODESystem interface
     //! @{
@@ -117,8 +124,8 @@ public:
     void setCoupledTermForTheStaggeredSchemeToLocalAssemblers(
         int const process_id) override;
 
-    std::vector<GlobalVector> interpolateNodalValuesToIntegrationPoints(
-        std::vector<GlobalVector*> const& nodal_values_vectors) const override;
+    void solveReactionEquation(std::vector<GlobalVector*>& x, double const t,
+                               double const dt) override;
 
     void extrapolateIntegrationPointValuesToNodes(
         const double t,
@@ -142,6 +149,10 @@ private:
         MeshLib::Mesh const& mesh,
         unsigned const integration_order) override;
 
+    void setInitialConditionsConcreteProcess(std::vector<GlobalVector*>& x,
+                                             double const t,
+                                             int const process_id) override;
+
     void assembleConcreteProcess(const double t, double const dt,
                                  std::vector<GlobalVector*> const& x,
                                  std::vector<GlobalVector*> const& xdot,
@@ -160,6 +171,9 @@ private:
         _local_assemblers;
 
     std::unique_ptr<ProcessLib::SurfaceFluxData> _surfaceflux;
+
+    std::unique_ptr<ChemistryLib::ChemicalSolverInterface>
+        _chemical_solver_interface;
 };
 
 }  // namespace ComponentTransport

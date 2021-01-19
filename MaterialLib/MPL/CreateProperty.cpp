@@ -4,7 +4,7 @@
  * \date   Sep 7, 2017
  *
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -66,6 +66,11 @@ std::unique_ptr<MaterialPropertyLib::Property> createProperty(
         return createAverageMolarMass(config);
     }
 
+    if (boost::iequals(property_type, "ClausiusClapeyron"))
+    {
+        return createClausiusClapeyron(config);
+    }
+
     if (boost::iequals(property_type, "Dupuit"))
     {
         return createDupuitPermeability(config, parameters);
@@ -80,6 +85,12 @@ std::unique_ptr<MaterialPropertyLib::Property> createProperty(
     {
         return createStrainDependentPermeability(
             geometry_dimension, config, parameters, local_coordinate_system);
+    }
+
+    if (boost::iequals(property_type, "EmbeddedFracturePermeability"))
+    {
+        return createEmbeddedFracturePermeability(geometry_dimension,
+                                                        config);
     }
 
     if (boost::iequals(property_type,

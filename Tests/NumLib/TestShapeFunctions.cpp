@@ -4,7 +4,7 @@
  * \date   2013-09-03
  *
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -46,20 +46,20 @@ struct NaturalPointGenerator
 
     result_type intervalMap(result_type const& tuple) const
     {
-        if (std::is_same<ShapeFunction, NumLib::ShapeLine2>::value ||
-            std::is_same<ShapeFunction, NumLib::ShapeLine3>::value ||
-            std::is_same<ShapeFunction, NumLib::ShapeQuad4>::value ||
-            std::is_same<ShapeFunction, NumLib::ShapeQuad8>::value ||
-            std::is_same<ShapeFunction, NumLib::ShapeQuad9>::value ||
-            std::is_same<ShapeFunction, NumLib::ShapeHex8>::value ||
-            std::is_same<ShapeFunction, NumLib::ShapeHex20>::value)
+        if (std::is_same_v<ShapeFunction, NumLib::ShapeLine2> ||
+            std::is_same_v<ShapeFunction, NumLib::ShapeLine3> ||
+            std::is_same_v<ShapeFunction, NumLib::ShapeQuad4> ||
+            std::is_same_v<ShapeFunction, NumLib::ShapeQuad8> ||
+            std::is_same_v<ShapeFunction, NumLib::ShapeQuad9> ||
+            std::is_same_v<ShapeFunction, NumLib::ShapeHex8> ||
+            std::is_same_v<ShapeFunction, NumLib::ShapeHex20>)
         {
             return tuple;
         }
-        if (std::is_same<ShapeFunction, NumLib::ShapeTri3>::value ||
-            std::is_same<ShapeFunction, NumLib::ShapeTri6>::value ||
-            std::is_same<ShapeFunction, NumLib::ShapeTet4>::value ||
-            std::is_same<ShapeFunction, NumLib::ShapeTet10>::value)
+        if (std::is_same_v<ShapeFunction, NumLib::ShapeTri3> ||
+            std::is_same_v<ShapeFunction, NumLib::ShapeTri6> ||
+            std::is_same_v<ShapeFunction, NumLib::ShapeTet4> ||
+            std::is_same_v<ShapeFunction, NumLib::ShapeTet10>)
         {
             // Map square (x, y) \in [-1, 1]^2 to a triangle such that x,y
             // \in [0, 1], and x+y \in [0, 2/2].
@@ -105,7 +105,7 @@ using ShapeFunctionTestTypes =
                      ShapeTet10, ShapeQuad4, ShapeQuad8, ShapeQuad9, ShapeHex8,
                      ShapeHex20>;
 
-TYPED_TEST_CASE(ShapeFunctionTest, ShapeFunctionTestTypes);
+TYPED_TEST_SUITE(ShapeFunctionTest, ShapeFunctionTestTypes);
 
 // TypeParam is the type of the ShapeFunction.
 // Access private members via this pointer or TestFixture:: for types

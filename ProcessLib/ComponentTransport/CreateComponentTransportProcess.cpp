@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -9,7 +9,6 @@
  */
 
 #include "CreateComponentTransportProcess.h"
-#include "CreateChemicalProcessData.h"
 
 #include "ChemistryLib/ChemicalSolverInterface.h"
 #include "MaterialLib/MPL/CreateMaterialSpatialDistributionMap.h"
@@ -84,7 +83,8 @@ std::unique_ptr<Process> createComponentTransportProcess(
     BaseLib::ConfigTree const& config,
     std::vector<std::unique_ptr<MeshLib::Mesh>> const& meshes,
     std::map<int, std::shared_ptr<MaterialPropertyLib::Medium>> const& media,
-    ChemistryLib::ChemicalSolverInterface* const chemical_solver_interface)
+    std::unique_ptr<ChemistryLib::ChemicalSolverInterface>&&
+        chemical_solver_interface)
 {
     //! \ogs_file_param{prj__processes__process__type}
     config.checkConfigParameter("type", "ComponentTransport");
@@ -224,14 +224,11 @@ std::unique_ptr<Process> createComponentTransportProcess(
     checkMPLProperties(mesh, *media_map);
     DBUG("Media properties verified.");
 
-    auto chemical_process_data =
-        createChemicalProcessData(chemical_solver_interface);
-
     ComponentTransportProcessData process_data{std::move(media_map),
                                                specific_body_force,
                                                has_gravity,
                                                non_advective_form,
-                                               std::move(chemical_process_data),
+                                               chemical_solver_interface.get(),
                                                hydraulic_process_id,
                                                first_transport_process_id};
 
@@ -253,7 +250,8 @@ std::unique_ptr<Process> createComponentTransportProcess(
         std::move(name), mesh, std::move(jacobian_assembler), parameters,
         integration_order, std::move(process_variables),
         std::move(process_data), std::move(secondary_variables),
-        use_monolithic_scheme, std::move(surfaceflux));
+        use_monolithic_scheme, std::move(surfaceflux),
+        std::move(chemical_solver_interface));
 }
 
 }  // namespace ComponentTransport

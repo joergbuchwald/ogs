@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -29,14 +29,14 @@ public:
     {
     }
 
-    int getNumberOfItemsInDisplay()
+    static int getNumberOfItemsInDisplay()
     {
         return display_simulation_id + display_state + display_solution_id +
                display_distance + display_current_time + display_time_step +
                display_pH + display_pe;
     }
 
-    int getNumberOfDroppedItems()
+    static int getNumberOfDroppedItems()
     {
         return display_simulation_id + display_state + display_solution_id +
                display_distance + display_current_time + display_time_step;

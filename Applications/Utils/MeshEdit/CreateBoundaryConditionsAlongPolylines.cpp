@@ -3,7 +3,7 @@
  * \brief Create BoundaryConditions from a polylines.
  *
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -85,8 +85,8 @@ void writeLiquidFlowPointBC(std::ostream & bc_out, std::string const& pnt_name)
 // set on, geo_name is the name the geometry can be accessed with, out_fname is
 // the base file name the gli and bc as well as the gml file will be written to.
 void writeBCsAndGeometry(GeoLib::GEOObjects& geometry_sets,
-                         std::string& geo_name, std::string const& out_fname,
-                         std::string const& bc_type, bool write_gml)
+                         std::string const& geo_name, std::string const& out_fname,
+                         std::string const& bc_type, bool const write_gml)
 {
     if (write_gml) {
         INFO("write points to '{:s}.gml'.", geo_name);
@@ -130,7 +130,7 @@ int main (int argc, char* argv[])
         "OpenGeoSys-6 software, version " +
             GitInfoLib::GitInfo::ogs_version +
             ".\n"
-            "Copyright (c) 2012-2020, OpenGeoSys Community "
+            "Copyright (c) 2012-2021, OpenGeoSys Community "
             "(http://www.opengeosys.org)",
         ' ', GitInfoLib::GitInfo::ogs_version);
     TCLAP::SwitchArg gml_arg("", "gml", "Write found nodes to gml file.");
@@ -179,7 +179,7 @@ int main (int argc, char* argv[])
         MeshLib::IO::readMeshFromFile(mesh_arg.getValue()));
     INFO("done.");
     INFO("Extracting top surface of mesh '{:s}' ... ", mesh_arg.getValue());
-    const MathLib::Vector3 dir(0,0,-1);
+    Eigen::Vector3d const dir({0, 0, -1});
     double const angle(90);
     std::unique_ptr<MeshLib::Mesh> surface_mesh(
         MeshLib::MeshSurfaceExtraction::getMeshSurface(*subsurface_mesh, dir,

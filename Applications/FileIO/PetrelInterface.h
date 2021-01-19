@@ -5,7 +5,7 @@
  * \brief  Definition of the PetrelInterface class.
  *
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -37,7 +37,7 @@ public:
     PetrelInterface(std::list<std::string> &sfc_fnames,
                     std::list<std::string> &well_path_fnames,
                     std::string &unique_model_name,
-                    GeoLib::GEOObjects* obj);
+                    GeoLib::GEOObjects* geo_obj);
 
     PetrelInterface(PetrelInterface const& other) = delete;
     PetrelInterface(PetrelInterface&& other) = delete;

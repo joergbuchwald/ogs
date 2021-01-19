@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -151,7 +151,7 @@ std::array<std::pair<std::size_t /*node_id*/, int /*component*/>, 2>
 BHE_1P::getBHEInflowDirichletBCNodesAndComponents(
     std::size_t const top_node_id,
     std::size_t const bottom_node_id,
-    int const in_component_id) const
+    int const in_component_id)
 {
     return {std::make_pair(top_node_id, in_component_id),
             std::make_pair(bottom_node_id, in_component_id)};
@@ -162,7 +162,7 @@ std::optional<
 BHE_1P::getBHEBottomDirichletBCNodesAndComponents(
     std::size_t const /*bottom_node_id*/,
     int const /*in_component_id*/,
-    int const /*out_component_id*/) const
+    int const /*out_component_id*/)
 {
     return {};
 }

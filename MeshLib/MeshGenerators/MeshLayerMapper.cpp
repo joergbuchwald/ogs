@@ -5,7 +5,7 @@
  * \brief  Implementation of the MeshLayerMapper class.
  *
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -301,7 +301,7 @@ bool MeshLayerMapper::layerMapping(MeshLib::Mesh const& mesh,
 
         double elevation (raster.getValueAtPoint(*nodes[i]));
         constexpr double eps = std::numeric_limits<double>::epsilon();
-        if (std::fabs(elevation - header.no_data) < eps)
+        if (std::abs(elevation - header.no_data) < eps)
         {
             if (ignore_nodata)
             {

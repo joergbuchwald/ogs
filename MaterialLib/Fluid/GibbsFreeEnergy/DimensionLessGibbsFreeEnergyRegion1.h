@@ -2,7 +2,7 @@
  *  \brief Declare a class for dimensionless Gibbs free energy, region1.
  *
  *  \copyright
- *   Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ *   Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *              Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -41,7 +41,7 @@ public:
      * @param tau Dimension less pressure
      * @return    The value
      */
-    double get_gamma(const double tau, const double pi) const;
+    static double get_gamma(const double tau, const double pi);
 
     /**
      * Get the 1st order partial derivative of the dimension less Gibbs free
@@ -51,7 +51,7 @@ public:
      * @param tau Dimension less pressure
      * @return    The value
      */
-    double get_dgamma_dtau(const double tau, const double pi) const;
+    static double get_dgamma_dtau(const double tau, const double pi);
 
     /**
      * Get the 2nd order partial derivative of the dimension less Gibbs free
@@ -61,7 +61,7 @@ public:
      * @param tau Dimension less pressure
      * @return    The value
      */
-    double get_dgamma_dtau_dtau(const double tau, const double pi) const;
+    static double get_dgamma_dtau_dtau(const double tau, const double pi);
 
     /**
      * Get the 1st order partial derivative of the dimension less Gibbs free
@@ -71,7 +71,7 @@ public:
      * @param tau Dimension less pressure
      * @return    The value
      */
-    double get_dgamma_dpi(const double tau, const double pi) const;
+    static double get_dgamma_dpi(const double tau, const double pi);
 
     /**
      * Get the 2nd order partial derivative of the dimension less Gibbs free
@@ -81,7 +81,7 @@ public:
      * @param tau Dimension less pressure
      * @return    The value
      */
-    double get_dgamma_dpi_dpi(const double tau, const double pi) const;
+    static double get_dgamma_dpi_dpi(const double tau, const double pi);
 
     /**
      * Get the 2nd order partial derivative of the dimension less Gibbs free
@@ -91,7 +91,7 @@ public:
      * @param tau Dimension less pressure
      * @return    The value
      */
-    double get_dgamma_dtau_dpi(const double tau, const double pi) const;
+    static double get_dgamma_dtau_dpi(const double tau, const double pi);
 };
 
 }  // namespace Fluid

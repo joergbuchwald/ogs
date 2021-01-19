@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -129,8 +129,7 @@ ThermalTwoPhaseFlowWithPPMaterialProperties::getThermalConductivityWetSolid(
 double
 ThermalTwoPhaseFlowWithPPMaterialProperties::calculateUnsatHeatConductivity(
     double const /*t*/, ParameterLib::SpatialPosition const& /*x*/,
-    double const Sw, double const lambda_pm_dry,
-    double const lambda_pm_wet) const
+    double const Sw, double const lambda_pm_dry, double const lambda_pm_wet)
 {
     double lambda_pm =
         lambda_pm_dry + std::sqrt(Sw) * (lambda_pm_wet - lambda_pm_dry);
@@ -204,7 +203,7 @@ double
 ThermalTwoPhaseFlowWithPPMaterialProperties::getLiquidWaterEnthalpySimple(
     const double temperature,
     const double heat_capacity_liquid_water,
-    const double /*pl*/) const
+    const double /*pl*/)
 {
     return heat_capacity_liquid_water * (temperature - CelsiusZeroInKelvin);
 }

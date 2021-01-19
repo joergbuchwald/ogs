@@ -5,7 +5,6 @@ append_source_files(SOURCES Curve)
 append_source_files(SOURCES InterpolationAlgorithms)
 append_source_files(SOURCES Integration)
 append_source_files(SOURCES LinAlg)
-append_source_files(SOURCES LinAlg/Dense)
 if(CVODE_FOUND)
     append_source_files(SOURCES ODE)
 endif()
@@ -31,7 +30,7 @@ target_include_directories(MathLib
         ${CMAKE_CURRENT_BINARY_DIR}
         $<$<BOOL:${OGS_USE_PETSC}>:${PETSC_INCLUDE_DIRS}>
     PRIVATE
-        $<$<BOOL:${CVODE_FOUND}>:${CVODE_INCLUDE_DIRS}>
+        $<$<BOOL:${OGS_USE_CVODE}>:${CVODE_INCLUDE_DIRS}>
 )
 
 set_target_properties(MathLib PROPERTIES LINKER_LANGUAGE CXX)
@@ -40,10 +39,8 @@ target_link_libraries(MathLib
     PUBLIC
         BaseLib
         ${OpenMP_CXX_LIBRARIES}
-        $<$<BOOL:${CVODE_FOUND}>:${CVODE_LIBRARIES}>
         $<$<TARGET_EXISTS:LAPACK::LAPACK>:LAPACK::LAPACK>
         $<$<BOOL:${OGS_USE_LIS}>:${LIS_LIBRARIES}>
-        $<$<BOOL:${OGS_USE_MKL}>:${MKL_LIBRARIES}>
     PRIVATE
         spdlog::spdlog
 )
@@ -51,3 +48,19 @@ target_link_libraries(MathLib
 if(OGS_USE_PETSC)
     target_link_libraries(MathLib PUBLIC ${PETSC_LIBRARIES})
 endif()
+if(OGS_USE_CVODE)
+    target_link_libraries(MathLib PUBLIC ${CVODE_LIBRARIES})
+endif()
+if(OGS_USE_MKL)
+    target_link_libraries(MathLib PUBLIC ${MKL_LIBRARIES})
+endif()
+
+target_compile_definitions(MathLib
+    PUBLIC
+    $<$<BOOL:${USE_LIS}>:USE_LIS>
+    $<$<BOOL:${OGS_USE_PETSC}>:USE_PETSC>
+    $<$<BOOL:${OGS_USE_EIGEN}>:OGS_USE_EIGEN>
+    $<$<BOOL:${CVODE_FOUND}>:CVODE_FOUND>
+    PRIVATE
+    $<$<BOOL:${OGS_USE_MKL}>:USE_MKL>
+)

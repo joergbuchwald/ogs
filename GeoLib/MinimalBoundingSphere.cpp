@@ -5,7 +5,7 @@
  * \brief  Calculation of a minimum bounding sphere for a vector of points.
  *
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -94,7 +94,7 @@ MinimalBoundingSphere::MinimalBoundingSphere(MathLib::Point3d const& p,
 
     if (!MathLib::isCoplanar(p, q, r, s))
     {
-        double const denom = 2.0 * MathLib::scalarTriple(va, vb, vc);
+        double const denom = 2.0 * va.cross(vb).dot(vc);
         Eigen::Vector3d o =
             (vc.dot(vc) * va.cross(vb) + vb.dot(vb) * vc.cross(va) +
              va.dot(va) * vb.cross(vc)) /

@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -50,24 +50,22 @@ struct SecondaryVariableFunctions final
     {
         // Used to detect nasty implicit conversions.
         static_assert(
-            std::is_same<
+            std::is_same_v<
                 GlobalVector const&,
-                typename std::result_of<F1(
-                    double const, std::vector<GlobalVector*> const&,
-                    std::vector<NumLib::LocalToGlobalIndexMap const*> const&
-                        dof_table,
-                    std::unique_ptr<GlobalVector>&)>::type>::value,
+                typename std::invoke_result_t<
+                    F1, double const, std::vector<GlobalVector*> const&,
+                    std::vector<NumLib::LocalToGlobalIndexMap const*> const&,
+                    std::unique_ptr<GlobalVector>&>>,
             "The function eval_field_ does not return a const reference"
             " to a GlobalVector");
 
         static_assert(
-            std::is_same<
+            std::is_same_v<
                 GlobalVector const&,
-                typename std::result_of<F2(
-                    double const, std::vector<GlobalVector*> const& x,
-                    std::vector<NumLib::LocalToGlobalIndexMap const*> const&
-                        dof_table,
-                    std::unique_ptr<GlobalVector>&)>::type>::value,
+                typename std::invoke_result_t<
+                    F2, double const, std::vector<GlobalVector*> const&,
+                    std::vector<NumLib::LocalToGlobalIndexMap const*> const&,
+                    std::unique_ptr<GlobalVector>&>>,
             "The function eval_residuals_ does not return a const reference"
             " to a GlobalVector");
     }
@@ -80,13 +78,12 @@ struct SecondaryVariableFunctions final
     {
         // Used to detect nasty implicit conversions.
         static_assert(
-            std::is_same<
+            std::is_same_v<
                 GlobalVector const&,
-                typename std::result_of<F1(
-                    double const, std::vector<GlobalVector*> const& x,
-                    std::vector<NumLib::LocalToGlobalIndexMap const*> const&
-                        dof_table,
-                    std::unique_ptr<GlobalVector>&)>::type>::value,
+                typename std::invoke_result_t<
+                    F1, double const, std::vector<GlobalVector*> const&,
+                    std::vector<NumLib::LocalToGlobalIndexMap const*> const&,
+                    std::unique_ptr<GlobalVector>&>>,
             "The function eval_field_ does not return a const reference"
             " to a GlobalVector");
     }

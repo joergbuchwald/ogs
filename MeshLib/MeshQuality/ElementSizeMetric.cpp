@@ -5,7 +5,7 @@
  * \brief  Implementation of the ElementSizeMetric class.
  *
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -59,7 +59,7 @@ std::size_t ElementSizeMetric::calc1dQuality()
         double area(std::numeric_limits<double>::max());
         _element_quality_metric[k] = elements[k]->getContent();
         if (_element_quality_metric[k] <
-            sqrt(fabs(std::numeric_limits<double>::epsilon())))
+            std::sqrt(std::abs(std::numeric_limits<double>::epsilon())))
         {
             error_count++;
         }
@@ -93,7 +93,7 @@ std::size_t ElementSizeMetric::calc2dQuality()
             continue;
         }
         double const area = elem.getContent();
-        if (area < sqrt(fabs(std::numeric_limits<double>::epsilon())))
+        if (area < std::sqrt(std::abs(std::numeric_limits<double>::epsilon())))
         {
             error_count++;
         }
@@ -128,7 +128,7 @@ std::size_t ElementSizeMetric::calc3dQuality()
         }
 
         double const volume (elem.getContent());
-        if (volume < sqrt(fabs(std::numeric_limits<double>::epsilon())))
+        if (volume < sqrt(std::abs(std::numeric_limits<double>::epsilon())))
         {
             error_count++;
         }

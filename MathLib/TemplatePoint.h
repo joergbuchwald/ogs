@@ -5,7 +5,7 @@
  * \brief  Definition of the TemplatePoint class.
  *
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -155,8 +155,8 @@ bool lessEq(TemplatePoint<T, DIM> const& a, TemplatePoint<T, DIM> const& b,
 {
     auto coordinateIsLargerEps = [&eps](T const u, T const v) -> bool
     {
-        return std::fabs(u - v) > eps * std::min(std::fabs(v), std::fabs(u)) &&
-               std::fabs(u - v) > eps;
+        return std::abs(u - v) > eps * std::min(std::abs(v), std::abs(u)) &&
+               std::abs(u - v) > eps;
     };
 
     for (std::size_t i = 0; i < DIM; ++i)

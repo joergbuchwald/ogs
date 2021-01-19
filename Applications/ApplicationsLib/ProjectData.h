@@ -3,7 +3,7 @@
  * \date   2010-08-25
  *
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -99,17 +99,15 @@ private:
     /// Parses the processes configuration and creates new processes for each
     /// process entry passing the corresponding subtree to the process
     /// constructor.
-    void parseProcesses(
-        BaseLib::ConfigTree const& processes_config,
-        std::string const& project_directory,
-        std::string const& output_directory,
-        ChemistryLib::ChemicalSolverInterface* chemical_solver_interface);
+    void parseProcesses(BaseLib::ConfigTree const& processes_config,
+                        std::string const& project_directory,
+                        std::string const& output_directory,
+                        std::unique_ptr<ChemistryLib::ChemicalSolverInterface>&&
+                            chemical_solver_interface);
 
     /// Parses the time loop configuration.
     void parseTimeLoop(BaseLib::ConfigTree const& config,
-                       const std::string& output_directory,
-                       std::unique_ptr<ChemistryLib::ChemicalSolverInterface>&&
-                           chemical_solver_interface);
+                       const std::string& output_directory);
 
     void parseLinearSolvers(BaseLib::ConfigTree const& config);
 

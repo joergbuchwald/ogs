@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -51,12 +51,11 @@
 
 /// A type used for indexing of global vectors and matrices. It is equal to the
 /// GlobalMatrix::IndexType and the GlobalVector::IndexType.
-static_assert(std::is_integral<GlobalMatrix::IndexType>::value,
+static_assert(std::is_integral_v<GlobalMatrix::IndexType>,
               "The index type for global matrices is not an integral type.");
-static_assert(std::is_integral<GlobalVector::IndexType>::value,
+static_assert(std::is_integral_v<GlobalVector::IndexType>,
               "The index type for global vectors is not an integral type.");
-static_assert(std::is_same<GlobalMatrix::IndexType,
-                           GlobalVector::IndexType>::value,
+static_assert(std::is_same_v<GlobalMatrix::IndexType, GlobalVector::IndexType>,
               "The global matrix and vector index types do not match.");
 // Both types are integral types and equal, define a single GlobalIndexType.
 using GlobalIndexType = GlobalMatrix::IndexType;

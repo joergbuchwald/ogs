@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -10,19 +10,16 @@
 
 #pragma once
 
-#include "ThermoHydroMechanicsFEM.h"
-
-#include "MaterialLib/SolidModels/SelectSolidConstitutiveRelation.h"
-
-#include "MaterialLib/MPL/Utils/GetLiquidThermalExpansivity.h"
 #include "MaterialLib/MPL/Medium.h"
 #include "MaterialLib/MPL/Property.h"
 #include "MaterialLib/MPL/Utils/FormEffectiveThermalConductivity.h"
 #include "MaterialLib/MPL/Utils/FormEigenTensor.h"
-
+#include "MaterialLib/MPL/Utils/GetLiquidThermalExpansivity.h"
+#include "MaterialLib/SolidModels/SelectSolidConstitutiveRelation.h"
 #include "MathLib/KelvinVector.h"
 #include "NumLib/Function/Interpolation.h"
 #include "ProcessLib/CoupledSolutionsForStaggeredScheme.h"
+#include "ThermoHydroMechanicsFEM.h"
 
 namespace ProcessLib
 {
@@ -199,9 +196,7 @@ void ThermoHydroMechanicsLocalAssembler<ShapeFunctionDisplacement,
     auto const& solid_phase = medium->phase("Solid");
     MaterialPropertyLib::VariableArray vars;
 
-    auto const& identity2 = MathLib::KelvinVector::Invariants<
-        MathLib::KelvinVector::KelvinVectorDimensions<DisplacementDim>::value>::
-        identity2;
+    auto const& identity2 = Invariants::identity2;
 
     unsigned const n_integration_points =
         _integration_method.getNumberOfPoints();
@@ -235,6 +230,7 @@ void ThermoHydroMechanicsLocalAssembler<ShapeFunctionDisplacement,
                 dNdx_u, N_u, x_coord, _is_axially_symmetric);
 
         auto& eps = _ip_data[ip].eps;
+        eps.noalias() = B * u;
         auto& eps_m = _ip_data[ip].eps_m;
         auto const& sigma_eff = _ip_data[ip].sigma_eff;
 
@@ -272,12 +268,23 @@ void ThermoHydroMechanicsLocalAssembler<ShapeFunctionDisplacement,
 
         auto const beta_SR = (1 - alpha) * solid_skeleton_compressibility;
 
+        // Set mechanical variables for the intrinsic permeability model
         // For stress dependent permeability.
-        vars[static_cast<int>(MaterialPropertyLib::Variable::total_stress)]
-            .emplace<SymmetricTensor>(
-                MathLib::KelvinVector::kelvinVectorToSymmetricTensor(
-                    (_ip_data[ip].sigma_eff - alpha * identity2 * p_int_pt)
-                        .eval()));
+        {
+            auto const sigma_total =
+                (_ip_data[ip].sigma_eff - alpha * p_int_pt * identity2).eval();
+            vars[static_cast<int>(MaterialPropertyLib::Variable::total_stress)]
+                .emplace<SymmetricTensor>(
+                    MathLib::KelvinVector::kelvinVectorToSymmetricTensor(
+                        sigma_total));
+        }
+        // For strain dependent permeability
+        vars[static_cast<int>(
+            MaterialPropertyLib::Variable::volumetric_strain)] =
+            Invariants::trace(_ip_data[ip].eps);
+        vars[static_cast<int>(
+            MaterialPropertyLib::Variable::equivalent_plastic_strain)] =
+            _ip_data[ip].material_state_variables->getEquivalentPlasticStrain();
 
         auto const intrinsic_permeability =
             MaterialPropertyLib::formEigenTensor<DisplacementDim>(
@@ -340,9 +347,9 @@ void ThermoHydroMechanicsLocalAssembler<ShapeFunctionDisplacement,
         //
         // displacement equation, displacement part
         //
-        eps.noalias() = B * u;
         eps_m.noalias() = eps - thermal_strain;
-        variables[static_cast<int>(MaterialPropertyLib::Variable::strain)]
+        variables[static_cast<int>(
+                      MaterialPropertyLib::Variable::mechanical_strain)]
             .emplace<MathLib::KelvinVector::KelvinVectorType<DisplacementDim>>(
                 eps_m);
 
@@ -419,7 +426,7 @@ void ThermoHydroMechanicsLocalAssembler<ShapeFunctionDisplacement,
         // Add thermo-osmosis effect on KTT
         KTT.noalias() +=
             (dNdx_T.transpose() * effective_thermal_condictivity * dNdx_T +
-             N_p.transpose() * velocity.transpose() * dNdx_p * fluid_density * c_f) *
+             N_T.transpose() * velocity.transpose() * dNdx_T * fluid_density * c_f) *
                 w -
             fluid_density * c_f * N_T.transpose() * (dNdx_T * T).transpose() *
                 K_pT_thermal_osmosis * dNdx_T * w;
@@ -575,9 +582,7 @@ std::vector<double> const& ThermoHydroMechanicsLocalAssembler<
     auto const& solid_phase = medium->phase("Solid");
     MaterialPropertyLib::VariableArray vars;
 
-    auto const& identity2 = MathLib::KelvinVector::Invariants<
-        MathLib::KelvinVector::KelvinVectorDimensions<DisplacementDim>::value>::
-        identity2;
+    auto const& identity2 = Invariants::identity2;
 
     for (unsigned ip = 0; ip < n_integration_points; ip++)
     {
@@ -602,12 +607,24 @@ std::vector<double> const& ThermoHydroMechanicsLocalAssembler<
             solid_phase
                 .property(MaterialPropertyLib::PropertyType::biot_coefficient)
                 .template value<double>(vars, x_position, t, dt);
+
+        // Set mechanical variables for the intrinsic permeability model
         // For stress dependent permeability.
-        vars[static_cast<int>(MaterialPropertyLib::Variable::total_stress)]
-            .emplace<SymmetricTensor>(
-                MathLib::KelvinVector::kelvinVectorToSymmetricTensor(
-                    (_ip_data[ip].sigma_eff - alpha * identity2 * p_int_pt)
-                        .eval()));
+        {
+            auto const sigma_total =
+                (_ip_data[ip].sigma_eff - alpha * p_int_pt * identity2).eval();
+            vars[static_cast<int>(MaterialPropertyLib::Variable::total_stress)]
+                .emplace<SymmetricTensor>(
+                    MathLib::KelvinVector::kelvinVectorToSymmetricTensor(
+                        sigma_total));
+        }
+        // For strain dependent permeability
+        vars[static_cast<int>(
+            MaterialPropertyLib::Variable::volumetric_strain)] =
+            Invariants::trace(_ip_data[ip].eps);
+        vars[static_cast<int>(
+            MaterialPropertyLib::Variable::equivalent_plastic_strain)] =
+            _ip_data[ip].material_state_variables->getEquivalentPlasticStrain();
 
         GlobalDimMatrixType K_over_mu =
             MaterialPropertyLib::formEigenTensor<DisplacementDim>(
@@ -722,7 +739,8 @@ void ThermoHydroMechanicsLocalAssembler<ShapeFunctionDisplacement,
         auto& eps_m = _ip_data[ip].eps_m;
         eps_m.noalias() = eps - thermal_strain;
 
-        variables[static_cast<int>(MaterialPropertyLib::Variable::strain)]
+        variables[static_cast<int>(
+                      MaterialPropertyLib::Variable::mechanical_strain)]
             .emplace<MathLib::KelvinVector::KelvinVectorType<DisplacementDim>>(
                 eps_m);
 
@@ -755,6 +773,5 @@ void ThermoHydroMechanicsLocalAssembler<ShapeFunctionDisplacement,
         DisplacementDim>(_element, _is_axially_symmetric, T,
                          *_process_data.temperature_interpolated);
 }
-
 }  // namespace ThermoHydroMechanics
 }  // namespace ProcessLib

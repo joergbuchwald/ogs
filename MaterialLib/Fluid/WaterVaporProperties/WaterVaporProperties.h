@@ -1,6 +1,6 @@
 /**
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -53,10 +53,10 @@ public:
                                  const double T,
                                  const double mass_density_water) const;
     /// Specific enthalpy of water vapor
-    double getWaterVaporEnthalpySimple(const double temperature,
+    static double getWaterVaporEnthalpySimple(const double temperature,
         const double heat_capacity_water_vapor,
         const double /*pressure*/,
-        const double /*latent_heat_evaporation*/) const;
+        const double /*latent_heat_evaporation*/);
 private:
     const double& _water_mol_mass = PhysicalConstant::MolarMass::Water;
     const double& _air_mol_mass = PhysicalConstant::MolarMass::Air;

@@ -2,7 +2,7 @@
  * \file
  *
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -28,6 +28,11 @@ public:
     /// This method computes the value of a property depending linearly on
     /// the value of the given primary variable.
     PropertyDataType value(VariableArray const& variable_array,
+                           ParameterLib::SpatialPosition const& pos,
+                           double const t, double const dt) const override;
+
+    PropertyDataType value(VariableArray const& variable_array,
+                           VariableArray const& variable_array_prev,
                            ParameterLib::SpatialPosition const& pos,
                            double const t, double const dt) const override;
 

@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -34,7 +34,7 @@ struct UserPunch;
 class PhreeqcIO final : public ChemicalSolverInterface
 {
 public:
-    PhreeqcIO(std::string const project_file_name,
+    PhreeqcIO(std::string const& project_file_name,
               std::string&& database,
               std::unique_ptr<ChemicalSystem>&& chemical_system,
               std::vector<ReactionRate>&& reaction_rates,
@@ -46,15 +46,20 @@ public:
 
     void initialize() override;
 
-    void executeInitialCalculation(std::vector<GlobalVector> const&
-                                       interpolated_process_solutions) override;
+    void initializeChemicalSystemConcrete(
+        std::vector<double> const& concentrations,
+        GlobalIndexType const& chemical_system_id,
+        MaterialPropertyLib::Medium const* medium,
+        ParameterLib::SpatialPosition const& pos,
+        double const t) override;
 
-    void doWaterChemistryCalculation(
-        std::vector<GlobalVector> const& interpolated_process_solutions,
-        double const dt) override;
+    void setChemicalSystemConcrete(
+        std::vector<double> const& concentrations,
+        GlobalIndexType const& chemical_system_id) override;
 
-    void setAqueousSolution(
-        std::vector<GlobalVector> const& interpolated_process_solutions);
+    void executeInitialCalculation() override;
+
+    void doWaterChemistryCalculation(double const dt) override;
 
     void writeInputsToFile(double const dt = 0);
 
@@ -68,6 +73,10 @@ public:
                                     PhreeqcIO const& phreeqc_io);
 
     friend std::istream& operator>>(std::istream& in, PhreeqcIO& phreeqc_io);
+
+    void computeSecondaryVariable(
+        std::size_t const ele_id,
+        std::vector<GlobalIndexType> const& chemical_system_indices) override;
 
     std::vector<std::string> const getComponentList() const override;
 
@@ -92,7 +101,7 @@ private:
     Knobs const _knobs;
     double _dt = std::numeric_limits<double>::quiet_NaN();
     const int phreeqc_instance_id = 0;
-    int _num_chemical_systems = -1;
+    std::size_t _num_chemical_systems = -1;
 };
 }  // namespace PhreeqcIOData
 }  // namespace ChemistryLib

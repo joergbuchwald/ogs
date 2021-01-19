@@ -5,7 +5,7 @@
  * \brief  Definition of the Node class.
  *
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -19,7 +19,6 @@
 #include <vector>
 
 #include "MathLib/Point3dWithID.h"
-#include "MathLib/Vector3.h"
 
 namespace ApplicationUtils
 {
@@ -68,12 +67,6 @@ public:
 
     /// Get number of elements the node is part of.
     std::size_t getNumberOfElements() const { return _elements.size(); }
-
-    /// Shift the node according to the displacement vector v.
-    Node operator-(MathLib::Vector3 const& v) const
-    {
-        return Node(_x[0]-v[0], _x[1]-v[1], _x[2]-v[2]);
-    }
 
 protected:
     /// Update coordinates of a node.

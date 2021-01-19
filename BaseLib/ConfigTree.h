@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -106,9 +106,9 @@ public:
     public:
         using Iterator = boost::property_tree::ptree::const_assoc_iterator;
 
-        explicit SubtreeIterator(Iterator it, std::string root,
+        explicit SubtreeIterator(Iterator const& it, std::string const& root,
                                  ConfigTree const& parent)
-            : _it(it), _tagname(std::move(root)), _parent(parent)
+            : _it(it), _tagname(root), _parent(parent)
         {}
 
         SubtreeIterator& operator++() {
@@ -180,9 +180,9 @@ public:
     public:
         using Iterator = boost::property_tree::ptree::const_assoc_iterator;
 
-        explicit ValueIterator(Iterator it, std::string root,
+        explicit ValueIterator(Iterator const& it, std::string const& root,
                                ConfigTree const& parent)
-            : _it(it), _tagname(std::move(root)), _parent(parent)
+            : _it(it), _tagname(root), _parent(parent)
         {}
 
         ValueIterator<ValueType>& operator++() {

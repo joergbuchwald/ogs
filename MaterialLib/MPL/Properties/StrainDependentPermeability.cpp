@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -97,10 +97,15 @@ PropertyDataType StrainDependentPermeability<DisplacementDim>::value(
 
 template <int DisplacementDim>
 PropertyDataType StrainDependentPermeability<DisplacementDim>::dValue(
-    VariableArray const& /*variable_array*/, Variable const /*variable*/,
+    VariableArray const& /*variable_array*/, Variable const variable,
     ParameterLib::SpatialPosition const& /*pos*/, double const /*t*/,
     double const /*dt*/) const
 {
+    if (variable == Variable::mechanical_strain)
+    {
+        return 0.;
+    }
+
     OGS_FATAL(
         "The derivative of the intrinsic permeability of "
         "StrainDependentPermeability"

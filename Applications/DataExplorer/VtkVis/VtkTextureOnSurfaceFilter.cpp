@@ -5,7 +5,7 @@
  * \brief  Implementation of the VtkTextureOnSurfaceFilter class.
  *
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -92,9 +92,9 @@ int VtkTextureOnSurfaceFilter::RequestData( vtkInformation* request,
             points->GetPoint(i, coords);
             GeoLib::Point* pnt2 = new GeoLib::Point(coords);
             if (i<173)
-                dist += sqrt(MathLib::sqrDist(pnt, pnt2));
+                dist += std::sqrt(MathLib::sqrDist(pnt, pnt2));
             else
-                dist -= sqrt(MathLib::sqrDist(pnt, pnt2));
+                dist -= std::sqrt(MathLib::sqrDist(pnt, pnt2));
         }
         points->GetPoint(i, coords);
         double x = MathLib::normalize(0, 8404, dist);

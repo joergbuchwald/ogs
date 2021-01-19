@@ -2,7 +2,7 @@
  * \file
  *
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -12,7 +12,6 @@
 
 #include "BaseLib/Error.h"
 #include "BaseLib/RunTime.h"
-#include "ChemistryLib/ChemicalSolverInterface.h"
 #include "CoupledSolutionsForStaggeredScheme.h"
 #include "MathLib/LinAlg/LinAlg.h"
 #include "NumLib/ODESolver/ConvergenceCriterionPerComponent.h"
@@ -218,10 +217,7 @@ setInitialConditions(
 
     for (auto& process_data : per_process_data)
     {
-        auto& pcs = process_data->process;
         auto const process_id = process_data->process_id;
-        auto& time_disc = *process_data->time_disc;
-
         auto& ode_sys = *process_data->tdisc_ode_sys;
 
         // append a solution vector of suitable size
@@ -231,14 +227,17 @@ setInitialConditions(
         process_solutions_prev.emplace_back(
             &NumLib::GlobalVectorProvider::provider.getVector(
                 ode_sys.getMatrixSpecifications(process_id)));
+    }
 
-        auto& x = *process_solutions[process_id];
-        auto& x_prev = *process_solutions_prev[process_id];
-        pcs.setInitialConditions(process_id, t0, x);
-        MathLib::LinAlg::finalizeAssembly(x);
+    for (auto& process_data : per_process_data)
+    {
+        auto& pcs = process_data->process;
+        auto const process_id = process_data->process_id;
+        pcs.setInitialConditions(process_solutions, process_solutions_prev, t0,
+                                 process_id);
 
+        auto& time_disc = *process_data->time_disc;
         time_disc.setInitialState(t0);     // push IC
-        MathLib::LinAlg::copy(x, x_prev);  // pushState
     }
 
     return {process_solutions, process_solutions_prev};
@@ -297,23 +296,25 @@ NumLib::NonlinearSolverStatus solveOneTimeStepOneProcess(
     auto const post_iteration_callback =
         [&](int iteration, std::vector<GlobalVector*> const& x) {
             output_control.doOutputNonlinearIteration(
-                process, process_id, timestep, t, x, iteration);
+                process, process_id, timestep, t, iteration, x);
         };
 
     auto const nonlinear_solver_status =
         nonlinear_solver.solve(x, x_prev, post_iteration_callback, process_id);
 
-    if (nonlinear_solver_status.error_norms_met)
+    if (!nonlinear_solver_status.error_norms_met)
     {
-        GlobalVector& x_dot = NumLib::GlobalVectorProvider::provider.getVector(
-            ode_sys.getMatrixSpecifications(process_id));
-
-        time_disc.getXdot(*x[process_id], *x_prev[process_id], x_dot);
-
-        process.postNonLinearSolver(*x[process_id], x_dot, t, delta_t,
-                                    process_id);
-        NumLib::GlobalVectorProvider::provider.releaseVector(x_dot);
+        return nonlinear_solver_status;
     }
+
+    GlobalVector& x_dot = NumLib::GlobalVectorProvider::provider.getVector(
+        ode_sys.getMatrixSpecifications(process_id));
+
+    time_disc.getXdot(*x[process_id], *x_prev[process_id], x_dot);
+
+    process.postNonLinearSolver(*x[process_id], x_dot, t, delta_t,
+                                process_id);
+    NumLib::GlobalVectorProvider::provider.releaseVector(x_dot);
 
     return nonlinear_solver_status;
 }
@@ -323,16 +324,13 @@ TimeLoop::TimeLoop(std::unique_ptr<Output>&& output,
                    const int global_coupling_max_iterations,
                    std::vector<std::unique_ptr<NumLib::ConvergenceCriterion>>&&
                        global_coupling_conv_crit,
-                   std::unique_ptr<ChemistryLib::ChemicalSolverInterface>&&
-                       chemical_solver_interface,
                    const double start_time, const double end_time)
     : _output(std::move(output)),
       _per_process_data(std::move(per_process_data)),
       _start_time(start_time),
       _end_time(end_time),
       _global_coupling_max_iterations(global_coupling_max_iterations),
-      _global_coupling_conv_crit(std::move(global_coupling_conv_crit)),
-      _chemical_solver_interface(std::move(chemical_solver_interface))
+      _global_coupling_conv_crit(std::move(global_coupling_conv_crit))
 {
 }
 
@@ -458,7 +456,7 @@ double TimeLoop::computeTimeStepping(const double prev_dt, double& t,
     dt = NumLib::possiblyClampDtToNextFixedTime(t, dt,
                                                 _output->getFixedOutputTimes());
     // Check whether the time stepping is stabilized
-    if (std::fabs(dt - prev_dt) < std::numeric_limits<double>::epsilon())
+    if (std::abs(dt - prev_dt) < std::numeric_limits<double>::epsilon())
     {
         if (_last_step_rejected)
         {
@@ -518,11 +516,6 @@ double TimeLoop::computeTimeStepping(const double prev_dt, double& t,
 /// initialize output, convergence criterion, etc.
 void TimeLoop::initialize()
 {
-    if (_chemical_solver_interface != nullptr)
-    {
-        _chemical_solver_interface->initialize();
-    }
-
     for (auto& process_data : _per_process_data)
     {
         auto& pcs = process_data->process;
@@ -542,22 +535,6 @@ void TimeLoop::initialize()
     // initial solution storage
     std::tie(_process_solutions, _process_solutions_prev) =
         setInitialConditions(_start_time, _per_process_data);
-
-    if (_chemical_solver_interface)
-    {
-        BaseLib::RunTime time_phreeqc;
-        time_phreeqc.start();
-
-        auto& pcs = _per_process_data[0]->process;
-        _chemical_solver_interface->executeInitialCalculation(
-            pcs.interpolateNodalValuesToIntegrationPoints(_process_solutions));
-
-        pcs.extrapolateIntegrationPointValuesToNodes(
-            0., _chemical_solver_interface->getIntPtProcessSolutions(),
-            _process_solutions);
-
-        INFO("[time] Phreeqc took {:g} s.", time_phreeqc.elapsed());
-    }
 
     // All _per_process_data share the first process.
     bool const is_staggered_coupling =
@@ -640,9 +617,15 @@ bool TimeLoop::loop()
                 solveUncoupledEquationSystems(t, dt, timesteps);
         }
 
-        postTimestepForAllProcesses(t, dt, _per_process_data,
-                                    _process_solutions,
-                                    _process_solutions_prev);
+        // Run post time step only if the last iteration was successful.
+        // Otherwise it runs the risks to get the same errors as in the last
+        // iteration, an exception thrown in assembly, for example.
+        if (nonlinear_solver_status.error_norms_met)
+        {
+            postTimestepForAllProcesses(t, dt, _per_process_data,
+                                        _process_solutions,
+                                        _process_solutions_prev);
+        }
 
         INFO("[time] Time step #{:d} took {:g} s.", timesteps,
              time_timestep.elapsed());
@@ -656,7 +639,7 @@ bool TimeLoop::loop()
         }
 
         dt = computeTimeStepping(prev_dt, t, accepted_steps, rejected_steps);
-        if (std::fabs(t - _end_time) < std::numeric_limits<double>::epsilon() ||
+        if (std::abs(t - _end_time) < std::numeric_limits<double>::epsilon() ||
             t + dt > _end_time)
         {
             break;
@@ -730,8 +713,10 @@ NumLib::NonlinearSolverStatus TimeLoop::solveUncoupledEquationSystems(
             if (!process_data->timestepper->canReduceTimestepSize())
             {
                 // save unsuccessful solution
-                _output->doOutputAlways(process_data->process, process_id,
-                                        timestep_id, t, _process_solutions);
+                _output->doOutputAlways(
+                    process_data->process, process_id, timestep_id, t,
+                    process_data->nonlinear_solver_status.number_iterations,
+                    _process_solutions);
                 OGS_FATAL(timestepper_cannot_reduce_dt.data());
             }
 
@@ -848,26 +833,9 @@ TimeLoop::solveCoupledEquationSystemsByStaggeredScheme(
             timestep_id, t);
     }
 
-    if (_chemical_solver_interface)
     {
-        // Sequential non-iterative approach applied here to perform water
-        // chemistry calculation followed by resolving component transport
-        // process.
-        // TODO: move into a global loop to consider both mass balance over
-        // space and localized chemical equilibrium between solutes.
-        BaseLib::RunTime time_phreeqc;
-        time_phreeqc.start();
-
         auto& pcs = _per_process_data[0]->process;
-        _chemical_solver_interface->doWaterChemistryCalculation(
-            pcs.interpolateNodalValuesToIntegrationPoints(_process_solutions),
-            dt);
-
-        pcs.extrapolateIntegrationPointValuesToNodes(
-            t, _chemical_solver_interface->getIntPtProcessSolutions(),
-            _process_solutions);
-
-        INFO("[time] Phreeqc took {:g} s.", time_phreeqc.elapsed());
+        pcs.solveReactionEquation(_process_solutions, t, dt);
     }
 
     return nonlinear_solver_status;
@@ -944,8 +912,10 @@ void TimeLoop::outputSolutions(bool const output_initial_condition,
 
             NumLib::GlobalVectorProvider::provider.releaseVector(x_dot);
         }
-        (output_object.*output_class_member)(pcs, process_id, timestep, t,
-                                             _process_solutions);
+        (output_object.*output_class_member)(
+            pcs, process_id, timestep, t,
+            process_data->nonlinear_solver_status.number_iterations,
+            _process_solutions);
     }
 }
 

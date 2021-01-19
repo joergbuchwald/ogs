@@ -3,7 +3,7 @@ if(NOT OGS_USE_CONAN)
 endif()
 string(TOLOWER ${OGS_USE_CONAN} OGS_USE_CONAN_lower)
 if(OGS_USE_CONAN_lower STREQUAL "auto" AND POETRY)
-    execute_process(COMMAND ${CMD_COMMAND} poetry add conan)
+    execute_process(COMMAND ${CMD_COMMAND} poetry add conan==${ogs.minimum_version.conan})
     find_program(CONAN_CMD conan HINTS ${LOCAL_VIRTUALENV_BIN_DIRS}
         REQUIRED NO_DEFAULT_PATH
     )
@@ -33,7 +33,7 @@ include(${PROJECT_SOURCE_DIR}/scripts/cmake/conan/conan.cmake)
 
 set(CONAN_REQUIRES
     boost/${ogs.minimum_version.boost}@conan/stable
-    eigen/${ogs.minimum_version.eigen}@conan/stable
+    eigen/${ogs.minimum_version.eigen}
     vtk/${ogs.tested_version.vtk}@bilke/stable
     CACHE INTERNAL ""
 )
@@ -98,12 +98,8 @@ if(OGS_BUILD_GUI)
         # Overrides for dependency mismatches
         bzip2/1.0.8
         zlib/1.2.11
+        qt/${ogs.minimum_version.qt}@bincrafters/stable
     )
-    if(UNIX)
-        set(CONAN_REQUIRES ${CONAN_REQUIRES} qt/${ogs.tested_version.qt.linux}@bincrafters/stable)
-    else()
-        set(CONAN_REQUIRES ${CONAN_REQUIRES} qt/${ogs.tested_version.qt.win}@bincrafters/stable)
-    endif()
     set(CONAN_OPTIONS ${CONAN_OPTIONS}
         vtk:minimal=False
         vtk:qt=True

@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -41,7 +41,11 @@ unsigned char CoordinateSystem::getCoordinateSystem(const GeoLib::AABB &bbox) co
 {
     unsigned char coords = 0;
 
-    const MathLib::Vector3 pt_diff(bbox.getMinPoint(), bbox.getMaxPoint());
+    auto const bbox_min =
+        Eigen::Map<Eigen::Vector3d const>(bbox.getMinPoint().getCoords());
+    auto const bbox_max =
+        Eigen::Map<Eigen::Vector3d const>(bbox.getMaxPoint().getCoords());
+    Eigen::Vector3d const pt_diff = bbox_max - bbox_min;
 
     // The axis aligned bounding box is a from the right half-open interval.
     // Therefore, the difference between the particular coordinates of the

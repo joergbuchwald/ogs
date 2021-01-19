@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -86,19 +86,20 @@ public:
         // TODO Extend to rotated 2d meshes and line elements.
         if (e.getGeomType() == MeshLib::MeshElemType::LINE)
         {
-            auto v1 = MathLib::Vector3(*e.getNode(1)) -
-                      MathLib::Vector3(*e.getNode(0));
+            Eigen::Vector3d const v1 =
+                Eigen::Map<Eigen::Vector3d const>(e.getNode(1)->getCoords()) -
+                Eigen::Map<Eigen::Vector3d const>(e.getNode(0)->getCoords());
             element_normal[0] = -v1[1];
             element_normal[1] = v1[0];
             element_normal.normalize();
         }
         else
         {
-            auto const element_normal_vector =
-                MeshLib::FaceRule::getSurfaceNormal(&e).getNormalizedVector();
-
-            std::copy_n(element_normal_vector.getCoords(), GlobalDim,
-                        element_normal.data());
+            auto const n = MeshLib::FaceRule::getSurfaceNormal(&e).normalized();
+            for (decltype(GlobalDim) i = 0; i < GlobalDim; ++i)
+            {
+                element_normal[i] = n[i];
+            }
         }
 
         for (unsigned ip = 0; ip < n_integration_points; ip++)

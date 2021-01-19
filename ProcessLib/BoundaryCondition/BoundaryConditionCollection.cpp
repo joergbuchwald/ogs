@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -14,7 +14,7 @@ namespace ProcessLib
 {
 void BoundaryConditionCollection::applyNaturalBC(
     const double t, std::vector<GlobalVector*> const& x, int const process_id,
-    GlobalMatrix& K, GlobalVector& b, GlobalMatrix* Jac)
+    GlobalMatrix& K, GlobalVector& b, GlobalMatrix* Jac) const
 {
     for (auto const& bc : _boundary_conditions)
     {

@@ -5,7 +5,7 @@
  * \brief  Definition of the LisMatrix class.
  *
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -186,8 +186,8 @@ bool finalizeMatrixAssembly(LisMatrix &mat);
 template <typename SPARSITY_PATTERN>
 struct SetMatrixSparsity<LisMatrix, SPARSITY_PATTERN>
 {
-
-void operator()(LisMatrix &matrix, SPARSITY_PATTERN const& sparsity_pattern)
+void operator()(LisMatrix& matrix,
+                SPARSITY_PATTERN const& sparsity_pattern) const
 {
     auto const n_rows = matrix.getNumberOfRows();
     std::vector<LisMatrix::IndexType> row_sizes;

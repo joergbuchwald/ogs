@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -50,4 +50,14 @@ private:
     std::array<Parameter<double> const*, 3> _base;
 };
 
+extern template Eigen::Matrix<double, 2, 2> CoordinateSystem::rotateTensor<2>(
+    std::vector<double> const& values, SpatialPosition const& pos) const;
+extern template Eigen::Matrix<double, 3, 3> CoordinateSystem::rotateTensor<3>(
+    std::vector<double> const& values, SpatialPosition const& pos) const;
+extern template Eigen::Matrix<double, 2, 2>
+CoordinateSystem::rotateDiagonalTensor<2>(std::vector<double> const& values,
+                                          SpatialPosition const& pos) const;
+extern template Eigen::Matrix<double, 3, 3>
+CoordinateSystem::rotateDiagonalTensor<3>(std::vector<double> const& values,
+                                          SpatialPosition const& pos) const;
 }  // namespace ParameterLib

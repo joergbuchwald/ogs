@@ -6,7 +6,7 @@
   partitioned mesh with MPI functions.
 
   \copyright
-  Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+  Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
              Distributed under a Modified BSD License.
                See accompanying file LICENSE.txt or
                http://www.opengeosys.org/project/license
@@ -23,8 +23,8 @@
 
 #include "BaseLib/FileTools.h"
 #include "BaseLib/RunTime.h"
-
 #include "MeshLib/Elements/Elements.h"
+#include "MeshLib/MeshEnums.h"
 #include "MeshLib/Properties.h"
 
 // Check if the value can by converted to given type without overflow.
@@ -242,9 +242,7 @@ void NodePartitionedMeshReader::readProperties(
     }
     for (std::size_t i(0); i < number_of_properties; ++i)
     {
-        DBUG("[{:d}] +++++++++++++", _mpi_rank);
         MeshLib::IO::writePropertyVectorMetaData(*(vec_pvmd[i]));
-        DBUG("[{:d}] +++++++++++++", _mpi_rank);
     }
     auto pos = is.tellg();
     auto offset =
@@ -310,12 +308,19 @@ void NodePartitionedMeshReader::readDomainSpecificPartOfPropertyVectors(
                 if (vec_pvmd[i]->data_type_size_in_bytes == sizeof(char))
                     createPropertyVectorPart<char>(is, *vec_pvmd[i], pvpmd, t,
                                                    global_offset, p);
-                if (vec_pvmd[i]->data_type_size_in_bytes == sizeof(int))
+                else if (vec_pvmd[i]->data_type_size_in_bytes == sizeof(int))
                     createPropertyVectorPart<int>(is, *vec_pvmd[i], pvpmd, t,
                                                   global_offset, p);
-                if (vec_pvmd[i]->data_type_size_in_bytes == sizeof(long))
+                else if (vec_pvmd[i]->data_type_size_in_bytes == sizeof(long))
                     createPropertyVectorPart<long>(is, *vec_pvmd[i], pvpmd, t,
                                                    global_offset, p);
+                else
+                {
+                    WARN(
+                        "Implementation for reading signed integer property "
+                        "vector '{:s}' is not available.",
+                        vec_pvmd[i]->property_name);
+                }
             }
             else
             {
@@ -323,14 +328,21 @@ void NodePartitionedMeshReader::readDomainSpecificPartOfPropertyVectors(
                     sizeof(unsigned char))
                     createPropertyVectorPart<unsigned char>(
                         is, *vec_pvmd[i], pvpmd, t, global_offset, p);
-                if (vec_pvmd[i]->data_type_size_in_bytes ==
-                    sizeof(unsigned int))
+                else if (vec_pvmd[i]->data_type_size_in_bytes ==
+                         sizeof(unsigned int))
                     createPropertyVectorPart<unsigned int>(
                         is, *vec_pvmd[i], pvpmd, t, global_offset, p);
-                if (vec_pvmd[i]->data_type_size_in_bytes ==
-                    sizeof(unsigned long))
+                else if (vec_pvmd[i]->data_type_size_in_bytes ==
+                         sizeof(unsigned long))
                     createPropertyVectorPart<unsigned long>(
                         is, *vec_pvmd[i], pvpmd, t, global_offset, p);
+                else
+                {
+                    WARN(
+                        "Implementation for reading unsigned property vector "
+                        "'{:s}' is not available.",
+                        vec_pvmd[i]->property_name);
+                }
             }
         }
         else
@@ -338,14 +350,17 @@ void NodePartitionedMeshReader::readDomainSpecificPartOfPropertyVectors(
             if (vec_pvmd[i]->data_type_size_in_bytes == sizeof(float))
                 createPropertyVectorPart<float>(is, *vec_pvmd[i], pvpmd, t,
                                                 global_offset, p);
-            if (vec_pvmd[i]->data_type_size_in_bytes == sizeof(double))
+            else if (vec_pvmd[i]->data_type_size_in_bytes == sizeof(double))
                 createPropertyVectorPart<double>(is, *vec_pvmd[i], pvpmd, t,
                                                  global_offset, p);
+            else
+            {
+                WARN(
+                    "Implementation for reading floating point property vector "
+                    "'{:s}' is not available.",
+                    vec_pvmd[i]->property_name);
+            }
         }
-        WARN(
-            "Implementation for reading property vector '{:s}' is not "
-            "available.",
-            vec_pvmd[i]->property_name);
         global_offset += vec_pvmd[i]->data_type_size_in_bytes *
                          vec_pvmd[i]->number_of_tuples *
                          vec_pvmd[i]->number_of_components;
@@ -409,36 +424,78 @@ void NodePartitionedMeshReader::setElements(
         for(unsigned long k = 0; k < nnodes; k++)
             elem_nodes[k] = mesh_nodes[ elem_data[id_offset_elem++] ];
 
-        // The element types below are defined by the mesh_partition tool
-        // available at https://github.com/ufz/mesh_partition .
-        switch (e_type)
+        // The element types below are defined by the MeshLib::CellType.
+        switch (static_cast<CellType>(e_type))
         {
-            case 1:
+            case CellType::POINT1:
                 mesh_elems[i + id_offset_ghost] =
                     new MeshLib::Point(elem_nodes);
                 break;
-            case 2:
+            case CellType::LINE2:
                 mesh_elems[i + id_offset_ghost] = new MeshLib::Line(elem_nodes);
                 break;
-            case 6:
+            case CellType::LINE3:
+                mesh_elems[i + id_offset_ghost] =
+                    new MeshLib::Line3(elem_nodes);
+                break;
+            case CellType::QUAD4:
                 mesh_elems[i + id_offset_ghost] = new MeshLib::Quad(elem_nodes);
                 break;
-            case 11:
+            case CellType::QUAD8:
+                mesh_elems[i + id_offset_ghost] =
+                    new MeshLib::Quad8(elem_nodes);
+                break;
+            case CellType::QUAD9:
+                mesh_elems[i + id_offset_ghost] =
+                    new MeshLib::Quad9(elem_nodes);
+                break;
+            case CellType::HEX8:
                 mesh_elems[i + id_offset_ghost] = new MeshLib::Hex(elem_nodes);
                 break;
-            case 4:
+            case CellType::HEX20:
+                mesh_elems[i + id_offset_ghost] =
+                    new MeshLib::Hex20(elem_nodes);
+                break;
+            case CellType::HEX27:
+                OGS_FATAL(
+                    "NodePartitionedMeshReader: construction of HEX27 element "
+                    "with id {:d} is not implemented.",
+                    i);
+                break;
+            case CellType::TRI3:
                 mesh_elems[i + id_offset_ghost] = new MeshLib::Tri(elem_nodes);
                 break;
-            case 9:
+            case CellType::TRI6:
+                mesh_elems[i + id_offset_ghost] = new MeshLib::Tri6(elem_nodes);
+                break;
+            case CellType::TET4:
                 mesh_elems[i + id_offset_ghost] = new MeshLib::Tet(elem_nodes);
                 break;
-            case 14:
+            case CellType::TET10:
+                mesh_elems[i + id_offset_ghost] =
+                    new MeshLib::Tet10(elem_nodes);
+                break;
+            case CellType::PRISM6:
                 mesh_elems[i + id_offset_ghost] =
                     new MeshLib::Prism(elem_nodes);
                 break;
-            case 17:
+            case CellType::PRISM15:
+                mesh_elems[i + id_offset_ghost] =
+                    new MeshLib::Prism15(elem_nodes);
+                break;
+            case CellType::PYRAMID5:
                 mesh_elems[i + id_offset_ghost] =
                     new MeshLib::Pyramid(elem_nodes);
+                break;
+            case CellType::PYRAMID13:
+                mesh_elems[i + id_offset_ghost] =
+                    new MeshLib::Pyramid13(elem_nodes);
+                break;
+            case CellType::INVALID:
+                OGS_FATAL(
+                    "NodePartitionedMeshReader: construction of INVALID "
+                    "element type with id {:d} is not possible.",
+                    i);
                 break;
             default:
                 OGS_FATAL(

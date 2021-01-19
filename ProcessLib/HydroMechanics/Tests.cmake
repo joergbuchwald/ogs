@@ -5,6 +5,9 @@ if (NOT OGS_USE_MPI)
     OgsTest(PROJECTFILE HydroMechanics/Linear/Confined_Compression/square_1e2.prj)
 endif()
 if (NOT OGS_USE_MPI)
+    OgsTest(PROJECTFILE HydroMechanics/Linear/Confined_Compression/square_1e2_linear.prj)
+endif()
+if (NOT OGS_USE_MPI)
     OgsTest(PROJECTFILE HydroMechanics/Linear/DrainageEexcavation/HMdrainage.prj RUNTIME 330)
 endif()
 AddTest(
@@ -444,6 +447,21 @@ AddTest(
     flow_pressure_boundary_ts_100_t_4000.000000.vtu flow_pressure_boundary_ts_100_t_4000.000000.vtu displacement displacement 1e-12 0
 )
 
+# Permeability models
+AddTest(
+    NAME HydroMechanics_Permeability_EmbeddedFracture
+    PATH HydroMechanics/EmbeddedFracturePermeability
+    EXECUTABLE ogs
+    EXECUTABLE_ARGS cube.prj
+    WRAPPER time
+    TESTER vtkdiff
+    REQUIREMENTS NOT OGS_USE_MPI
+    DIFF_DATA
+    cube_ts_1_t_1.000000.vtu cube_ts_1_t_1.000000.vtu pressure pressure 0 1e-14
+    cube_ts_1_t_1.000000.vtu cube_ts_1_t_1.000000.vtu velocity velocity 1e-15 0
+    cube_ts_1_t_1.000000.vtu cube_ts_1_t_1.000000.vtu displacement displacement 1e-15 0
+)
+
 ## Test as the reference of InjectionProduction1D
 AddTest(
     NAME MonolithicInjectionProduction1D
@@ -477,6 +495,24 @@ AddTest(
     quad_with_half_hole_ts_1_t_1.000000.vtu quad_with_half_hole_ts_1_t_1.000000.vtu sigma_zz sigma_zz 1.0e-10 1.e-10
     quad_with_half_hole_ts_1_t_1.000000.vtu quad_with_half_hole_ts_1_t_1.000000.vtu sigma_xy sigma_xy 1.0e-6 1.e-9
     quad_with_half_hole_ts_1_t_1.000000.vtu quad_with_half_hole_ts_1_t_1.000000.vtu permeability permeability 1.0e-6 1.e-9
+)
+
+AddTest(
+    NAME HydroMechanicsStrainDependentPermeability
+    PATH HydroMechanics/StrainDependentPermeability
+    EXECUTABLE ogs
+    EXECUTABLE_ARGS gas_loading.prj
+    WRAPPER time
+    TESTER vtkdiff
+    REQUIREMENTS NOT OGS_USE_MPI
+    DIFF_DATA
+    output_curve_ts_2_t_400.000000.vtu  output_curve_ts_2_t_400.000000.vtu pressure pressure 1.0e-10 1.e-10
+    output_curve_ts_2_t_400.000000.vtu  output_curve_ts_2_t_400.000000.vtu displacement displacement 1.0e-10 1.e-10
+    output_curve_ts_2_t_400.000000.vtu  output_curve_ts_2_t_400.000000.vtu sigma_xx sigma_xx 1.0e-6 1.e-9
+    output_curve_ts_2_t_400.000000.vtu  output_curve_ts_2_t_400.000000.vtu sigma_yy sigma_yy 1.0e-6 1.e-9
+    output_curve_ts_2_t_400.000000.vtu  output_curve_ts_2_t_400.000000.vtu sigma_zz sigma_zz 1.0e-10 1.e-10
+    output_curve_ts_2_t_400.000000.vtu  output_curve_ts_2_t_400.000000.vtu sigma_xy sigma_xy 1.0e-6 1.e-9
+    output_curve_ts_2_t_400.000000.vtu  output_curve_ts_2_t_400.000000.vtu permeability permeability 1.0e-6 1.e-9
 )
 
 ### With staggered scheme

@@ -4,7 +4,7 @@
  * \date   07.09.2017
  *
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -44,6 +44,12 @@ Phase const& Medium::phase(std::string const& name) const
 
 Property const& Medium::property(PropertyType const& p) const
 {
+    Property const* const property = properties_[p].get();
+    if (property == nullptr)
+    {
+        OGS_FATAL("Trying to access undefined property '{:s}' of {:s}",
+                  property_enum_to_string[p], description());
+    }
     return *properties_[p];
 }
 
@@ -57,7 +63,7 @@ std::size_t Medium::numberOfPhases() const
     return phases_.size();
 }
 
-std::string Medium::description() const
+std::string Medium::description()
 {
     return "medium";
 }

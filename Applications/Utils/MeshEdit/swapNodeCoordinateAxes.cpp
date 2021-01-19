@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -22,7 +22,8 @@
 #include "MeshLib/IO/readMeshFromFile.h"
 #include "MeshLib/IO/writeMeshToFile.h"
 
-static void swapNodeCoordinateAxes(MeshLib::Mesh &mesh, std::array<int, 3> const& new_axes_indices)
+static void swapNodeCoordinateAxes(MeshLib::Mesh const& mesh,
+                                   std::array<int, 3> const& new_axes_indices)
 {
     double new_coords[3] = {};
     for (MeshLib::Node* node : mesh.getNodes())
@@ -91,7 +92,7 @@ int main(int argc, char *argv[])
         "OpenGeoSys-6 software, version " +
             GitInfoLib::GitInfo::ogs_version +
             ".\n"
-            "Copyright (c) 2012-2020, OpenGeoSys Community "
+            "Copyright (c) 2012-2021, OpenGeoSys Community "
             "(http://www.opengeosys.org)",
         ' ', GitInfoLib::GitInfo::ogs_version);
     TCLAP::ValueArg<std::string> input_arg("i", "input-mesh-file","input mesh file",true,"","string");

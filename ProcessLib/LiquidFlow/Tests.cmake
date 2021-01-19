@@ -106,6 +106,7 @@ AddTest(
 AddTest(
     NAME LiquidFlow_h1_1Dsource
     PATH Parabolic/LiquidFlow/Verification/h1_1Dsource
+    EXECUTABLE ogs
     EXECUTABLE_ARGS h1_1Dsource.prj
     WRAPPER time
     TESTER vtkdiff
@@ -117,6 +118,7 @@ AddTest(
 AddTest(
     NAME LiquidFlow_h1_1Dsteady
     PATH Parabolic/LiquidFlow/Verification/h1_1Dsteady
+    EXECUTABLE ogs
     EXECUTABLE_ARGS h1_1Dsteady.prj
     WRAPPER time
     TESTER vtkdiff
@@ -128,6 +130,7 @@ AddTest(
 AddTest(
     NAME LiquidFlow_h1_3Dhydstat
     PATH Parabolic/LiquidFlow/Verification/h1_3Dhydstat
+    EXECUTABLE ogs
     EXECUTABLE_ARGS h1_3Dhydstat.prj
     WRAPPER time
     TESTER vtkdiff
@@ -139,6 +142,7 @@ AddTest(
 AddTest(
     NAME LiquidFlow_h2_1D1bt
     PATH Parabolic/LiquidFlow/Verification/h2_1D1bt
+    EXECUTABLE ogs
     EXECUTABLE_ARGS h2_1D1bt.prj
     WRAPPER time
     TESTER vtkdiff
@@ -151,6 +155,7 @@ AddTest(
 AddTest(
     NAME LiquidFlow_h2_1D2bt
     PATH Parabolic/LiquidFlow/Verification/h2_1D2bt
+    EXECUTABLE ogs
     EXECUTABLE_ARGS h2_1D2bt.prj
     WRAPPER time
     TESTER vtkdiff
@@ -165,6 +170,7 @@ AddTest(
 AddTest(
     NAME LiquidFlow_LineDirichletNeumannBC
     PATH Parabolic/LiquidFlow/LineDirichletNeumannBC
+    EXECUTABLE ogs
     EXECUTABLE_ARGS line_dirichlet_neumannBC.prj
     WRAPPER mpirun
     WRAPPER_ARGS -np 1
@@ -177,6 +183,7 @@ AddTest(
 AddTest(
     NAME LiquidFlow_GravityDriven
     PATH Parabolic/LiquidFlow/GravityDriven
+    EXECUTABLE ogs
     EXECUTABLE_ARGS gravity_driven.prj
     WRAPPER mpirun
     WRAPPER_ARGS -np 1
@@ -189,6 +196,7 @@ AddTest(
 AddTest(
     NAME LiquidFlow_PressureBCatCornerOfAnisotropicSquare
     PATH Parabolic/LiquidFlow/PressureBCatCornerOfAnisotropicSquare
+    EXECUTABLE ogs
     EXECUTABLE_ARGS pressureBC_at_corner_of_anisotropic_square.prj
     WRAPPER mpirun
     WRAPPER_ARGS -np 1
@@ -200,6 +208,7 @@ AddTest(
 AddTest(
     NAME LiquidFlow_AxisymTheis
     PATH Parabolic/LiquidFlow/AxiSymTheis
+    EXECUTABLE ogs
     EXECUTABLE_ARGS axisym_theis.prj
     WRAPPER mpirun
     WRAPPER_ARGS -np 1
@@ -212,6 +221,7 @@ AddTest(
     NAME LiquidFlow_Anisotropic_GravityDriven3D
     PATH Parabolic/LiquidFlow/GravityDriven3D
     RUNTIME 115
+    EXECUTABLE ogs
     EXECUTABLE_ARGS anisotropic_gravity_driven3D.prj
     WRAPPER mpirun
     WRAPPER_ARGS -np 1
@@ -225,6 +235,7 @@ AddTest(
     NAME LiquidFlow_Isotropic_GravityDriven3D
     PATH Parabolic/LiquidFlow/GravityDriven3D
     RUNTIME 5
+    EXECUTABLE ogs
     EXECUTABLE_ARGS isotropic_gravity_driven3D.prj
     WRAPPER mpirun
     WRAPPER_ARGS -np 1
@@ -237,6 +248,7 @@ AddTest(
 AddTest(
     NAME LiquidFlowDirichletBCWithinTimeInterval
     PATH Parabolic/LiquidFlow/TimeIntervalDirichletBC
+    EXECUTABLE ogs
     EXECUTABLE_ARGS TimeIntervalDirichletBC.prj
     WRAPPER mpirun
     WRAPPER_ARGS -np 1
@@ -446,12 +458,10 @@ AddTest(
     # See https://gitlab.opengeosys.org/ogs/ogs/-/merge_requests/3184#note_85104
     REQUIREMENTS NOT OGS_USE_MPI AND NOT COMPILER_IS_APPLE_CLANG
     DIFF_DATA
-    square_5x5_tris_32_right_boundary_ts_0_t_0.000000.xdmf square_5x5_tris_32_right_boundary_ts_0_t_0.000000.xdmf pressure pressure 1e-7 1e-13
-    square_5x5_tris_32_right_boundary_ts_1_t_1.000000.xdmf square_5x5_tris_32_right_boundary_ts_1_t_1.000000.xdmf pressure pressure 1e-7 1e-13
-    square_5x5_tris_32_left_boundary_ts_0_t_0.000000.xdmf square_5x5_tris_32_left_boundary_ts_0_t_0.000000.xdmf pressure pressure 1e-7 1e-13
-    square_5x5_tris_32_left_boundary_ts_1_t_1.000000.xdmf square_5x5_tris_32_left_boundary_ts_1_t_1.000000.xdmf pressure pressure 1e-7 1e-13
-    square_5x5_tris_32_ts_0_t_0.000000.xdmf square_5x5_tris_32_ts_0_t_0.000000.xdmf pressure pressure 1e-7 1e-13
-    square_5x5_tris_32_ts_1_t_1.000000.xdmf square_5x5_tris_32_ts_1_t_1.000000.xdmf pressure pressure 1e-7 1e-13
+    square_5x5_tris_32.xdmf square_5x5_tris_32.xdmf pressure pressure 1e-7 1e-13
+    square_5x5_tris_32.xdmf square_5x5_tris_32.xdmf HydraulicFlow HydraulicFlow 1e-7 1e-13
+    square_5x5_tris_32.xdmf square_5x5_tris_32.xdmf MaterialIDs MaterialIDs 1e-7 1e-13
+    square_5x5_tris_32.xdmf square_5x5_tris_32.xdmf v v 1e-7 1e-13
 )
 
 #AddTest(

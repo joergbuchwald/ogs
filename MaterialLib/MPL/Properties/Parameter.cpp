@@ -2,7 +2,7 @@
  * \file
  *
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -20,6 +20,14 @@ Parameter::Parameter(std::string name,
 }
 
 PropertyDataType Parameter::value(VariableArray const& /*variable_array*/,
+                                  ParameterLib::SpatialPosition const& pos,
+                                  double const t, double const /*dt*/) const
+{
+    return fromVector(parameter_(t, pos));
+}
+
+PropertyDataType Parameter::value(VariableArray const& /*variable_array*/,
+                                  VariableArray const& /*variable_array_prev*/,
                                   ParameterLib::SpatialPosition const& pos,
                                   double const t, double const /*dt*/) const
 {

@@ -3,7 +3,7 @@
  * \date   2013-04-18
  *
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -75,15 +75,12 @@ TEST(NumLibSerialLinearSolver, Steady2DdiffusionQuadElem)
 
     auto local_asm_builder =
         [&](std::size_t const id,
-            MeshLib::Element const& item,
-            LocalAssembler*& item_data)
-    {
+            MeshLib::Element const& item) -> LocalAssembler* {
         assert(local_to_global_index_map.size() > id);
 
         auto const num_local_dof = local_to_global_index_map.getNumberOfElementDOF(id);
 
-        Example::initializeLocalData(
-                    item, item_data, num_local_dof, ex1);
+        return Example::initializeLocalData(item, num_local_dof, ex1);
     };
 
     // Call global initializer for each mesh element.

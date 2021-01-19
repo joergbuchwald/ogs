@@ -4,7 +4,7 @@
  *
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -192,7 +192,7 @@ struct SerialExecutor
 
         for (std::size_t i = 0; i < c.size(); i++)
         {
-            f(i, *c[i], data[i], std::forward<Args_>(args)...);
+            data[i] = f(i, *c[i], std::forward<Args_>(args)...);
         }
     }
 };

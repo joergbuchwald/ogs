@@ -4,7 +4,7 @@
  *
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -28,7 +28,7 @@ MeshNodesAlongSurface::MeshNodesAlongSurface(MeshLib::Mesh const& mesh,
                                              SearchAllNodes search_all_nodes)
     : _mesh(mesh), _sfc(sfc)
 {
-    auto& mesh_nodes = _mesh.getNodes();
+    auto const& mesh_nodes = _mesh.getNodes();
     const std::size_t n_nodes(search_all_nodes == SearchAllNodes::Yes
                                   ? _mesh.getNumberOfNodes()
                                   : _mesh.getNumberOfBaseNodes());

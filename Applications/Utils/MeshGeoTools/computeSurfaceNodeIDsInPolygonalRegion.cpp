@@ -4,7 +4,7 @@
  * resides on the surface.
  *
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -23,7 +23,6 @@
 #include "BaseLib/FileTools.h"
 #include "GeoLib/GEOObjects.h"
 #include "GeoLib/Polygon.h"
-#include "MathLib/Vector3.h"
 #include "MeshLib/IO/readMeshFromFile.h"
 #include "MeshLib/Mesh.h"
 #include "MeshLib/MeshSurfaceExtraction.h"
@@ -71,7 +70,7 @@ int main (int argc, char* argv[])
         "OpenGeoSys-6 software, version " +
             GitInfoLib::GitInfo::ogs_version +
             ".\n"
-            "Copyright (c) 2012-2020, OpenGeoSys Community "
+            "Copyright (c) 2012-2021, OpenGeoSys Community "
             "(http://www.opengeosys.org)",
         ' ', GitInfoLib::GitInfo::ogs_version);
     TCLAP::ValueArg<std::string> mesh_in("m", "mesh-input-file",
@@ -102,11 +101,11 @@ int main (int argc, char* argv[])
          geo_objs.getPointVec(geo_name)->size(),
          geo_objs.getPolylineVec(geo_name)->size());
 
-    MathLib::Vector3 const dir(0.0, 0.0, -1.0);
+    Eigen::Vector3d const dir({0.0, 0.0, -1.0});
     double angle(90);
 
     auto computeElementTopSurfaceAreas = [](MeshLib::Mesh const& mesh,
-        MathLib::Vector3 const& d, double angle)
+        Eigen::Vector3d const& d, double angle)
     {
         std::unique_ptr<MeshLib::Mesh> surface_mesh(
             MeshLib::MeshSurfaceExtraction::getMeshSurface(mesh, d, angle));

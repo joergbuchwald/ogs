@@ -5,7 +5,7 @@
  * \brief  Definition of the LayeredVolume class
  *
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -60,7 +60,7 @@ public:
 
     /// Returns the region attribute vector necessary for assigning region
     /// attributes via TetGen
-    std::vector<MeshLib::Node> getAttributePoints()
+    std::vector<MeshLib::Node> getAttributePoints() const
     {
         return _attribute_points;
     }

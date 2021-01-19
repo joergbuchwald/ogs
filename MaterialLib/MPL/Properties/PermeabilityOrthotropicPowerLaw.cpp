@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -101,9 +101,9 @@ PropertyDataType PermeabilityOrthotropicPowerLaw<DisplacementDim>::dValue(
     double const /*dt*/) const
 {
     (void)primary_variable;
-    assert((primary_variable == Variable::strain) &&
+    assert((primary_variable == Variable::total_strain) &&
            "PermeabilityOrthotropicPowerLaw::dValue is implemented for "
-           " derivatives with respect to strain only.");
+           " derivatives with respect to total strain only.");
 
     return 0.;
 }

@@ -1,6 +1,6 @@
 /**
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -123,7 +123,7 @@ private:
 };
 
 template <typename TimeDisc, typename ODE, NumLib::NonlinearSolverTag NLTag>
-typename std::enable_if<std::is_same<TimeDisc, NumLib::BackwardEuler>::value,
+typename std::enable_if<std::is_same_v<TimeDisc, NumLib::BackwardEuler>,
                         Solution>::type
 run_test_case(const unsigned num_timesteps)
 {
@@ -234,7 +234,7 @@ public:
     }
 };
 
-TYPED_TEST_CASE(NumLibODEIntTyped, TestCases);
+TYPED_TEST_SUITE(NumLibODEIntTyped, TestCases);
 
 // Temporarily disabled for PETSc issue #1989
 #ifndef USE_PETSC

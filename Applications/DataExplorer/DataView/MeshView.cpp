@@ -5,7 +5,7 @@
  * \brief  Implementation of the MeshView class.
  *
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -319,7 +319,7 @@ void MeshView::extractSurfaceMesh()
         return;
     }
 
-    MathLib::Vector3 const& dir (dlg.getNormal());
+    Eigen::Vector3d const& dir(dlg.getNormal());
     int const tolerance (dlg.getTolerance());
     std::unique_ptr<MeshLib::Mesh> sfc_mesh(
         MeshLib::MeshSurfaceExtraction::getMeshSurface(

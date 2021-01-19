@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -32,7 +32,7 @@ BoundaryElementsAlongPolyline::BoundaryElementsAlongPolyline(
     auto node_ids_on_poly = mshNodeSearcher.getMeshNodeIDs(ply);
     MeshLib::ElementSearch es(_mesh);
     es.searchByNodeIDs(node_ids_on_poly);
-    auto& ele_ids_near_ply = es.getSearchedElementIDs();
+    auto const& ele_ids_near_ply = es.getSearchedElementIDs();
 
     // check all edges of the elements near the polyline
     for (auto ele_id : ele_ids_near_ply)
@@ -102,7 +102,7 @@ BoundaryElementsAlongPolyline::~BoundaryElementsAlongPolyline()
 
 bool BoundaryElementsAlongPolyline::includesAllEdgeNodeIDs(
     const std::vector<std::size_t>& vec_node_ids, const MeshLib::Element& edge,
-    std::vector<std::size_t>& edge_node_distances) const
+    std::vector<std::size_t>& edge_node_distances)
 {
     unsigned j = 0;
     for (; j < edge.getNumberOfBaseNodes(); j++)

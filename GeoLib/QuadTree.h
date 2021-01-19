@@ -5,7 +5,7 @@
  * \brief  Definition of the QuadTree class.
  *
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -54,17 +54,9 @@ public:
         : _father(nullptr),
           _ll(std::move(ll)),
           _ur(std::move(ur)),
-          _depth(0),
-          _is_leaf(true),
           _max_points_per_leaf(max_points_per_leaf)
     {
         assert (_max_points_per_leaf > 0);
-
-        // init children
-        for (auto& child : _children)
-        {
-            child = nullptr;
-        }
 
         if ((_ur[0] - _ll[0]) > (_ur[1] - _ll[1]))
         {
@@ -307,10 +299,7 @@ public:
         }
     }
 
-    QuadTree<POINT> const* getFather ()
-    {
-        return _father;
-    }
+    QuadTree<POINT> const* getFather() const { return _father; }
 
     QuadTree<POINT> const* getChild (Quadrant quadrant) const
     {
@@ -511,14 +500,8 @@ private:
           _ll(std::move(ll)),
           _ur(std::move(ur)),
           _depth(depth),
-          _is_leaf(true),
           _max_points_per_leaf(max_points_per_leaf)
     {
-        // init children
-        for (auto& child : _children)
-        {
-            child = nullptr;
-        }
     }
 
     void splitNode ()
@@ -558,7 +541,7 @@ private:
         _is_leaf = false;
     }
 
-    bool needToRefine (QuadTree<POINT>* node)
+    static bool needToRefine (QuadTree<POINT>* node)
     {
         QuadTree<POINT>* north_neighbor (node->getNorthNeighbor ());
         if (north_neighbor != nullptr)
@@ -646,7 +629,8 @@ private:
      *   _children[2] is south west child
      *   _children[3] is south east child
      */
-    QuadTree<POINT>* _children[4];
+    std::array<QuadTree<POINT>*, 4> _children = {nullptr, nullptr, nullptr,
+                                                 nullptr};
     /**
      * lower left point of the square
      */
@@ -655,9 +639,9 @@ private:
      * upper right point of the square
      */
     POINT _ur;
-    std::size_t _depth;
+    std::size_t _depth = 0;
     std::vector<POINT const*> _pnts;
-    bool _is_leaf;
+    bool _is_leaf = true;
     /**
      * maximum number of points per leaf
      */

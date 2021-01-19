@@ -5,7 +5,7 @@
  * \brief  Definition of the Grid class.
  *
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -404,18 +404,24 @@ std::array<std::size_t,3> Grid<POINT>::getGridCoords(T const& pnt) const
 
 template <typename POINT>
 template <typename P>
-std::array<double,6> Grid<POINT>::getPointCellBorderDistances(P const& p,
+std::array<double,6> Grid<POINT>::getPointCellBorderDistances(P const& pnt,
     std::array<std::size_t,3> const& coords) const
 {
     std::array<double,6> dists{};
-    dists[0] = std::abs(p[2]-_min_pnt[2] + coords[2]*_step_sizes[2]); // bottom
-    dists[5] = std::abs(p[2]-_min_pnt[2] + (coords[2]+1)*_step_sizes[2]); // top
+    dists[0] =
+        std::abs(pnt[2] - _min_pnt[2] + coords[2] * _step_sizes[2]);  // bottom
+    dists[5] = std::abs(pnt[2] - _min_pnt[2] +
+                        (coords[2] + 1) * _step_sizes[2]);  // top
 
-    dists[1] = std::abs(p[1]-_min_pnt[1] + coords[1]*_step_sizes[1]); // front
-    dists[3] = std::abs(p[1]-_min_pnt[1] + (coords[1]+1)*_step_sizes[1]); // back
+    dists[1] =
+        std::abs(pnt[1] - _min_pnt[1] + coords[1] * _step_sizes[1]);  // front
+    dists[3] = std::abs(pnt[1] - _min_pnt[1] +
+                        (coords[1] + 1) * _step_sizes[1]);  // back
 
-    dists[4] = std::abs(p[0]-_min_pnt[0] + coords[0]*_step_sizes[0]); // left
-    dists[2] = std::abs(p[0]-_min_pnt[0] + (coords[0]+1)*_step_sizes[0]); // right
+    dists[4] =
+        std::abs(pnt[0] - _min_pnt[0] + coords[0] * _step_sizes[0]);  // left
+    dists[2] = std::abs(pnt[0] - _min_pnt[0] +
+                        (coords[0] + 1) * _step_sizes[0]);  // right
     return dists;
 }
 
@@ -431,7 +437,7 @@ POINT* Grid<POINT>::getNearestPoint(P const& pnt) const
     std::array<double,6> dists(getPointCellBorderDistances(pnt, coords));
 
     if (calcNearestPointInGridCell(pnt, coords, sqr_min_dist, nearest_pnt)) {
-        double min_dist(sqrt(sqr_min_dist));
+        double min_dist(std::sqrt(sqr_min_dist));
         if (dists[0] >= min_dist && dists[1] >= min_dist
             && dists[2] >= min_dist && dists[3] >= min_dist
             && dists[4] >= min_dist && dists[5] >= min_dist) {
@@ -478,7 +484,7 @@ POINT* Grid<POINT>::getNearestPoint(P const& pnt) const
         } // end while
     } // end else
 
-    double len(sqrt(MathLib::sqrDist(pnt, *nearest_pnt)));
+    double len(std::sqrt(MathLib::sqrDist(pnt, *nearest_pnt)));
     // search all other grid cells within the cube with the edge nodes
     std::vector<std::vector<POINT*> const*> vecs_of_pnts(
         getPntVecsOfGridCellsIntersectingCube(pnt, len));

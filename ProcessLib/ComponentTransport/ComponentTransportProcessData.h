@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -12,7 +12,7 @@
 
 #include <memory>
 
-#include "ChemicalProcessData.h"
+#include "ChemistryLib/ChemicalSolverInterface.h"
 #include "MaterialLib/MPL/CreateMaterialSpatialDistributionMap.h"
 #include "MathLib/LinAlg/Eigen/EigenMapTools.h"
 
@@ -38,7 +38,7 @@ struct ComponentTransportProcessData
     Eigen::VectorXd const specific_body_force;
     bool const has_gravity;
     bool const non_advective_form;
-    std::unique_ptr<ChemicalProcessData> chemical_process_data;
+    ChemistryLib::ChemicalSolverInterface* const chemical_solver_interface;
 
     const int hydraulic_process_id;
     // TODO (renchao-lu): This variable is used in the calculation of the

@@ -1,6 +1,6 @@
 /**
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -175,6 +175,12 @@ void HydroMechanicsLocalAssembler<ShapeFunctionDisplacement,
             pressure_size, displacement_size>::Zero(pressure_size,
                                                     displacement_size);
 
+    typename ShapeMatricesTypeDisplacement::template MatrixType<
+        pressure_size, displacement_size>
+        Kpu_k = ShapeMatricesTypeDisplacement::template MatrixType<
+            pressure_size, displacement_size>::Zero(pressure_size,
+                                                    displacement_size);
+
     MaterialLib::Solids::MechanicsBase<DisplacementDim> const& solid_material =
         *_process_data.solid_materials[0];
 
@@ -195,9 +201,7 @@ void HydroMechanicsLocalAssembler<ShapeFunctionDisplacement,
             .template value<double>(vars, x_position, t, dt);
     vars[static_cast<int>(MPL::Variable::temperature)] = T_ref;
 
-    auto const& identity2 = MathLib::KelvinVector::Invariants<
-        MathLib::KelvinVector::KelvinVectorDimensions<DisplacementDim>::value>::
-        identity2;
+    auto const& identity2 = Invariants::identity2;
 
     for (unsigned ip = 0; ip < n_integration_points; ip++)
     {
@@ -223,6 +227,7 @@ void HydroMechanicsLocalAssembler<ShapeFunctionDisplacement,
                 dNdx_u, N_u, x_coord, _is_axially_symmetric);
 
         auto& eps = _ip_data[ip].eps;
+        eps.noalias() = B * u;
         auto const& sigma_eff = _ip_data[ip].sigma_eff;
 
         double const p_int_pt = N_p.dot(p);
@@ -233,15 +238,6 @@ void HydroMechanicsLocalAssembler<ShapeFunctionDisplacement,
         auto const alpha = solid.property(MPL::PropertyType::biot_coefficient)
                                .template value<double>(vars, x_position, t, dt);
 
-        // For stress dependent permeability.
-        vars[static_cast<int>(MPL::Variable::total_stress)].emplace<SymmetricTensor>(
-            MathLib::KelvinVector::kelvinVectorToSymmetricTensor(
-                (_ip_data[ip].sigma_eff - alpha * identity2 * p_int_pt)
-                    .eval()));
-
-        auto const K = MPL::formEigenTensor<DisplacementDim>(
-            medium->property(MPL::PropertyType::permeability)
-                .value(vars, x_position, t, dt));
         auto const rho_sr =
             solid.property(MPL::PropertyType::density)
                 .template value<double>(vars, x_position, t, dt);
@@ -260,19 +256,41 @@ void HydroMechanicsLocalAssembler<ShapeFunctionDisplacement,
                                          x_position, t, dt) /
             rho_fr;
 
-        auto const K_over_mu = K / mu;
+        // Set mechanical variables for the intrinsic permeability model
+        // For stress dependent permeability.
+        {
+            auto const sigma_total =
+                (_ip_data[ip].sigma_eff - alpha * p_int_pt * identity2).eval();
 
-        //
-        // displacement equation, displacement part
-        //
-        eps.noalias() = B * u;
-        vars[static_cast<int>(MPL::Variable::strain)]
+            vars[static_cast<int>(MPL::Variable::total_stress)]
+                .emplace<SymmetricTensor>(
+                    MathLib::KelvinVector::kelvinVectorToSymmetricTensor(
+                        sigma_total));
+        }
+        // For strain dependent permeability
+        vars[static_cast<int>(MPL::Variable::volumetric_strain)] =
+            Invariants::trace(eps);
+        vars[static_cast<int>(MPL::Variable::equivalent_plastic_strain)] =
+            _ip_data[ip].material_state_variables->getEquivalentPlasticStrain();
+        vars[static_cast<int>(MPL::Variable::mechanical_strain)]
             .emplace<MathLib::KelvinVector::KelvinVectorType<DisplacementDim>>(
                 eps);
+
+        auto const K = MPL::formEigenTensor<DisplacementDim>(
+            medium->property(MPL::PropertyType::permeability)
+                .value(vars, x_position, t, dt));
+        auto const dkde = MPL::formEigenTensor<DisplacementDim>(
+            medium->property(MPL::PropertyType::permeability)
+                .dValue(vars, MPL::Variable::mechanical_strain, x_position, t, dt));
+
+        auto const K_over_mu = K / mu;
 
         auto C = _ip_data[ip].updateConstitutiveRelation(vars, t, x_position,
                                                          dt, u, T_ref);
 
+        //
+        // displacement equation, displacement part
+        //
         local_Jac
             .template block<displacement_size, displacement_size>(
                 displacement_index, displacement_index)
@@ -312,6 +330,10 @@ void HydroMechanicsLocalAssembler<ShapeFunctionDisplacement,
         //
         Kpu.noalias() +=
             rho_fr * alpha * N_p.transpose() * identity2.transpose() * B * w;
+
+        Kpu_k.noalias() += dNdx_p.transpose() * dkde *
+                           (dNdx_p * p - rho_fr * b) * identity2.transpose() *
+                           B * rho_fr / mu;
     }
     // displacement equation, pressure part
     local_Jac
@@ -322,6 +344,12 @@ void HydroMechanicsLocalAssembler<ShapeFunctionDisplacement,
     if (_process_data.mass_lumping)
     {
         storage_p = storage_p.colwise().sum().eval().asDiagonal();
+
+        if constexpr (pressure_size == displacement_size)
+        {
+            Kpu = Kpu.colwise().sum().eval().asDiagonal();
+            Kpu_k = Kpu_k.colwise().sum().eval().asDiagonal();
+        }
     }
 
     // pressure equation, pressure part.
@@ -334,7 +362,7 @@ void HydroMechanicsLocalAssembler<ShapeFunctionDisplacement,
     local_Jac
         .template block<pressure_size, displacement_size>(pressure_index,
                                                           displacement_index)
-        .noalias() = Kpu / dt;
+        .noalias() = Kpu / dt + Kpu_k;
 
     // pressure equation
     local_rhs.template segment<pressure_size>(pressure_index).noalias() -=
@@ -387,9 +415,7 @@ HydroMechanicsLocalAssembler<ShapeFunctionDisplacement, ShapeFunctionPressure,
         medium->property(MPL::PropertyType::reference_temperature)
             .template value<double>(vars, x_position, t, dt);
 
-    auto const& identity2 = MathLib::KelvinVector::Invariants<
-        MathLib::KelvinVector::KelvinVectorDimensions<DisplacementDim>::value>::
-        identity2;
+    auto const& identity2 = Invariants::identity2;
 
     for (unsigned ip = 0; ip < n_integration_points; ip++)
     {
@@ -401,11 +427,24 @@ HydroMechanicsLocalAssembler<ShapeFunctionDisplacement, ShapeFunctionPressure,
         auto const alpha = solid.property(MPL::PropertyType::biot_coefficient)
                                .template value<double>(vars, x_position, t, dt);
 
+        // Set mechanical variables for the intrinsic permeability model
         // For stress dependent permeability.
-        vars[static_cast<int>(MPL::Variable::total_stress)].emplace<SymmetricTensor>(
-            MathLib::KelvinVector::kelvinVectorToSymmetricTensor(
-                (_ip_data[ip].sigma_eff - alpha * identity2 * p_int_pt)
-                    .eval()));
+        auto const sigma_total =
+            (_ip_data[ip].sigma_eff - alpha * p_int_pt * identity2).eval();
+        vars[static_cast<int>(MPL::Variable::total_stress)]
+            .emplace<SymmetricTensor>(
+                MathLib::KelvinVector::kelvinVectorToSymmetricTensor(
+                    sigma_total));
+
+        // For strain dependent permeability
+        vars[static_cast<int>(MPL::Variable::volumetric_strain)] =
+            Invariants::trace(_ip_data[ip].eps);
+        vars[static_cast<int>(MPL::Variable::equivalent_plastic_strain)] =
+            _ip_data[ip].material_state_variables->getEquivalentPlasticStrain();
+        vars[static_cast<int>(MPL::Variable::mechanical_strain)]
+            .emplace<MathLib::KelvinVector::KelvinVectorType<DisplacementDim>>(
+                _ip_data[ip].eps);
+
         auto const K = MPL::formEigenTensor<DisplacementDim>(
             medium->property(MPL::PropertyType::permeability)
                 .value(vars, x_position, t, dt));
@@ -485,9 +524,8 @@ void HydroMechanicsLocalAssembler<ShapeFunctionDisplacement,
     vars[static_cast<int>(MPL::Variable::temperature)] =
         medium->property(MPL::PropertyType::reference_temperature)
             .template value<double>(vars, x_position, t, dt);
-    auto const& identity2 = MathLib::KelvinVector::Invariants<
-        MathLib::KelvinVector::KelvinVectorDimensions<DisplacementDim>::value>::
-        identity2;
+
+    auto const& identity2 = Invariants::identity2;
 
     int const n_integration_points = _integration_method.getNumberOfPoints();
     for (int ip = 0; ip < n_integration_points; ip++)
@@ -510,11 +548,23 @@ void HydroMechanicsLocalAssembler<ShapeFunctionDisplacement,
             solid.property(MPL::PropertyType::biot_coefficient)
                 .template value<double>(vars, x_position, t, dt);
 
+        // Set mechanical variables for the intrinsic permeability model
         // For stress dependent permeability.
-        vars[static_cast<int>(MPL::Variable::total_stress)].emplace<SymmetricTensor>(
-            MathLib::KelvinVector::kelvinVectorToSymmetricTensor(
-                (_ip_data[ip].sigma_eff - alpha_b * identity2 * p_int_pt)
-                    .eval()));
+        auto const sigma_total =
+            (_ip_data[ip].sigma_eff - alpha_b * p_int_pt * identity2).eval();
+        vars[static_cast<int>(MPL::Variable::total_stress)]
+            .emplace<SymmetricTensor>(
+                MathLib::KelvinVector::kelvinVectorToSymmetricTensor(
+                    sigma_total));
+
+        // For strain dependent permeability
+        vars[static_cast<int>(MPL::Variable::volumetric_strain)] =
+            Invariants::trace(_ip_data[ip].eps);
+        vars[static_cast<int>(MPL::Variable::equivalent_plastic_strain)] =
+            _ip_data[ip].material_state_variables->getEquivalentPlasticStrain();
+        vars[static_cast<int>(MPL::Variable::mechanical_strain)]
+            .emplace<MathLib::KelvinVector::KelvinVectorType<DisplacementDim>>(
+                _ip_data[ip].eps);
 
         auto const K = MPL::formEigenTensor<DisplacementDim>(
             medium->property(MPL::PropertyType::permeability)
@@ -659,7 +709,7 @@ void HydroMechanicsLocalAssembler<ShapeFunctionDisplacement,
                 DisplacementDim>::value>::identity2;
 
         eps.noalias() = B * u;
-        vars[static_cast<int>(MaterialPropertyLib::Variable::strain)]
+        vars[static_cast<int>(MPL::Variable::mechanical_strain)]
             .emplace<MathLib::KelvinVector::KelvinVectorType<DisplacementDim>>(
                 eps);
 
@@ -764,7 +814,7 @@ void HydroMechanicsLocalAssembler<ShapeFunctionDisplacement,
 
         auto& eps = _ip_data[ip].eps;
         eps.noalias() = B * u;
-        vars[static_cast<int>(MaterialPropertyLib::Variable::strain)]
+        vars[static_cast<int>(MPL::Variable::mechanical_strain)]
             .emplace<MathLib::KelvinVector::KelvinVectorType<DisplacementDim>>(
                 eps);
 
@@ -889,33 +939,42 @@ void HydroMechanicsLocalAssembler<ShapeFunctionDisplacement,
     auto sigma_eff_sum = MathLib::KelvinVector::tensorToKelvin<DisplacementDim>(
         Eigen::Matrix<double, 3, 3>::Zero());
 
+    auto const& identity2 = Invariants::identity2;
+
     for (unsigned ip = 0; ip < n_integration_points; ip++)
     {
         x_position.setIntegrationPoint(ip);
 
         auto const& eps = _ip_data[ip].eps;
-        auto const& sigma_eff = _ip_data[ip].sigma_eff;
-        sigma_eff_sum += sigma_eff;
+        sigma_eff_sum += _ip_data[ip].sigma_eff;
 
-        auto const alpha_b =
-            solid.property(MPL::PropertyType::biot_coefficient)
-                .template value<double>(vars, x_position, t, dt);
-        auto const& identity2 = MathLib::KelvinVector::Invariants<
-            MathLib::KelvinVector::KelvinVectorDimensions<
-                DisplacementDim>::value>::identity2;
-
+        auto const alpha = solid.property(MPL::PropertyType::biot_coefficient)
+                               .template value<double>(vars, x_position, t, dt);
         double const p_int_pt = _ip_data[ip].N_p.dot(p);
         vars[static_cast<int>(MPL::Variable::phase_pressure)] = p_int_pt;
 
-        vars[static_cast<int>(MPL::Variable::strain)].emplace<SymmetricTensor>(
-            MathLib::KelvinVector::kelvinVectorToSymmetricTensor(eps));
-        vars[static_cast<int>(MPL::Variable::total_stress)]
-            .emplace<SymmetricTensor>(
-                MathLib::KelvinVector::kelvinVectorToSymmetricTensor(
-                    (sigma_eff - alpha_b * identity2 * p_int_pt).eval()));
+        // Set mechanical variables for the intrinsic permeability model
+        // For stress dependent permeability.
+        {
+            auto const sigma_total =
+                (_ip_data[ip].sigma_eff - alpha * p_int_pt * identity2).eval();
+            vars[static_cast<int>(MPL::Variable::total_stress)]
+                .emplace<SymmetricTensor>(
+                    MathLib::KelvinVector::kelvinVectorToSymmetricTensor(
+                        sigma_total));
+        }
+        // For strain dependent permeability
+        vars[static_cast<int>(MPL::Variable::volumetric_strain)] =
+            Invariants::trace(eps);
+        vars[static_cast<int>(MPL::Variable::equivalent_plastic_strain)] =
+            _ip_data[ip].material_state_variables->getEquivalentPlasticStrain();
+        vars[static_cast<int>(MPL::Variable::mechanical_strain)]
+            .emplace<MathLib::KelvinVector::KelvinVectorType<DisplacementDim>>(
+                eps);
+
         k_sum += MPL::getSymmetricTensor<DisplacementDim>(
-                    medium->property(MPL::PropertyType::permeability)
-                        .value(vars, x_position, t, dt));
+            medium->property(MPL::PropertyType::permeability)
+                .value(vars, x_position, t, dt));
     }
 
     Eigen::Map<Eigen::VectorXd>(
@@ -961,6 +1020,5 @@ HydroMechanicsLocalAssembler<ShapeFunctionDisplacement, ShapeFunctionPressure,
 {
     return *_ip_data[integration_point].material_state_variables;
 }
-
 }  // namespace HydroMechanics
 }  // namespace ProcessLib

@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -21,7 +21,7 @@ TimeDependentHeterogeneousParameter::TimeDependentHeterogeneousParameter(
     std::vector<PairTimeParameterName>
         time_parameter_name_mapping)
     : Parameter<double>(std::move(name), nullptr),
-      _time_parameter_name_mapping(time_parameter_name_mapping)
+      _time_parameter_name_mapping(std::move(time_parameter_name_mapping))
 {
 }
 

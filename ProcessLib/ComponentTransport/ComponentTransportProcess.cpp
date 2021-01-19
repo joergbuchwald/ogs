@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -12,6 +12,8 @@
 
 #include <cassert>
 
+#include "BaseLib/RunTime.h"
+#include "ChemistryLib/ChemicalSolverInterface.h"
 #include "ProcessLib/SurfaceFlux/SurfaceFlux.h"
 #include "ProcessLib/SurfaceFlux/SurfaceFluxData.h"
 #include "ProcessLib/Utils/CreateLocalAssemblers.h"
@@ -31,12 +33,15 @@ ComponentTransportProcess::ComponentTransportProcess(
     ComponentTransportProcessData&& process_data,
     SecondaryVariableCollection&& secondary_variables,
     bool const use_monolithic_scheme,
-    std::unique_ptr<ProcessLib::SurfaceFluxData>&& surfaceflux)
+    std::unique_ptr<ProcessLib::SurfaceFluxData>&& surfaceflux,
+    std::unique_ptr<ChemistryLib::ChemicalSolverInterface>&&
+        chemical_solver_interface)
     : Process(std::move(name), mesh, std::move(jacobian_assembler), parameters,
               integration_order, std::move(process_variables),
               std::move(secondary_variables), use_monolithic_scheme),
       _process_data(std::move(process_data)),
-      _surfaceflux(std::move(surfaceflux))
+      _surfaceflux(std::move(surfaceflux)),
+      _chemical_solver_interface(std::move(chemical_solver_interface))
 {
 }
 
@@ -79,11 +84,55 @@ void ComponentTransportProcess::initializeConcreteProcess(
         mesh.isAxiallySymmetric(), integration_order, _process_data,
         transport_process_variables);
 
+    if (_chemical_solver_interface)
+    {
+        GlobalExecutor::executeSelectedMemberOnDereferenced(
+            &ComponentTransportLocalAssemblerInterface::setChemicalSystemID,
+            _local_assemblers, pv.getActiveElementIDs());
+
+        _chemical_solver_interface->initialize();
+    }
+
     _secondary_variables.addSecondaryVariable(
         "darcy_velocity",
         makeExtrapolator(
             mesh.getDimension(), getExtrapolator(), _local_assemblers,
             &ComponentTransportLocalAssemblerInterface::getIntPtDarcyVelocity));
+}
+
+void ComponentTransportProcess::setInitialConditionsConcreteProcess(
+    std::vector<GlobalVector*>& x, double const t, int const process_id)
+{
+    if (!_chemical_solver_interface)
+    {
+        return;
+    }
+
+    if (process_id != static_cast<int>(x.size() - 1))
+    {
+        return;
+    }
+
+    ProcessLib::ProcessVariable const& pv = getProcessVariables(process_id)[0];
+
+    std::vector<NumLib::LocalToGlobalIndexMap const*> dof_tables;
+    dof_tables.reserve(x.size());
+    std::generate_n(std::back_inserter(dof_tables), x.size(),
+                    [&]() { return _local_to_global_index_map.get(); });
+
+    GlobalExecutor::executeSelectedMemberOnDereferenced(
+        &ComponentTransportLocalAssemblerInterface::initializeChemicalSystem,
+        _local_assemblers, pv.getActiveElementIDs(), dof_tables, x, t);
+
+    BaseLib::RunTime time_phreeqc;
+    time_phreeqc.start();
+
+    _chemical_solver_interface->executeInitialCalculation();
+
+    extrapolateIntegrationPointValuesToNodes(
+        t, _chemical_solver_interface->getIntPtProcessSolutions(), x);
+
+    INFO("[time] Phreeqc took {:g} s.", time_phreeqc.elapsed());
 }
 
 void ComponentTransportProcess::assembleConcreteProcess(
@@ -162,75 +211,40 @@ void ComponentTransportProcess::
         _local_assemblers, pv.getActiveElementIDs(), _coupled_solutions);
 }
 
-std::vector<GlobalVector>
-ComponentTransportProcess::interpolateNodalValuesToIntegrationPoints(
-    std::vector<GlobalVector*> const& nodal_values_vectors) const
+void ComponentTransportProcess::solveReactionEquation(
+    std::vector<GlobalVector*>& x, double const t, double const dt)
 {
-    // Result is for each process a vector of integration point values for each
-    // element stored consecutively.
-    auto interpolateNodalValuesToIntegrationPoints =
-        [](std::size_t mesh_item_id,
-           LocalAssemblerInterface& local_assembler,
-           std::vector<
-               std::reference_wrapper<NumLib::LocalToGlobalIndexMap>> const&
-               dof_tables,
-           std::vector<GlobalVector*> const& x,
-           std::vector<std::vector<double>>& int_pt_x) {
-            for (unsigned process_id = 0; process_id < x.size(); ++process_id)
-            {
-                auto const& dof_table = dof_tables[process_id].get();
-                auto const indices =
-                    NumLib::getIndices(mesh_item_id, dof_table);
-                auto const local_x = x[process_id]->get(indices);
-
-                std::vector<double> const interpolated_values =
-                    local_assembler.interpolateNodalValuesToIntegrationPoints(
-                        local_x);
-
-                // For each element (mesh_item_id) concatenate the integration
-                // point values.
-                int_pt_x[process_id].insert(int_pt_x[process_id].end(),
-                                            interpolated_values.begin(),
-                                            interpolated_values.end());
-            }
-        };
-
-    // Same dof table for each primary variable.
-    std::vector<std::reference_wrapper<NumLib::LocalToGlobalIndexMap>>
-        dof_tables;
-    dof_tables.reserve(nodal_values_vectors.size());
-    std::generate_n(std::back_inserter(dof_tables), nodal_values_vectors.size(),
-                    [&]() { return std::ref(*_local_to_global_index_map); });
-
-    std::vector<std::vector<double>> integration_point_values_vecs(
-        nodal_values_vectors.size());
-
-    GlobalExecutor::executeDereferenced(
-        interpolateNodalValuesToIntegrationPoints, _local_assemblers,
-        dof_tables, nodal_values_vectors, integration_point_values_vecs);
-
-    // Convert from std::vector<std::vector<double>> to
-    // std::vector<GlobalVector>
-    std::vector<GlobalVector> integration_point_values_vectors;
-    integration_point_values_vectors.reserve(nodal_values_vectors.size());
-    for (auto const& integration_point_values_vec :
-         integration_point_values_vecs)
+    if (!_chemical_solver_interface)
     {
-        GlobalIndexType const size = integration_point_values_vec.size();
-        // New vector of size (elements x integration_points_per_element)
-        GlobalVector integration_point_values_vector(size);
-
-        // Copy one by one.
-        for (GlobalIndexType i = 0; i < size; ++i)
-        {
-            integration_point_values_vector.set(
-                i, integration_point_values_vec[i]);
-        }
-        integration_point_values_vectors.push_back(
-            std::move(integration_point_values_vector));
+        return;
     }
 
-    return integration_point_values_vectors;
+    // Sequential non-iterative approach applied here to perform water
+    // chemistry calculation followed by resolving component transport
+    // process.
+    // TODO: move into a global loop to consider both mass balance over
+    // space and localized chemical equilibrium between solutes.
+    const int process_id = 0;
+    ProcessLib::ProcessVariable const& pv = getProcessVariables(process_id)[0];
+
+    std::vector<NumLib::LocalToGlobalIndexMap const*> dof_tables;
+    dof_tables.reserve(x.size());
+    std::generate_n(std::back_inserter(dof_tables), x.size(),
+                    [&]() { return _local_to_global_index_map.get(); });
+
+    GlobalExecutor::executeSelectedMemberOnDereferenced(
+        &ComponentTransportLocalAssemblerInterface::setChemicalSystem,
+        _local_assemblers, pv.getActiveElementIDs(), dof_tables, x, t, dt);
+
+    BaseLib::RunTime time_phreeqc;
+    time_phreeqc.start();
+
+    _chemical_solver_interface->doWaterChemistryCalculation(dt);
+
+    extrapolateIntegrationPointValuesToNodes(
+        t, _chemical_solver_interface->getIntPtProcessSolutions(), x);
+
+    INFO("[time] Phreeqc took {:g} s.", time_phreeqc.elapsed());
 }
 
 void ComponentTransportProcess::extrapolateIntegrationPointValuesToNodes(
@@ -259,6 +273,8 @@ void ComponentTransportProcess::extrapolateIntegrationPointValuesToNodes(
         auto const& nodal_values = extrapolator.getNodalValues();
         MathLib::LinAlg::copy(nodal_values,
                               *nodal_values_vectors[transport_process_id + 1]);
+        MathLib::LinAlg::finalizeAssembly(
+            *nodal_values_vectors[transport_process_id + 1]);
     }
 }
 

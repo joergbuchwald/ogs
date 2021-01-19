@@ -5,7 +5,7 @@
  * \brief  Implementation of the GeoMapper class.
  *
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -33,7 +33,6 @@
 #include "MeshLib/Elements/FaceRule.h"
 #include "MeshLib/Node.h"
 #include "MeshLib/MeshSurfaceExtraction.h"
-#include "MeshLib/MeshEditing/projectMeshOntoPlane.h"
 #include "MeshLib/MeshSearch/MeshElementGrid.h"
 
 namespace MeshGeoToolsLib {
@@ -83,13 +82,13 @@ void GeoMapper::mapOnMesh(MeshLib::Mesh const*const mesh)
     }
     else
     {
-        const MathLib::Vector3 dir(0,0,-1);
-        _surface_mesh = MeshLib::MeshSurfaceExtraction::getMeshSurface(*mesh, dir, 90);
+        Eigen::Vector3d const dir(0,0,-1);
+        _surface_mesh =
+            MeshLib::MeshSurfaceExtraction::getMeshSurface(*mesh, dir, 90);
     }
 
     // init grid
     MathLib::Point3d origin(std::array<double,3>{{0,0,0}});
-    MathLib::Vector3 normal(0,0,-1);
     std::vector<MeshLib::Node> flat_nodes;
     flat_nodes.reserve(_surface_mesh->getNumberOfNodes());
     // copy nodes and project the copied nodes to the x-y-plane, i.e. set
@@ -151,7 +150,8 @@ void GeoMapper::mapStationData(std::vector<GeoLib::Point*> const& points)
     }
 }
 
-void GeoMapper::mapPointDataToDEM(std::vector<GeoLib::Point*> const& points)
+void GeoMapper::mapPointDataToDEM(
+    std::vector<GeoLib::Point*> const& points) const
 {
     for (auto * pnt : points)
     {
@@ -419,12 +419,13 @@ static void mapPointOnSurfaceElement(MeshLib::Element const& elem,
                                      MathLib::Point3d& q)
 {
     // create plane equation: n*p = d
-    MathLib::Vector3 const p(*(elem.getNode(0)));
-    MathLib::Vector3 const n(MeshLib::FaceRule::getSurfaceNormal(&elem));
+    auto const p =
+        Eigen::Map<Eigen::Vector3d const>(elem.getNode(0)->getCoords());
+    Eigen::Vector3d const n(MeshLib::FaceRule::getSurfaceNormal(&elem));
     if (n[2] == 0.0) { // vertical plane, z coordinate is arbitrary
         q[2] = p[2];
     } else {
-        double const d(MathLib::scalarProduct(n, p));
+        double const d(n.dot(p));
         q[2] = (d - n[0]*q[0] - n[1]*q[1])/n[2];
     }
 }
@@ -577,7 +578,7 @@ void GeoMapper::advancedMapOnMesh(MeshLib::Mesh const& mesh)
     if (mesh.getDimension()<3) {
         _surface_mesh = new MeshLib::Mesh(mesh);
     } else {
-        const MathLib::Vector3 dir(0,0,-1);
+        Eigen::Vector3d const dir({0, 0, -1});
         _surface_mesh =
             MeshLib::MeshSurfaceExtraction::getMeshSurface(mesh, dir, 90+1e-6);
     }

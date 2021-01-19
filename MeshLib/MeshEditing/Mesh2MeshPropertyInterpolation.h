@@ -5,7 +5,7 @@
  * \brief  Implementation of the Mesh2MeshPropertyInterpolation class.
  *
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -41,11 +41,11 @@ public:
     /**
      * Calculates entries for the property vector and sets appropriate indices
      * in the mesh elements.
-     * @param mesh the mesh the property information will be calculated and set
-     * via weighted interpolation
+     * @param dest_mesh the mesh the property information will be calculated and
+     * set via weighted interpolation
      * @return true if the operation was successful, false on error
      */
-    bool setPropertiesForMesh(Mesh& mesh) const;
+    bool setPropertiesForMesh(Mesh& dest_mesh) const;
 
 private:
     /**

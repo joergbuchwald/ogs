@@ -5,7 +5,7 @@
  * \brief  Implementation of the GEOObjects class.
  *
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -338,7 +338,7 @@ const SurfaceVec* GEOObjects::getSurfaceVecObj(const std::string &name) const
     return nullptr;
 }
 
-bool GEOObjects::isUniquePointVecName(std::string &name)
+bool GEOObjects::isUniquePointVecName(std::string& name) const
 {
     std::vector<std::string> const existing_names = getGeometryNames();
     auto const& unique_name = BaseLib::getUniqueName(existing_names, name);
@@ -415,8 +415,8 @@ std::string GEOObjects::getElementNameByID(const std::string& geometry_name,
     return name;
 }
 
-int GEOObjects::mergeGeometries (std::vector<std::string> const & geo_names,
-                                 std::string &merged_geo_name)
+int GEOObjects::mergeGeometries(std::vector<std::string> const& geo_names,
+                                std::string& merged_geo_name)
 {
     const std::size_t n_geo_names(geo_names.size());
 
@@ -538,7 +538,8 @@ void GEOObjects::mergeSurfaces(std::vector<std::string> const& geo_names,
     const std::size_t n_geo_names(geo_names.size());
     std::vector<std::size_t> sfc_offsets(n_geo_names, 0);
     auto merged_sfcs = std::make_unique<std::vector<GeoLib::Surface*>>();
-    std::unique_ptr<std::map<std::string, std::size_t>> merged_sfc_names;
+    auto merged_sfc_names =
+        std::make_unique<std::map<std::string, std::size_t>>();
     for (std::size_t j(0); j < n_geo_names; j++) {
         const std::vector<GeoLib::Surface*>* sfcs (this->getSurfaceVec(geo_names[j]));
         if (sfcs) {

@@ -82,7 +82,11 @@ else()
     include(${VTK_USE_FILE})
 endif()
 
-find_package(Eigen3 ${ogs.minimum_version.eigen} REQUIRED)
+if(OGS_USE_CONAN)
+    set(EIGEN3_INCLUDE_DIR ${CONAN_INCLUDE_DIRS_EIGEN} CACHE INTERNAL "")
+else()
+    find_package(Eigen3 ${ogs.minimum_version.eigen} REQUIRED)
+endif()
 include_directories(SYSTEM ${EIGEN3_INCLUDE_DIR})
 
 if(OGS_USE_MFRONT)
@@ -114,8 +118,8 @@ endif()
 ## Qt5 library ##
 if(OGS_BUILD_GUI)
     set(QT_MODULES Gui Widgets Xml XmlPatterns)
-    if(OGS_USE_CONAN AND UNIX AND NOT APPLE)
-        set(QT_MODULES ${QT_MODULES} X11Extras)
+    if(UNIX AND NOT APPLE)
+        list(APPEND QT_MODULES X11Extras)
     endif()
     find_package(Qt5 ${ogs.minimum_version.qt} REQUIRED ${QT_MODULES})
     cmake_policy(SET CMP0020 NEW)
@@ -132,10 +136,7 @@ endif()
 find_package(LAPACK QUIET)
 
 ## geotiff ##
-find_package(LibGeoTiff)
-if(GEOTIFF_FOUND)
-    add_definitions(-DGEOTIFF_FOUND)
-endif() # GEOTIFF_FOUND
+find_package(GEOTIFF)
 
 ## lis ##
 if(OGS_USE_LIS)
@@ -161,9 +162,6 @@ if(OGS_USE_PETSC)
     find_package(PETSc ${ogs.minimum_version.petsc} REQUIRED)
 
     include_directories(SYSTEM ${PETSC_INCLUDES})
-
-    add_definitions(-DPETSC_VERSION_NUMBER=PETSC_VERSION_MAJOR*1000+PETSC_VERSION_MINOR*10)
-
 endif()
 
 ## Check MPI package
@@ -181,7 +179,6 @@ endif()
 ## Sundials cvode ode-solver library
 if(OGS_USE_CVODE)
     find_package(CVODE REQUIRED)
-    add_definitions(-DCVODE_FOUND)
 endif()
 
 find_package(Filesystem REQUIRED COMPONENTS Final Experimental)

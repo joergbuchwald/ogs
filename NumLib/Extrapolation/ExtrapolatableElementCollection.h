@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -80,8 +80,8 @@ class ExtrapolatableLocalAssemblerCollection
 public:
     //! LocalAssemblerCollection contains many LocalAssembler's.
     using LocalAssembler =
-        typename std::decay<decltype(*std::declval<LocalAssemblerCollection>()
-                                         [static_cast<std::size_t>(0)])>::type;
+        typename std::decay_t<decltype(*std::declval<LocalAssemblerCollection>()
+                                           [static_cast<std::size_t>(0)])>;
 
     static_assert(std::is_base_of<ExtrapolatableElement, LocalAssembler>::value,
                   "Local assemblers used for extrapolation must be derived "

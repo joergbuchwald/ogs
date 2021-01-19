@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -38,18 +38,12 @@ void ChemicalSystem::initialize(std::size_t const num_chemical_systems)
 
     for (auto& kinetic_reactant : kinetic_reactants)
     {
-        kinetic_reactant.amount->resize(num_chemical_systems);
-        std::fill(kinetic_reactant.amount->begin(),
-                  kinetic_reactant.amount->end(),
-                  kinetic_reactant.initial_amount);
+        kinetic_reactant.molality->resize(num_chemical_systems);
     }
 
     for (auto& equilibrium_reactant : equilibrium_reactants)
     {
-        equilibrium_reactant.amount->resize(num_chemical_systems);
-        std::fill(equilibrium_reactant.amount->begin(),
-                  equilibrium_reactant.amount->end(),
-                  equilibrium_reactant.initial_amount);
+        equilibrium_reactant.molality->resize(num_chemical_systems);
     }
 }
 }  // namespace PhreeqcIOData

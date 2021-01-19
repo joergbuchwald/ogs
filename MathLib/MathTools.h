@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -90,9 +90,5 @@ double calcProjPntToLineAndDists(MathLib::Point3d const& pp,
  * @param p2 end point of edge 1
  * @return the angle between the edges
  */
-double getAngle (const double p0[3], const double p1[3], const double p2[3]);
-
-/// Calculates the scalar triple (u x v) . w
-double scalarTriple(Eigen::Vector3d const& u, Eigen::Vector3d const& v,
-                    Eigen::Vector3d const& w);
+double getAngle(Point3d const& p0, Point3d const& p1, Point3d const& p2);
 }  // namespace MathLib

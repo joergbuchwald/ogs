@@ -1,7 +1,7 @@
 /**
  * \file
  * \copyright
- * Copyright (c) 2012-2020, OpenGeoSys Community (http://www.opengeosys.org)
+ * Copyright (c) 2012-2021, OpenGeoSys Community (http://www.opengeosys.org)
  *            Distributed under a Modified BSD License.
  *              See accompanying file LICENSE.txt or
  *              http://www.opengeosys.org/project/license
@@ -107,7 +107,7 @@ public:
     ElementType* zeroVolumeEle;
 };
 
-TYPED_TEST_CASE(NumLibFemNaturalCoordinatesMappingTest, TestTypes);
+TYPED_TEST_SUITE(NumLibFemNaturalCoordinatesMappingTest, TestTypes);
 
 TYPED_TEST(NumLibFemNaturalCoordinatesMappingTest, CheckFieldSpecification_N)
 {
