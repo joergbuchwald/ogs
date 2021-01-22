@@ -314,21 +314,28 @@ void ThermoRichardsFlowLocalAssembler<
                                          MPL::Variable::capillary_pressure,
                                          x_position, t, dt);
 
-        auto const chi = [medium, x_position, t, dt](double const S_L) {
-            MPL::VariableArray variables;
-            variables[static_cast<int>(MPL::Variable::liquid_saturation)] = S_L;
-            return medium->property(MPL::PropertyType::bishops_effective_stress)
-                .template value<double>(variables, x_position, t, dt);
-        };
-        double const chi_S_L = chi(S_L);
-        double const chi_S_L_prev = chi(S_L_prev);
+        auto chi_S_L = S_L;
+        auto chi_S_L = S_L_prev;
+        if (medium->hasProperty(MPL::PropertyType::bishops_effective_stress))
+        {
+            auto const chi = [medium, x_position, t, dt](double const S_L) {
+                MPL::VariableArray variables;
+                variables[static_cast<int>(MPL::Variable::liquid_saturation)] = S_L;
+                return medium->property(MPL::PropertyType::bishops_effective_stress)
+                    .template value<double>(variables, x_position, t, dt);
+            };
+            chi_S_L = chi(S_L);
+            chi_S_L_prev = chi(S_L_prev);
+        }
+        double const p_FR = -chi_S_L * p_cap_ip;
+        variables[static_cast<int>(MPL::Variable::solid_grain_pressure)] = p_FR;
 
-        variables[static_cast<int>(MPL::Variable::effective_pore_pressure)] =
+        /*variables[static_cast<int>(MPL::Variable::effective_pore_pressure)] =
             -chi_S_L * p_cap_ip;
         variables_prev[static_cast<int>(
             MPL::Variable::effective_pore_pressure)] =
             -chi_S_L_prev * (p_cap_ip - p_cap_dot_ip * dt);
-
+        */
         auto& phi = _ip_data[ip].porosity;
         {  // Porosity update
 
@@ -368,9 +375,6 @@ void ThermoRichardsFlowLocalAssembler<
         //double const dthermal_strain =
         //    solid_linear_thermal_expansion_coefficient.trace() * T_dot_ip * dt;
 
-        double const p_FR = -chi_S_L * p_cap_ip;
-        // p_SR
-         variables[static_cast<int>(MPL::Variable::solid_grain_pressure)] = p_FR;
         auto const rho_SR =
             solid_phase.property(MPL::PropertyType::density)
                 .template value<double>(variables, x_position, t, dt);
@@ -388,11 +392,6 @@ void ThermoRichardsFlowLocalAssembler<
         double const specific_storage_a_p =
             S_L * (phi * beta_LR + S_L * (a0 + storage_correction));
         double const specific_storage_a_S = phi - p_cap_ip * S_L * a0;
-        if (ip == 0)
-        {
-                DBUG("specific storage a_p: '{:f}'", specific_storage_a_p);
-                DBUG("specific storage a_S: '{:f}'", specific_storage_a_S);
-        }
 
         double const dspecific_storage_a_p_dp_cap =
             dS_L_dp_cap * (phi * beta_LR + 2 * S_L * (a0 + storage_correction));
@@ -457,11 +456,6 @@ void ThermoRichardsFlowLocalAssembler<
                     solid_linear_thermal_expansion_coefficient.trace() +
                 phi * fluid_volumetric_thermal_expansion_coefficient +
                 thermal_expansivity_correction);
-        if (ip == 0)
-        {
-                DBUG("eff. th. expansion: '{:f}'", eff_thermal_expansion);
-                DBUG("rho_LR: '{:f}'", rho_LR);
-        }
         M_pT.noalias() -=
                 N_p.transpose() * rho_LR * eff_thermal_expansion * N_p * w;
         //}
