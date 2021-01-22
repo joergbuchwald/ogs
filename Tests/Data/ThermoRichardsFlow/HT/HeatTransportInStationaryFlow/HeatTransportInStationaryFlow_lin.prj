@@ -37,11 +37,6 @@
                     <type>AqueousLiquid</type>
                     <properties>
                         <property>
-                            <name>bulk_modulus</name>
-                            <type>Constant</type>
-                            <value>100e100</value>
-                        </property>
-                        <property>
                             <name>specific_heat_capacity</name>
                             <type>Constant</type>
                             <value>4182</value>
@@ -109,11 +104,6 @@
                     <name>saturation</name>
                     <type>Constant</type>
                     <value>1</value>
-                </property>
-                <property>
-                    <name>bishops_effective_stress</name>
-                    <type>BishopsSaturationCutoff</type>
-                    <cutoff_value>1.1</cutoff_value>
                 </property>
                 <property>
                     <name>permeability</name>

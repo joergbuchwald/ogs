@@ -67,11 +67,6 @@
                             <type>Constant</type>
                             <value>1.e-3</value>
                         </property>
-                        <!--<property>
-                            <name>bulk_modulus</name>
-                            <type>Constant</type>
-                            <value>2.173913043478261e9</value>
-                        </property>//-->
                     </properties>
                 </phase>
                 <phase>
@@ -130,11 +125,6 @@
                     <name>saturation</name>
                     <type>Constant</type>
                     <value>1</value>
-                </property>
-                <property>
-                    <name>bishops_effective_stress</name>
-                    <type>BishopsPowerLaw</type>
-                    <exponent>1</exponent>
                 </property>
                 <property>
                     <name>thermal_expansivity_correction</name>

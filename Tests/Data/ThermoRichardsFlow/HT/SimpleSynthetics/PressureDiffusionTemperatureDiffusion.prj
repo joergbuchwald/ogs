@@ -43,11 +43,11 @@
                             <type>Constant</type>
                             <value>1.0e-3</value>
                         </property>
-                        <property>
+                        <!--<property>
                             <name>bulk_modulus</name>
                             <type>Constant</type>
                             <value>1.0e15</value>
-                        </property>
+                        </property>//-->
                     </properties>
                 </phase>
                 <phase>
@@ -121,11 +121,6 @@
                     <name>porosity</name>
                     <type>Constant</type>
                     <value>0.001</value>
-                </property>
-                <property>
-                    <name>bishops_effective_stress</name>
-                    <type>BishopsPowerLaw</type>
-                    <exponent>1</exponent>
                 </property>
             </properties>
         </medium>

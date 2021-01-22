@@ -111,11 +111,6 @@
                     <value>1</value>
                 </property>
                 <property>
-                    <name>bishops_effective_stress</name>
-                    <type>BishopsSaturationCutoff</type>
-                    <cutoff_value>1.1</cutoff_value>
-                </property>
-                <property>
                     <name>permeability</name>
                     <type>Constant</type>
                     <value>1.e-11</value>
