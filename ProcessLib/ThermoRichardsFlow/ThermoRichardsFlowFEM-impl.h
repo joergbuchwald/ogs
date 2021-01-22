@@ -256,7 +256,7 @@ void ThermoRichardsFlowLocalAssembler<
         auto const alpha =
             medium->property(MPL::PropertyType::biot_coefficient)
                 .template value<double>(variables, x_position, t, dt);
-
+        // storage_correction + thermal_expansivity_correction -> MPL?
         auto storage_correction = 0.0;
         if (medium->hasProperty(MPL::PropertyType::storage_correction))
         {
@@ -272,7 +272,7 @@ void ThermoRichardsFlowLocalAssembler<
                     .template value<double>(variables, x_position, t, dt);
         }
 
-        //bulk_modulus correct name for bulk modulus of solid skeleton
+        // is bulk_modulus good name for bulk modulus of solid skeleton?
         auto const K_S =
             solid_phase.property(MPL::PropertyType::bulk_modulus)
                 .template value<double>(variables, x_position, t, dt);
@@ -286,7 +286,7 @@ void ThermoRichardsFlowLocalAssembler<
                 .template value<double>(variables, x_position, t, dt);
         auto const& b = _process_data.specific_body_force;
 
-        auto beta_LR = 0.0;
+        /*auto beta_LR = 0.0;
         if (liquid_phase.hasProperty(MPL::PropertyType::bulk_modulus))
         {
             beta_LR =
@@ -294,13 +294,13 @@ void ThermoRichardsFlowLocalAssembler<
                         .template value<double>(variables, x_position, t, dt);
         }
         else
-        {
-            beta_LR = 1 / rho_LR *
+        {*/
+        double const beta_LR = 1 / rho_LR *
                       liquid_phase.property(MPL::PropertyType::density)
                           .template dValue<double>(
                               variables, MPL::Variable::phase_pressure,
                               x_position, t, dt);
-        }
+        //}
 
         S_L = medium->property(MPL::PropertyType::saturation)
                   .template value<double>(variables, x_position, t, dt);
@@ -315,7 +315,7 @@ void ThermoRichardsFlowLocalAssembler<
                                          x_position, t, dt);
 
         auto chi_S_L = S_L;
-        auto chi_S_L = S_L_prev;
+        auto chi_S_L_prev = S_L_prev;
         if (medium->hasProperty(MPL::PropertyType::bishops_effective_stress))
         {
             auto const chi = [medium, x_position, t, dt](double const S_L) {
@@ -327,15 +327,15 @@ void ThermoRichardsFlowLocalAssembler<
             chi_S_L = chi(S_L);
             chi_S_L_prev = chi(S_L_prev);
         }
-        double const p_FR = -chi_S_L * p_cap_ip;
-        variables[static_cast<int>(MPL::Variable::solid_grain_pressure)] = p_FR;
+        //double const p_FR = -chi_S_L * p_cap_ip;
+        //variables[static_cast<int>(MPL::Variable::solid_grain_pressure)] = p_FR;
 
-        /*variables[static_cast<int>(MPL::Variable::effective_pore_pressure)] =
+        variables[static_cast<int>(MPL::Variable::effective_pore_pressure)] =
             -chi_S_L * p_cap_ip;
         variables_prev[static_cast<int>(
             MPL::Variable::effective_pore_pressure)] =
             -chi_S_L_prev * (p_cap_ip - p_cap_dot_ip * dt);
-        */
+
         auto& phi = _ip_data[ip].porosity;
         {  // Porosity update
 
@@ -863,15 +863,25 @@ void ThermoRichardsFlowLocalAssembler<ShapeFunction, IntegrationMethod,
         variables_prev[static_cast<int>(MPL::Variable::liquid_saturation)] =
             S_L_prev;
 
-        auto const chi = [medium, x_position, t, dt](double const S_L) {
-            MPL::VariableArray variables;
-            variables.fill(std::numeric_limits<double>::quiet_NaN());
-            variables[static_cast<int>(MPL::Variable::liquid_saturation)] = S_L;
-            return medium->property(MPL::PropertyType::bishops_effective_stress)
-                .template value<double>(variables, x_position, t, dt);
-        };
-        double const chi_S_L = chi(S_L);
-        double const chi_S_L_prev = chi(S_L_prev);
+        auto chi_S_L = S_L;
+        auto chi_S_L_prev = S_L_prev;
+        if (medium->hasProperty(MPL::PropertyType::bishops_effective_stress))
+        {
+            auto const chi = [medium, x_position, t, dt](double const S_L) {
+                MPL::VariableArray variables;
+                variables[static_cast<int>(MPL::Variable::liquid_saturation)] = S_L;
+                return medium->property(MPL::PropertyType::bishops_effective_stress)
+                    .template value<double>(variables, x_position, t, dt);
+            };
+            chi_S_L = chi(S_L);
+            chi_S_L_prev = chi(S_L_prev);
+        }
+        variables[static_cast<int>(MPL::Variable::effective_pore_pressure)] =
+            -chi_S_L * p_cap_ip;
+        variables_prev[static_cast<int>(
+            MPL::Variable::effective_pore_pressure)] =
+            -chi_S_L_prev * (p_cap_ip - p_cap_dot_ip * dt);
+
 
         auto const alpha =
             medium->property(MPL::PropertyType::biot_coefficient)
@@ -917,9 +927,9 @@ void ThermoRichardsFlowLocalAssembler<ShapeFunction, IntegrationMethod,
 
         GlobalDimMatrixType const K_over_mu = k_rel * K_intrinsic / mu;
 
-        double const p_FR = -chi_S_L * p_cap_ip;
+        //double const p_FR = -chi_S_L * p_cap_ip;
         // p_SR
-        variables[static_cast<int>(MPL::Variable::solid_grain_pressure)] = p_FR;
+        //variables[static_cast<int>(MPL::Variable::solid_grain_pressure)] = p_FR;
         auto const rho_SR =
             solid_phase.property(MPL::PropertyType::density)
                 .template value<double>(variables, x_position, t, dt);

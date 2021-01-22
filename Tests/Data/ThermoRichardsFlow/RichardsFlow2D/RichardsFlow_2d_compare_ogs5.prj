@@ -157,7 +157,7 @@
         </processes>
         <output>
             <type>VTK</type>
-            <prefix>richards_ogs5_pcs_{:process_id}</prefix>
+            <prefix>richards_ogs5_pcs</prefix>
             <timesteps>
                 <!-- only output last timestep -->
                 <pair>

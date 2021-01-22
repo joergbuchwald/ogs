@@ -157,7 +157,7 @@
         </processes>
         <output>
             <type>VTK</type>
-            <prefix>Richards_2D_small_pcs_{:process_id}</prefix>
+            <prefix>Richards_2D_small_pcs</prefix>
             <timesteps>
                 <pair>
                     <repeat>1</repeat>
