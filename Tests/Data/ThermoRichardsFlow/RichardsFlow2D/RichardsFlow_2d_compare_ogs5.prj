@@ -192,7 +192,7 @@
         <parameter>
             <name>T0</name>
             <type>Constant</type>
-            <value>293.15</value>
+            <value>0</value>
         </parameter>
     </parameters>
     <curves>
