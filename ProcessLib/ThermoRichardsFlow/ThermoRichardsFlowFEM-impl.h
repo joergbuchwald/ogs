@@ -286,21 +286,11 @@ void ThermoRichardsFlowLocalAssembler<
                 .template value<double>(variables, x_position, t, dt);
         auto const& b = _process_data.specific_body_force;
 
-        /*auto beta_LR = 0.0;
-        if (liquid_phase.hasProperty(MPL::PropertyType::bulk_modulus))
-        {
-            beta_LR =
-                1 / liquid_phase.property(MPL::PropertyType::bulk_modulus)
-                        .template value<double>(variables, x_position, t, dt);
-        }
-        else
-        {*/
         double const beta_LR = 1 / rho_LR *
                       liquid_phase.property(MPL::PropertyType::density)
                           .template dValue<double>(
                               variables, MPL::Variable::phase_pressure,
                               x_position, t, dt);
-        //}
 
         S_L = medium->property(MPL::PropertyType::saturation)
                   .template value<double>(variables, x_position, t, dt);
@@ -372,14 +362,11 @@ void ThermoRichardsFlowLocalAssembler<
                         MaterialPropertyLib::PropertyType::thermal_expansivity)
                     .value(variables, x_position, t, dt));
 
-        //double const dthermal_strain =
-        //    solid_linear_thermal_expansion_coefficient.trace() * T_dot_ip * dt;
 
         auto const rho_SR =
             solid_phase.property(MPL::PropertyType::density)
                 .template value<double>(variables, x_position, t, dt);
 
-        //double const rho = rho_SR * (1 - phi) + S_L * phi * rho_LR;
 
         //
         // pressure equation, pressure part.
@@ -446,8 +433,6 @@ void ThermoRichardsFlowLocalAssembler<
         // Note:  d (rho_l * beta _T)/dp * dotT
         // Add the thermal expansion term is the point is in the fully
         // saturated zone.
-        /*if (p_cap_ip <= 0.0)  // p_l>0.0
-        {*/
         double const fluid_volumetric_thermal_expansion_coefficient =
                 MPL::getLiquidThermalExpansivity(liquid_phase, variables,
                                                  rho_LR, x_position, t, dt);
@@ -458,7 +443,6 @@ void ThermoRichardsFlowLocalAssembler<
                 thermal_expansivity_correction);
         M_pT.noalias() -=
                 N_p.transpose() * rho_LR * eff_thermal_expansion * N_p * w;
-        //}
 
         //
         // temperature equation.
@@ -776,19 +760,6 @@ void ThermoRichardsFlowLocalAssembler<ShapeFunction, IntegrationMethod,
         NumLib::shapeFunctionInterpolate(T_dot, N_p, T_dot_ip);
         variables[static_cast<int>(MPL::Variable::temperature)] = T_ip;
 
-        // Consider anisotropic thermal expansion.
-        // Read in 3x3 tensor. 2D case also requires expansion coeff. for z-
-        // component.
-        /*Eigen::Matrix<double, 3,
-                      3> const solid_linear_thermal_expansion_coefficient =
-            MaterialPropertyLib::formEigenTensor<3>(
-                solid_phase
-                    .property(
-                        MaterialPropertyLib::PropertyType::thermal_expansivity)
-                    .value(variables, x_position, t, dt));
-        */
-        //double const dthermal_strain =
-        //    solid_linear_thermal_expansion_coefficient.trace() * T_dot_ip * dt;
     }
 }
 
@@ -801,22 +772,12 @@ void ThermoRichardsFlowLocalAssembler<ShapeFunction, IntegrationMethod,
                                      Eigen::VectorXd const& local_x_dot)
 {
     auto const T = local_x.template segment<temperature_size>(temperature_index);
-        //Eigen::Map<typename ShapeMatricesType::template VectorType<
-        //temperature_size> const>(local_x.data() + temperature_index,
-        //                         temperature_size);
 
     auto const T_dot = local_x_dot.template segment<temperature_size>(temperature_index);
-       // Eigen::Map<typename ShapeMatricesType::template VectorType<
-       //     temperature_size> const>(local_x_dot.data() + temperature_index,
-       //                              temperature_size);
 
     auto const p_L = local_x.template segment<pressure_size>(pressure_index);
-        //Eigen::Map<typename ShapeMatricesType::template VectorType<pressure_size> const>(
-        //local_x.data() + pressure_index, pressure_size);
 
     auto p_L_dot = local_x_dot.template segment<pressure_size>(pressure_index);
-        //Eigen::Map<typename ShapeMatricesType::template VectorType<pressure_size> const>(
-        //local_x_dot.data() + pressure_index, pressure_size);
 
     auto const& medium = _process_data.media_map->getMedium(_element.getID());
     auto const& liquid_phase = medium->phase("AqueousLiquid");
@@ -894,12 +855,6 @@ void ThermoRichardsFlowLocalAssembler<ShapeFunction, IntegrationMethod,
         variables[static_cast<int>(MPL::Variable::grain_compressibility)] =
             beta_SR;
 
-        variables[static_cast<int>(MPL::Variable::effective_pore_pressure)] =
-            -chi_S_L * p_cap_ip;
-        variables_prev[static_cast<int>(
-            MPL::Variable::effective_pore_pressure)] =
-            -chi_S_L_prev * (p_cap_ip - p_cap_dot_ip * dt);
-
         auto& phi = _ip_data[ip].porosity;
         {  // Porosity update
             variables_prev[static_cast<int>(MPL::Variable::porosity)] =
@@ -935,19 +890,6 @@ void ThermoRichardsFlowLocalAssembler<ShapeFunction, IntegrationMethod,
                 .template value<double>(variables, x_position, t, dt);
         _ip_data[ip].dry_density_solid = (1 - phi) * rho_SR;
 
-        // Consider anisotropic thermal expansion.
-        // Read in 3x3 tensor. 2D case also requires expansion coeff. for z-
-        // component.
-        /*Eigen::Matrix<double, 3,
-                      3> const solid_linear_thermal_expansion_coefficient =
-            MaterialPropertyLib::formEigenTensor<3>(
-                solid_phase
-                    .property(
-                        MaterialPropertyLib::PropertyType::thermal_expansivity)
-                    .value(variables, x_position, t, dt));
-        */
-        //double const dthermal_strain =
-        //    solid_linear_thermal_expansion_coefficient.trace() * T_dot_ip * dt;
 
         auto const& b = _process_data.specific_body_force;
 
