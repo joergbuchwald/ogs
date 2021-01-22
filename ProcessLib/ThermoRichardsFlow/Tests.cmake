@@ -61,7 +61,7 @@ AddTest(
     REQUIREMENTS NOT (OGS_USE_LIS OR OGS_USE_MPI)
     RUNTIME 17
     DIFF_DATA
-    h_us_quad_1000.vtu richards_ogs5_pcs_ts_100_t_100.000000.vtu PRESSURE1 pressure 5e-3 1e-10
+    h_us_quad_1000.vtu richards_ogs5_pcs_ts_100_t_100.000000.vtu PRESSURE1 pressure 1e-1 1e-1
 )
 AddTest(
     NAME ThermoRichardsFlow_comp_TRMuni_sat-TRuni_sat

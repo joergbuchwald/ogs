@@ -387,6 +387,12 @@ void ThermoRichardsFlowLocalAssembler<
 
         storage_p_a_p.noalias() +=
             N_p.transpose() * rho_LR * specific_storage_a_p * N_p * w;
+
+        /*
+        storage_p_a_S.noalias() -= N_p.transpose() * rho_LR *
+                                       specific_storage_a_S * dS_L_dp_cap * N_p
+        * w;
+        */
         if (p_cap_dot_ip != 0)  // prevent division by zero.
         {
             storage_p_a_S.noalias() -= N_p.transpose() * rho_LR *
