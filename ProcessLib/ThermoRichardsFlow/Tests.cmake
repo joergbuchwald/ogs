@@ -38,19 +38,6 @@ AddTest(
     ref_t_1600.000000.vtu Richards_2D_small_pcs_ts_1100_t_1600.000000.vtu pressure pressure 5e-3 1e-8
     ref_t_1600.000000.vtu Richards_2D_small_pcs_ts_1100_t_1600.000000.vtu saturation saturation 5e-3 1e-8
 )
-#AddTest(
-#    NAME ThermoRichardsFlow_RichardsFlow2DSmall_adapativeTimeStepping
-#    PATH ThermoRichardsFlow/RichardsFlow2D
-#    EXECUTABLE ogs
-#    EXECUTABLE_ARGS RichardsFlow_2d_small_PID_adaptive_dt.prj
-#    WRAPPER time
-#    TESTER vtkdiff
-#    REQUIREMENTS NOT (OGS_USE_LIS OR OGS_USE_MPI)
-#    RUNTIME 25
-#    DIFF_DATA
-#    ref_t_1600.000000.vtu richards_pcs_PID_adaptive_dt_t_1600.vtu pressure pressure 5e-3 1e-8
-#    ref_t_1600.000000.vtu richards_pcs_PID_adaptive_dt_t_1600.vtu saturation saturation 5e-3 1e-8
-#)
 AddTest(
     NAME ThermoRichardsFlow_RichardsFlow2DSmall_ogs5
     PATH ThermoRichardsFlow/RichardsFlow2D

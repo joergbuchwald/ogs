@@ -84,11 +84,13 @@ enum PropertyType : int
     saturation_micro,
     specific_heat_capacity,
     storage,
+    storage_correction,
     swelling_stress_rate,
     thermal_conductivity,
     /// Thermal diffusion enhancement factor for water vapor flow
     thermal_diffusion_enhancement_factor,
     thermal_expansivity,
+    thermal_expansivity_correction,
     thermal_longitudinal_dispersivity,
     thermal_osmosis_coefficient,
     thermal_transversal_dispersivity,
@@ -283,6 +285,10 @@ inline PropertyType convertStringToProperty(std::string const& inString)
     {
         return PropertyType::storage;
     }
+    if (boost::iequals(inString, "storage_correction"))
+    {
+        return PropertyType::storage_correction;
+    }
     if (boost::iequals(inString, "swelling_stress_rate"))
     {
         return PropertyType::swelling_stress_rate;
@@ -298,6 +304,10 @@ inline PropertyType convertStringToProperty(std::string const& inString)
     if (boost::iequals(inString, "thermal_expansivity"))
     {
         return PropertyType::thermal_expansivity;
+    }
+    if (boost::iequals(inString, "thermal_expansivity_correction"))
+    {
+        return PropertyType::thermal_expansivity_correction;
     }
     if (boost::iequals(inString, "thermal_longitudinal_dispersivity"))
     {
@@ -396,10 +406,12 @@ static const std::array<std::string, PropertyType::number_of_properties>
                              "saturation_micro",
                              "specific_heat_capacity",
                              "storage",
+                             "storage_correction",
                              "swelling_stress_rate",
                              "thermal_conductivity",
                              "thermal_diffusion_enhancement_factor",
                              "thermal_expansivity",
+                             "thermal_expansivity_correction",
                              "thermal_longitudinal_dispersivity",
                              "thermal_osmosis_coefficient",
                              "thermal_transversal_dispersivity",
