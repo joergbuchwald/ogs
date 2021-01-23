@@ -21,13 +21,13 @@ namespace ThermoRichardsFlow
 /// \f$\rho_{vS}\f$
 double saturatedVaporDensity(double const T)
 {
-    return 1.0e-3 * exp(19.81 - 4975.9 / T);
+    return 1.0e-3 * std::exp(19.81 - 4975.9 / T);
 }
 
 /// \f$\frac{\partial \rho_{vS}}{\partial T}\f$
 double saturatedVaporDensityDerivative(double const T)
 {
-    return 4.9759 * exp(19.81 - 4975.9 / T) / (T * T);
+    return 4.9759 * std::exp(19.81 - 4975.9 / T) / (T * T);
 }
 
 double humidity(double const T, double const p, double const water_density)
