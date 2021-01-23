@@ -73,7 +73,7 @@
                         <property>
                             <name>thermal_expansivity</name>
                             <type>Constant</type>
-                            <value>0.0e-5</value>
+                            <value>0.0</value>
                         </property>
                     </properties>
                 </phase>
