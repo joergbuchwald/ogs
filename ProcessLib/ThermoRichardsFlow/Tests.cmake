@@ -51,10 +51,10 @@ AddTest(
     h_us_quad_1000.vtu richards_ogs5_pcs_ts_100_t_100.000000.vtu PRESSURE1 pressure 1e-1 1e-1
 )
 AddTest(
-    NAME ThermoRichardsFlow_comp_TRMuni_sat-TRuni_sat
+    NAME ThermoRichardsFlow_comp_TRMuni_saturated-TRuni_saturated
     PATH ThermoRichardsFlow/SimplifiedMechanics
     EXECUTABLE ogs
-    EXECUTABLE_ARGS TRuni_sat.prj
+    EXECUTABLE_ARGS TRuni_saturated.prj
     WRAPPER time
     TESTER vtkdiff
     REQUIREMENTS NOT (OGS_USE_LIS OR OGS_USE_MPI)
@@ -65,10 +65,10 @@ AddTest(
     expected_TRMuni_sat_ts_10_t_1.000000.vtu TRuni_sat_ts_10_t_1.000000.vtu saturation saturation 5e-5 1e-10
 )
 AddTest(
-    NAME ThermoRichardsFlow_comp_TRMuni_unsat-TRuni_unsat
+    NAME ThermoRichardsFlow_comp_TRMuni_unsaturated-TRuni_unsaturated
     PATH ThermoRichardsFlow/SimplifiedMechanics
     EXECUTABLE ogs
-    EXECUTABLE_ARGS TRuni_unsat.prj
+    EXECUTABLE_ARGS TRuni_unsaturated.prj
     WRAPPER time
     TESTER vtkdiff
     REQUIREMENTS NOT (OGS_USE_LIS OR OGS_USE_MPI)
@@ -79,10 +79,10 @@ AddTest(
     expected_TRMuni_unsat_ts_10_t_1.000000.vtu TRuni_unsat_ts_10_t_1.000000.vtu saturation saturation 5e-5 1e-10
 )
 AddTest(
-    NAME ThermoRichardsFlow_comp_TRMiso_sat-TRiso_sat
+    NAME ThermoRichardsFlow_comp_TRMiso_saturated-TRiso_saturated
     PATH ThermoRichardsFlow/SimplifiedMechanics
     EXECUTABLE ogs
-    EXECUTABLE_ARGS TRiso_sat.prj
+    EXECUTABLE_ARGS TRhyd_saturated.prj
     WRAPPER time
     TESTER vtkdiff
     REQUIREMENTS NOT (OGS_USE_LIS OR OGS_USE_MPI)
@@ -96,7 +96,7 @@ AddTest(
     NAME ThermoRichardsFlow_comp_TRMiso_unsat-TRiso_unsat
     PATH ThermoRichardsFlow/SimplifiedMechanics
     EXECUTABLE ogs
-    EXECUTABLE_ARGS TRiso_unsat.prj
+    EXECUTABLE_ARGS TRhyd_unsaturated.prj
     WRAPPER time
     TESTER vtkdiff
     REQUIREMENTS NOT (OGS_USE_LIS OR OGS_USE_MPI)
