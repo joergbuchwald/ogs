@@ -624,26 +624,6 @@ void ThermoRichardsFlowLocalAssembler<
         M_pT * T_dot;
 }
 
-template <int Components, typename StoreValuesFunction>
-std::vector<double> transposeInPlace(
-    StoreValuesFunction const& store_values_function)
-{
-    std::vector<double> result;
-    store_values_function(result);
-    // Transpose. For time being Eigen's transposeInPlace doesn't work for
-    // non-square mapped matrices.
-    MathLib::toMatrix<
-        Eigen::Matrix<double, Eigen::Dynamic, Components, Eigen::RowMajor>>(
-        result, result.size() / Components, Components) =
-        MathLib::toMatrix<
-            Eigen::Matrix<double, Components, Eigen::Dynamic, Eigen::RowMajor>>(
-            result, Components, result.size() / Components)
-            .transpose()
-            .eval();
-
-    return result;
-}
-
 template <typename ShapeFunction, typename IntegrationMethod,
           unsigned GlobalDim>
 std::vector<double> const&
