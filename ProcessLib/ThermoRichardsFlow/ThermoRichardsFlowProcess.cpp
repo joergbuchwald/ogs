@@ -270,13 +270,7 @@ void ThermoRichardsFlowProcess::postTimestepConcreteProcess(
 
     DBUG("PostTimestep ThermoRichardsFlowProcess.");
 
-    std::vector<NumLib::LocalToGlobalIndexMap const*> dof_tables;
-    auto const n_processes = x.size();
-    dof_tables.reserve(n_processes);
-    for (std::size_t process_id = 0; process_id < n_processes; ++process_id)
-    {
-        dof_tables.push_back(&getDOFTable(process_id));
-    }
+    auto const dof_tables = getDOFTables(x.size());
 
     ProcessLib::ProcessVariable const& pv = getProcessVariables(process_id)[0];
     GlobalExecutor::executeSelectedMemberOnDereferenced(
@@ -308,13 +302,7 @@ void ThermoRichardsFlowProcess::computeSecondaryVariableConcrete(
     DBUG(
         "Compute the secondary variables for "
         "ThermoRichardsFlowProcess.");
-    std::vector<NumLib::LocalToGlobalIndexMap const*> dof_tables;
-    auto const n_processes = x.size();
-    dof_tables.reserve(n_processes);
-    for (std::size_t process_id = 0; process_id < n_processes; ++process_id)
-    {
-        dof_tables.push_back(&getDOFTable(process_id));
-    }
+    auto const dof_tables = getDOFTables(x.size());
     ProcessLib::ProcessVariable const& pv = getProcessVariables(process_id)[0];
 
     GlobalExecutor::executeSelectedMemberOnDereferenced(
@@ -322,11 +310,24 @@ void ThermoRichardsFlowProcess::computeSecondaryVariableConcrete(
         pv.getActiveElementIDs(), dof_tables, t, dt, x, x_dot, process_id);
 }
 
+
 NumLib::LocalToGlobalIndexMap const& ThermoRichardsFlowProcess::getDOFTable(
     const int /*process_id*/) const
 {
     return *_local_to_global_index_map;
 }
+
+std::vector<NumLib::LocalToGlobalIndexMap const*>
+ThermoRichardsFlowProcess::getDOFTables(
+    int const number_of_processes) const
+{
+    std::vector<NumLib::LocalToGlobalIndexMap const*> dof_tables;
+    dof_tables.reserve(number_of_processes);
+    std::generate_n(std::back_inserter(dof_tables), number_of_processes,
+                    [&]() { return &getDOFTable(dof_tables.size()); });
+    return dof_tables;
+}
+
 
 }  // namespace ThermoRichardsFlow
 }  // namespace ProcessLib
