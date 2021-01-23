@@ -112,6 +112,8 @@ private:
                                           std::vector<GlobalVector*> const& x,
                                           GlobalVector const& x_dot,
                                           int const process_id) override;
+    std::vector<NumLib::LocalToGlobalIndexMap const*> getDOFTables(
+        const int number_of_processes) const;
 
     MeshLib::PropertyVector<double>* _heat_flux = nullptr;
     MeshLib::PropertyVector<double>* _hydraulic_flow = nullptr;
