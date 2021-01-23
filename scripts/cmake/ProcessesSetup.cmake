@@ -21,6 +21,7 @@ set(ProcessesList
     ThermoHydroMechanics
     ThermoMechanicalPhaseField
     ThermoMechanics
+    ThermoRichardsFlow
     TwoPhaseFlowWithPP
     TwoPhaseFlowWithPrho)
 
