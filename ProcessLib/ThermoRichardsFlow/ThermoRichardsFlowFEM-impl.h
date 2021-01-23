@@ -257,6 +257,7 @@ void ThermoRichardsFlowLocalAssembler<
         auto const alpha =
             medium->property(MPL::PropertyType::biot_coefficient)
                 .template value<double>(variables, x_position, t, dt);
+        // TODO (buchwaldj)
         // storage_correction + thermal_expansivity_correction -> MPL?
         auto storage_correction = 0.0;
         if (medium->hasProperty(MPL::PropertyType::storage_correction))
@@ -274,6 +275,7 @@ void ThermoRichardsFlowLocalAssembler<
                     .template value<double>(variables, x_position, t, dt);
         }
 
+        // TODO (buchwaldj)
         // is bulk_modulus good name for bulk modulus of solid skeleton?
         auto const K_S =
             solid_phase.property(MPL::PropertyType::bulk_modulus)
@@ -304,7 +306,9 @@ void ThermoRichardsFlowLocalAssembler<
                 .template dValue<double>(variables,
                                          MPL::Variable::capillary_pressure,
                                          x_position, t, dt);
-
+        // TODO (buchwaldj)
+        // chi_S_L and bishops_effective_stress needed for
+        // effective_pore_pressure only
         auto chi_S_L = S_L;
         auto chi_S_L_prev = S_L_prev;
         if (medium->hasProperty(MPL::PropertyType::bishops_effective_stress))
@@ -320,6 +324,8 @@ void ThermoRichardsFlowLocalAssembler<
             chi_S_L = chi(S_L);
             chi_S_L_prev = chi(S_L_prev);
         }
+        // TODO (buchwaldj)
+        // should solid_grain_pressure or effective_pore_pressure remain?
         // double const p_FR = -chi_S_L * p_cap_ip;
         // variables[static_cast<int>(MPL::Variable::solid_grain_pressure)] =
         // p_FR;
@@ -390,6 +396,8 @@ void ThermoRichardsFlowLocalAssembler<
         storage_p_a_p.noalias() +=
             N_p.transpose() * rho_LR * specific_storage_a_p * N_p * w;
 
+        // TODO (buchwaldj) alternative derivative
+        // which of both should be chosen?
         /*
         storage_p_a_S.noalias() -= N_p.transpose() * rho_LR *
                                        specific_storage_a_S * dS_L_dp_cap * N_p
@@ -438,9 +446,6 @@ void ThermoRichardsFlowLocalAssembler<
         //
         // pressure equation, temperature part.
         //
-        // Note:  d (rho_l * beta _T)/dp * dotT
-        // Add the thermal expansion term is the point is in the fully
-        // saturated zone.
         double const fluid_volumetric_thermal_expansion_coefficient =
             MPL::getLiquidThermalExpansivity(liquid_phase, variables, rho_LR,
                                              x_position, t, dt);
