@@ -11,7 +11,7 @@
     </meshes>
     <processes>
         <process>
-            <name>THERMO_HYDRO_MECHANICS</name>
+            <name>TRF</name>
             <type>THERMO_RICHARDS_FLOW</type>
             <integration_order>4</integration_order>
             <process_variables>
@@ -130,13 +130,13 @@
                     <name>thermal_expansivity_correction</name>
                     <type>Constant</type>
                         <!-- (-alpha_B*3*beta_s) //-->
-                    <value>-1.26e-6</value>
+                    <value>-8.337313432835821e-7</value>
                 </property>
                 <property>
                     <name>storage_correction</name>
                     <type>Constant</type>
                         <!-- \alpha_B^2/K //-->
-                    <value>3.4e-11</value>
+                    <value>2.2497512437810948e-11</value>
                 </property>
             </properties>
         </medium>
@@ -144,7 +144,7 @@
 
     <time_loop>
         <processes>
-            <process ref="THERMO_HYDRO_MECHANICS">
+            <process ref="TRF">
                 <nonlinear_solver>basic_newton</nonlinear_solver>
                 <convergence_criterion>
                     <type>PerComponentDeltaX</type>
@@ -169,7 +169,7 @@
         </processes>
         <output>
             <type>VTK</type>
-            <prefix>TRiso_sat</prefix>
+            <prefix>TRuni_sat</prefix>
             <timesteps>
                 <pair>
                     <repeat>100</repeat>
@@ -251,24 +251,6 @@
             <order>1</order>
             <initial_condition>pressure_ic</initial_condition>
             <boundary_conditions>
-                <!--boundary_condition>
-                    <mesh>single_cube_x10_surface</mesh>
-                    <type>Dirichlet</type>
-                    <component>0</component>
-                    <parameter>dirichlet0</parameter>
-                </boundary_condition>
-                <boundary_condition>
-                    <mesh>single_cube_y10_surface</mesh>
-                    <type>Dirichlet</type>
-                    <component>0</component>
-                    <parameter>dirichlet0</parameter>
-                </boundary_condition>
-                <boundary_condition>
-                    <mesh>single_cube_z10_surface</mesh>
-                    <type>Dirichlet</type>
-                    <component>0</component>
-                    <parameter>dirichlet0</parameter>
-                </boundary_condition-->
             </boundary_conditions>
         </process_variable>
         <process_variable>
@@ -327,18 +309,10 @@
     <linear_solvers>
         <linear_solver>
             <name>general_linear_solver</name>
-            <lis>-i bicgstab -p ilu -tol 1e-16 -maxiter 10000</lis>
             <eigen>
                 <solver_type>SparseLU</solver_type>
-                <precon_type>DIAGONAL</precon_type> 
-                <max_iteration_step>1000000</max_iteration_step>
-                <error_tolerance>1e-16</error_tolerance>
-                                <!-- <scaling>1</scaling> //-->
+                <scaling>1</scaling>
             </eigen>
-            <petsc>
-                <prefix>sd</prefix>
-                <parameters>-sd_ksp_type cg -sd_pc_type bjacobi -sd_ksp_rtol 1e-16 -sd_ksp_max_it 10000</parameters>
-            </petsc>
         </linear_solver>
     </linear_solvers>
 </OpenGeoSysProject>

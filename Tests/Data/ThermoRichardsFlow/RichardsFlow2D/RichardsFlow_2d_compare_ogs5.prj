@@ -7,11 +7,6 @@
             <name>GW23</name>
             <type>THERMO_RICHARDS_FLOW</type>
             <integration_order>2</integration_order>
-            <!--<jacobian_assembler>
-                <type>CentralDifferences</type>
-                <component_magnitudes>1e4</component_magnitudes>
-                <relative_epsilons>1e-6</relative_epsilons>
-            </jacobian_assembler>//-->
             <process_variables>
                 <temperature>temperature</temperature>
                 <pressure>pressure</pressure>
@@ -260,15 +255,10 @@
     <linear_solvers>
         <linear_solver>
             <name>general_linear_solver</name>
-            <lis>-i bicgstab -p ilu -tol 1e-16 -maxiter 5000 -print mem</lis>
             <eigen>
                 <solver_type>SparseLU</solver_type>
                 <scaling>1</scaling>
             </eigen>
-            <petsc>
-                <prefix>r</prefix>
-                <parameters>-r_ksp_type bicg -r_pc_type bjacobi -r_ksp_rtol 1e-16 -r_ksp_max_it 10000</parameters>
-            </petsc>
         </linear_solver>
     </linear_solvers>
 </OpenGeoSysProject>
