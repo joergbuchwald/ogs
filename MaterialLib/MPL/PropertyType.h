@@ -81,10 +81,13 @@ enum PropertyType : int
     storage,
     swelling_stress_rate,
     thermal_conductivity,
+    /// Thermal diffusion enhancement factor for water vapor flow
+    thermal_diffusion_enhancement_factor,
     thermal_expansivity,
     thermal_longitudinal_dispersivity,
     thermal_osmosis_coefficient,
     thermal_transversal_dispersivity,
+    tortuosity,
     transport_porosity,
     /// used to compute the hydrodynamic dispersion tensor.
     transversal_dispersivity,
@@ -273,6 +276,10 @@ inline PropertyType convertStringToProperty(std::string const& inString)
     {
         return PropertyType::thermal_conductivity;
     }
+    if (boost::iequals(inString, "thermal_diffusion_enhancement_factor"))
+    {
+        return PropertyType::thermal_diffusion_enhancement_factor;
+    }
     if (boost::iequals(inString, "thermal_expansivity"))
     {
         return PropertyType::thermal_expansivity;
@@ -288,6 +295,10 @@ inline PropertyType convertStringToProperty(std::string const& inString)
     if (boost::iequals(inString, "thermal_transversal_dispersivity"))
     {
         return PropertyType::thermal_transversal_dispersivity;
+    }
+    if (boost::iequals(inString, "tortuosity"))
+    {
+        return PropertyType::tortuosity;
     }
     if (boost::iequals(inString, "transport_porosity"))
     {
@@ -362,10 +373,12 @@ static const std::array<std::string, PropertyType::number_of_properties>
                              "storage",
                              "swelling_stress_rate",
                              "thermal_conductivity",
+                             "thermal_diffusion_enhancement_factor",
                              "thermal_expansivity",
                              "thermal_longitudinal_dispersivity",
                              "thermal_osmosis_coefficient",
                              "thermal_transversal_dispersivity",
+                             "tortuosity",
                              "transport_porosity",
                              "transversal_dispersivity",
                              "vapor_pressure",
