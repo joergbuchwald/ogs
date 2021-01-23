@@ -269,8 +269,7 @@ void ThermoRichardsFlowLocalAssembler<
         if (medium->hasProperty(MPL::PropertyType::storage_correction))
         {
             thermal_expansivity_correction =
-                medium
-                    ->property(
+                medium->property(
                         MPL::PropertyType::thermal_expansivity_correction)
                     .template value<double>(variables, x_position, t, dt);
         }
