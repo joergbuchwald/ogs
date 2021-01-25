@@ -301,11 +301,16 @@ void ThermoRichardsFlowLocalAssembler<
         variables_prev[static_cast<int>(MPL::Variable::liquid_saturation)] =
             S_L_prev;
 
-        double const dS_L_dp_cap =
-            medium->property(MPL::PropertyType::saturation)
+        auto dS_L_dp_cap = medium->property(MPL::PropertyType::saturation)
                 .template dValue<double>(variables,
                                          MPL::Variable::capillary_pressure,
                                          x_position, t, dt);
+        // gives better results for (p_cap_dot_ip != 0:
+        if (p_cap_dot_ip != 0)
+        {
+            dS_L_dp_cap = (S_L - S_L_prev) / (dt * p_cap_dot_ip);
+        }
+
         // TODO (buchwaldj)
         // chi_S_L and bishops_effective_stress needed for
         // effective_pore_pressure only
@@ -396,19 +401,9 @@ void ThermoRichardsFlowLocalAssembler<
         storage_p_a_p.noalias() +=
             N_p.transpose() * rho_LR * specific_storage_a_p * N_p * w;
 
-        // TODO (buchwaldj) alternative derivative
-        // which of both should be chosen?
-        /*
         storage_p_a_S.noalias() -= N_p.transpose() * rho_LR *
-                                       specific_storage_a_S * dS_L_dp_cap * N_p
-        * w;
-        */
-        if (p_cap_dot_ip != 0)  // prevent division by zero.
-        {
-            storage_p_a_S.noalias() -= N_p.transpose() * rho_LR *
-                                       specific_storage_a_S * (S_L - S_L_prev) /
-                                       (dt * p_cap_dot_ip) * N_p * w;
-        }
+                                       specific_storage_a_S * dS_L_dp_cap *
+                                       N_p * w;
 
         local_Jac
             .template block<pressure_size, pressure_size>(pressure_index,
