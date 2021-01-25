@@ -35,8 +35,8 @@ AddTest(
     REQUIREMENTS NOT (OGS_USE_LIS OR OGS_USE_MPI)
     RUNTIME 17
     DIFF_DATA
-    ref_t_1600.000000.vtu Richards_2D_small_pcs_ts_1100_t_1600.000000.vtu pressure pressure 5e-3 1e-8
-    ref_t_1600.000000.vtu Richards_2D_small_pcs_ts_1100_t_1600.000000.vtu saturation saturation 5e-3 1e-8
+    expected_Richards_2D_small_pcs_ts_1100_t_1600.000000.vtu Richards_2D_small_pcs_ts_1100_t_1600.000000.vtu pressure pressure 5e-3 1e-8
+    expected_Richards_2D_small_pcs_ts_1100_t_1600.000000.vtu Richards_2D_small_pcs_ts_1100_t_1600.000000.vtu saturation saturation 5e-3 1e-8
 )
 AddTest(
     NAME ThermoRichardsFlow_RichardsFlow2DSmall_ogs5
