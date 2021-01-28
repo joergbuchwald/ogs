@@ -93,7 +93,7 @@ AddTest(
     expected_TRMiso_sat_ts_10_t_1.000000.vtu TRiso_sat_ts_10_t_1.000000.vtu saturation saturation 5e-5 1e-10
 )
 AddTest(
-    NAME ThermoRichardsFlow_comp_TRMiso_unsat-TRiso_unsat
+    NAME ThermoRichardsFlow_comp_TRMiso_unsaturated-TRiso_unsaturated
     PATH ThermoRichardsFlow/SimplifiedMechanics
     EXECUTABLE ogs
     EXECUTABLE_ARGS TRhyd_unsaturated.prj
@@ -105,4 +105,32 @@ AddTest(
     expected_TRMiso_unsat_ts_10_t_1.000000.vtu TRiso_unsat_ts_10_t_1.000000.vtu temperature temperature 5e-5 1e-10
     expected_TRMiso_unsat_ts_10_t_1.000000.vtu TRiso_unsat_ts_10_t_1.000000.vtu pressure pressure 5e-3 1e-6
     expected_TRMiso_unsat_ts_10_t_1.000000.vtu TRiso_unsat_ts_10_t_1.000000.vtu saturation saturation 5e-5 1e-10
+)
+AddTest(
+    NAME ThermoRichardsFlow_comp_TRMuni_bishopstest-TRuni_bishopstest
+    PATH ThermoRichardsFlow/SimplifiedMechanics
+    EXECUTABLE ogs
+    EXECUTABLE_ARGS TRuni_unsaturated.prj
+    WRAPPER time
+    TESTER vtkdiff
+    REQUIREMENTS NOT (OGS_USE_LIS OR OGS_USE_MPI)
+    RUNTIME 1
+    DIFF_DATA
+    expected_TRMuni_unsat_bishopstest_ts_10_t_1.000000.vtu TRuni_unsat_ts_10_t_1.000000.vtu temperature temperature 5e-5 1e-10
+    expected_TRMuni_unsat_bishopstest_ts_10_t_1.000000.vtu TRuni_unsat_ts_10_t_1.000000.vtu pressure pressure 5e-3 1e-6
+    expected_TRMuni_unsat_bishopstest_ts_10_t_1.000000.vtu TRuni_unsat_ts_10_t_1.000000.vtu saturation saturation 5e-5 1e-10
+)
+AddTest(
+    NAME ThermoRichardsFlow_comp_TRMiso_bishopstest-TRiso_bishopstest
+    PATH ThermoRichardsFlow/SimplifiedMechanics
+    EXECUTABLE ogs
+    EXECUTABLE_ARGS TRhyd_unsaturated.prj
+    WRAPPER time
+    TESTER vtkdiff
+    REQUIREMENTS NOT (OGS_USE_LIS OR OGS_USE_MPI)
+    RUNTIME 1
+    DIFF_DATA
+    expected_TRMiso_unsat_bishopstest_ts_10_t_1.000000.vtu TRiso_unsat_ts_10_t_1.000000.vtu temperature temperature 5e-5 1e-10
+    expected_TRMiso_unsat_bishopstest_ts_10_t_1.000000.vtu TRiso_unsat_ts_10_t_1.000000.vtu pressure pressure 5e-3 1e-6
+    expected_TRMiso_unsat_bishopstest_ts_10_t_1.000000.vtu TRiso_unsat_ts_10_t_1.000000.vtu saturation saturation 5e-5 1e-10
 )
