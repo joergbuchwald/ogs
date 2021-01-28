@@ -301,21 +301,20 @@ void ThermoRichardsFlowLocalAssembler<
         variables_prev[static_cast<int>(MPL::Variable::liquid_saturation)] =
             S_L_prev;
 
-        auto dS_L_dp_cap = medium->property(MPL::PropertyType::saturation)
+        double const dS_L_dp_cap = medium->property(MPL::PropertyType::saturation)
                 .template dValue<double>(variables,
                                          MPL::Variable::capillary_pressure,
                                          x_position, t, dt);
+        auto DeltaS_L_Deltap_cap = 0.0;
         // gives better results for (p_cap_dot_ip != 0:
         if (p_cap_dot_ip != 0)
         {
-            dS_L_dp_cap = (S_L - S_L_prev) / (dt * p_cap_dot_ip);
+            DeltaS_L_Deltap_cap = (S_L - S_L_prev) / (dt * p_cap_dot_ip);
         }
 
-        // TODO (buchwaldj)
-        // chi_S_L and bishops_effective_stress needed for
-        // effective_pore_pressure only
         auto chi_S_L = S_L;
         auto chi_S_L_prev = S_L_prev;
+        auto dchi_dS_L = 1.0;
         if (medium->hasProperty(MPL::PropertyType::bishops_effective_stress))
         {
             auto const chi = [medium, x_position, t, dt](double const S_L) {
@@ -328,6 +327,11 @@ void ThermoRichardsFlowLocalAssembler<
             };
             chi_S_L = chi(S_L);
             chi_S_L_prev = chi(S_L_prev);
+
+            dchi_dS_L = medium->property(MPL::PropertyType::bishops_effective_stress)
+                .template dValue<double>(variables,
+                                         MPL::Variable::liquid_saturation,
+                                         x_position, t, dt);
         }
         // TODO (buchwaldj)
         // should solid_grain_pressure or effective_pore_pressure remain?
@@ -390,11 +394,12 @@ void ThermoRichardsFlowLocalAssembler<
         const double alphaB_minus_phi = (alpha > phi) ? alpha - phi : 0.0;
         double const a0 = alphaB_minus_phi * beta_SR;
         double const specific_storage_a_p =
-            S_L * (phi * beta_LR + S_L * (a0 + storage_correction));
+            S_L * (phi * beta_LR + S_L * a0 + chi_S_L * storage_correction);
         double const specific_storage_a_S = phi - p_cap_ip * S_L * a0;
 
         double const dspecific_storage_a_p_dp_cap =
-            dS_L_dp_cap * (phi * beta_LR + 2 * S_L * (a0 + storage_correction));
+            dS_L_dp_cap * (phi * beta_LR + 2 * S_L * a0 + storage_correction *
+                    (chi_S_L + dchi_dS_L * S_L));
         double const dspecific_storage_a_S_dp_cap =
             -a0 * (S_L + p_cap_ip * dS_L_dp_cap);
 
@@ -402,7 +407,7 @@ void ThermoRichardsFlowLocalAssembler<
             N_p.transpose() * rho_LR * specific_storage_a_p * N_p * w;
 
         storage_p_a_S.noalias() -= N_p.transpose() * rho_LR *
-                                       specific_storage_a_S * dS_L_dp_cap *
+                                       specific_storage_a_S * DeltaS_L_Deltap_cap *
                                        N_p * w;
 
         local_Jac
