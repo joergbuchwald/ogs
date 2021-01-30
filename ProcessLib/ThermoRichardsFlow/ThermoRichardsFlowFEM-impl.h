@@ -301,16 +301,16 @@ void ThermoRichardsFlowLocalAssembler<
         variables_prev[static_cast<int>(MPL::Variable::liquid_saturation)] =
             S_L_prev;
 
+        // tangent derivative for Jacobian
         double const dS_L_dp_cap = medium->property(MPL::PropertyType::saturation)
                 .template dValue<double>(variables,
                                          MPL::Variable::capillary_pressure,
                                          x_position, t, dt);
-        auto DeltaS_L_Deltap_cap = 0.0;
-        // gives better results for (p_cap_dot_ip != 0:
-        if (p_cap_dot_ip != 0)
-        {
-            DeltaS_L_Deltap_cap = (S_L - S_L_prev) / (dt * p_cap_dot_ip);
-        }
+        // secant derivative from time discretization for storage
+        // use tangent, if secant is not available
+        double const DeltaS_L_Deltap_cap =
+            (p_cap_dot_ip == 0) ? dS_L_dp_cap
+                                : (S_L - S_L_prev) / (dt * p_cap_dot_ip);
 
         auto chi_S_L = S_L;
         auto chi_S_L_prev = S_L_prev;
