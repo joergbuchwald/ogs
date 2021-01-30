@@ -214,7 +214,7 @@
         <parameter>
             <name>pressure_ic</name>
             <type>Constant</type>
-            <values>-1.e4</values>
+            <values>-1.e3</values>
         </parameter>
         <parameter>
             <name>dirichlet0</name>

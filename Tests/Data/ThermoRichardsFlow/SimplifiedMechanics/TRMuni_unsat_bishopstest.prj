@@ -158,6 +158,7 @@
         <processes>
             <process ref="THERMO_HYDRO_MECHANICS">
                 <nonlinear_solver>basic_newton</nonlinear_solver>
+                <compensate_non_equilibrium_initial_residuum>true</compensate_non_equilibrium_initial_residuum>
                 <convergence_criterion>
                     <type>PerComponentDeltaX</type>
                     <norm_type>NORM2</norm_type>
@@ -218,7 +219,7 @@
         <parameter>
             <name>pressure_ic</name>
             <type>Constant</type>
-            <values>-1.0e4</values>
+            <values>-1.0e3</values>
         </parameter>
         <parameter>
             <name>dirichlet0</name>
