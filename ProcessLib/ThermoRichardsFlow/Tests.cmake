@@ -75,11 +75,11 @@ AddTest(
     RUNTIME 1
     DIFF_DATA
     expected_TRMuni_unsat_ts_10_t_1.000000.vtu TRuni_unsat_ts_10_t_1.000000.vtu temperature temperature 5e-5 1e-10
-    expected_TRMuni_unsat_ts_10_t_1.000000.vtu TRuni_unsat_ts_10_t_1.000000.vtu pressure pressure 5e-3 1e-6
+    expected_TRMuni_unsat_ts_10_t_1.000000.vtu TRuni_unsat_ts_10_t_1.000000.vtu pressure pressure 5e-5 1e-6
     expected_TRMuni_unsat_ts_10_t_1.000000.vtu TRuni_unsat_ts_10_t_1.000000.vtu saturation saturation 5e-5 1e-10
 )
 AddTest(
-    NAME ThermoRichardsFlow_comp_TRMiso_saturated-TRiso_saturated
+    NAME ThermoRichardsFlow_comp_TRMhyd_saturated-TRhyd_saturated
     PATH ThermoRichardsFlow/SimplifiedMechanics
     EXECUTABLE ogs
     EXECUTABLE_ARGS TRhyd_saturated.prj
@@ -88,12 +88,12 @@ AddTest(
     REQUIREMENTS NOT (OGS_USE_LIS OR OGS_USE_MPI)
     RUNTIME 1
     DIFF_DATA
-    expected_TRMiso_sat_ts_10_t_1.000000.vtu TRiso_sat_ts_10_t_1.000000.vtu temperature temperature 5e-5 1e-10
-    expected_TRMiso_sat_ts_10_t_1.000000.vtu TRiso_sat_ts_10_t_1.000000.vtu pressure pressure 5e-5 1e-10
-    expected_TRMiso_sat_ts_10_t_1.000000.vtu TRiso_sat_ts_10_t_1.000000.vtu saturation saturation 5e-5 1e-10
+    expected_TRMhyd_sat_ts_10_t_1.000000.vtu TRhyd_sat_ts_10_t_1.000000.vtu temperature temperature 5e-5 1e-10
+    expected_TRMhyd_sat_ts_10_t_1.000000.vtu TRhyd_sat_ts_10_t_1.000000.vtu pressure pressure 5e-5 1e-10
+    expected_TRMhyd_sat_ts_10_t_1.000000.vtu TRhyd_sat_ts_10_t_1.000000.vtu saturation saturation 5e-5 1e-10
 )
 AddTest(
-    NAME ThermoRichardsFlow_comp_TRMiso_unsaturated-TRiso_unsaturated
+    NAME ThermoRichardsFlow_comp_TRMhyd_unsaturated-TRhyd_unsaturated
     PATH ThermoRichardsFlow/SimplifiedMechanics
     EXECUTABLE ogs
     EXECUTABLE_ARGS TRhyd_unsaturated.prj
@@ -102,35 +102,35 @@ AddTest(
     REQUIREMENTS NOT (OGS_USE_LIS OR OGS_USE_MPI)
     RUNTIME 1
     DIFF_DATA
-    expected_TRMiso_unsat_ts_10_t_1.000000.vtu TRiso_unsat_ts_10_t_1.000000.vtu temperature temperature 5e-5 1e-10
-    expected_TRMiso_unsat_ts_10_t_1.000000.vtu TRiso_unsat_ts_10_t_1.000000.vtu pressure pressure 5e-3 1e-6
-    expected_TRMiso_unsat_ts_10_t_1.000000.vtu TRiso_unsat_ts_10_t_1.000000.vtu saturation saturation 5e-5 1e-10
+    expected_TRMhyd_unsat_ts_10_t_1.000000.vtu TRhyd_unsat_ts_10_t_1.000000.vtu temperature temperature 5e-5 1e-10
+    expected_TRMhyd_unsat_ts_10_t_1.000000.vtu TRhyd_unsat_ts_10_t_1.000000.vtu pressure pressure 5e-5 1e-6
+    expected_TRMhyd_unsat_ts_10_t_1.000000.vtu TRhyd_unsat_ts_10_t_1.000000.vtu saturation saturation 5e-5 1e-10
 )
 AddTest(
     NAME ThermoRichardsFlow_comp_TRMuni_bishopstest-TRuni_bishopstest
     PATH ThermoRichardsFlow/SimplifiedMechanics
     EXECUTABLE ogs
-    EXECUTABLE_ARGS TRuni_unsaturated_bishoptest.prj
+    EXECUTABLE_ARGS TRuni_unsaturated_bishopstest.prj
     WRAPPER time
     TESTER vtkdiff
     REQUIREMENTS NOT (OGS_USE_LIS OR OGS_USE_MPI)
     RUNTIME 1
     DIFF_DATA
-    expected_TRMuni_unsat_bishopstest_ts_10_t_1.000000.vtu TRuni_unsat_bishopstest_ts_10_t_1.000000.vtu temperature temperature 5e-5 1e-10
-    expected_TRMuni_unsat_bishopstest_ts_10_t_1.000000.vtu TRuni_unsat_bishopstest_ts_10_t_1.000000.vtu pressure pressure 5e-3 1e-6
-    expected_TRMuni_unsat_bishopstest_ts_10_t_1.000000.vtu TRuni_unsat_bishopstest_ts_10_t_1.000000.vtu saturation saturation 5e-5 1e-10
+    expected_TRMuni_unsaturated_bishopstest_ts_10_t_1.000000.vtu TRuni_unsaturated_bishopstest_ts_10_t_1.000000.vtu temperature temperature 5e-5 1e-10
+    expected_TRMuni_unsaturated_bishopstest_ts_10_t_1.000000.vtu TRuni_unsaturated_bishopstest_ts_10_t_1.000000.vtu pressure pressure 5e-2 1e-6
+    expected_TRMuni_unsaturated_bishopstest_ts_10_t_1.000000.vtu TRuni_unsaturated_bishopstest_ts_10_t_1.000000.vtu saturation saturation 5e-5 1e-10
 )
 AddTest(
-    NAME ThermoRichardsFlow_comp_TRMiso_bishopstest-TRiso_bishopstest
+    NAME ThermoRichardsFlow_comp_TRMhyd_bishopstest-TRiso_bishopstest
     PATH ThermoRichardsFlow/SimplifiedMechanics
     EXECUTABLE ogs
-    EXECUTABLE_ARGS TRhyd_unsaturated_bishoptest.prj
+    EXECUTABLE_ARGS TRhyd_unsaturated_bishopstest.prj
     WRAPPER time
     TESTER vtkdiff
     REQUIREMENTS NOT (OGS_USE_LIS OR OGS_USE_MPI)
     RUNTIME 1
     DIFF_DATA
-    expected_TRMiso_unsat_bishopstest_ts_10_t_1.000000.vtu TRiso_unsat_bishopstest_ts_10_t_1.000000.vtu temperature temperature 5e-5 1e-10
-    expected_TRMiso_unsat_bishopstest_ts_10_t_1.000000.vtu TRiso_unsat_bishopstest_ts_10_t_1.000000.vtu pressure pressure 5e-3 1e-6
-    expected_TRMiso_unsat_bishopstest_ts_10_t_1.000000.vtu TRiso_unsat_bishopstest_ts_10_t_1.000000.vtu saturation saturation 5e-5 1e-10
+    expected_TRMhyd_unsaturated_bishopstest_ts_10_t_1.000000.vtu TRhyd_unsaturated_bishopstest_ts_10_t_1.000000.vtu temperature temperature 5e-5 1e-10
+    expected_TRMhyd_unsaturated_bishopstest_ts_10_t_1.000000.vtu TRhyd_unsaturated_bishopstest_ts_10_t_1.000000.vtu pressure pressure 5e-2 1e-6
+    expected_TRMhyd_unsaturated_bishopstest_ts_10_t_1.000000.vtu TRhyd_unsaturated_bishopstest_ts_10_t_1.000000.vtu saturation saturation 5e-5 1e-10
 )

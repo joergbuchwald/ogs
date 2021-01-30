@@ -83,7 +83,7 @@
                         <property>
                             <name>bulk_modulus</name>
                             <type>Constant</type>
-                            <value>2.647058823529412e6</value>
+                            <value>2.647058823529412e9</value>
                         </property>
                         <property>
                             <name>density</name>
@@ -136,18 +136,18 @@
                     <name>thermal_expansivity_correction</name>
                     <type>Constant</type>
                         <!-- (-alpha_B*3*beta_s) //-->
-                    <value>-1.26e-6</value>
+                    <value>-8.337313432835821e-7</value>
                 </property>
                 <property>
                     <name>storage_correction</name>
                     <type>Constant</type>
                         <!-- \alpha_B^2/K //-->
-                    <value>3.4e-8</value>
+                    <value>2.2497512437810948e-11</value>
                 </property>
                 <property>
                     <name>bishops_effective_stress</name>
                     <type>BishopsPowerLaw</type>
-                    <exponent>1</exponent>
+                    <exponent>3</exponent>
                 </property>
             </properties>
         </medium>
@@ -180,7 +180,7 @@
         </processes>
         <output>
             <type>VTK</type>
-            <prefix>TRiso_unsat_bishopstest</prefix>
+            <prefix>TRuni_unsaturated_bishopstest</prefix>
             <timesteps>
                 <pair>
                     <repeat>100</repeat>
@@ -214,7 +214,7 @@
         <parameter>
             <name>pressure_ic</name>
             <type>Constant</type>
-            <values>-1e4</values>
+            <values>-1.e3</values>
         </parameter>
         <parameter>
             <name>dirichlet0</name>

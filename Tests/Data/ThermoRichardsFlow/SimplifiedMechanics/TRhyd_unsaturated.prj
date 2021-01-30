@@ -175,7 +175,7 @@
         </processes>
         <output>
             <type>VTK</type>
-            <prefix>TRiso_unsat</prefix>
+            <prefix>TRhyd_unsat</prefix>
             <timesteps>
                 <pair>
                     <repeat>100</repeat>
