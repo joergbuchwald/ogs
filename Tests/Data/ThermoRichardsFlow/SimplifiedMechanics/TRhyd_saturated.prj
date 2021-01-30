@@ -169,7 +169,7 @@
         </processes>
         <output>
             <type>VTK</type>
-            <prefix>TRiso_sat</prefix>
+            <prefix>TRhyd_sat</prefix>
             <timesteps>
                 <pair>
                     <repeat>100</repeat>

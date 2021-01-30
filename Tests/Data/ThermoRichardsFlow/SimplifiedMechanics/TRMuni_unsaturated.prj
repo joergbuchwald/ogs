@@ -11,14 +11,22 @@
     </meshes>
     <processes>
         <process>
-            <name>TRF</name>
-            <type>THERMO_RICHARDS_FLOW</type>
+            <name>THERMO_HYDRO_MECHANICS</name>
+            <type>THERMO_RICHARDS_MECHANICS</type>
             <integration_order>4</integration_order>
+            <constitutive_relation>
+                <type>LinearElasticIsotropic</type>
+                <youngs_modulus>E</youngs_modulus>
+                <poissons_ratio>nu</poissons_ratio>
+            </constitutive_relation>
             <process_variables>
+                <displacement>displacement</displacement>
                 <pressure>pressure</pressure>
                 <temperature>temperature</temperature>
             </process_variables>
             <secondary_variables>
+                <secondary_variable internal_name="sigma" output_name="sigma"/>
+                <secondary_variable internal_name="epsilon" output_name="epsilon"/>
                 <secondary_variable internal_name="velocity" output_name="velocity"/>
                 <secondary_variable internal_name="saturation" output_name="saturation"/>
             </secondary_variables>
@@ -67,24 +75,16 @@
                             <type>Constant</type>
                             <value>1.e-3</value>
                         </property>
-                        <property>
-                            <name>relative_permeability</name>
-                            <type>RelativePermeabilityVanGenuchten</type>
-                            <residual_liquid_saturation>0.1689</residual_liquid_saturation>
-                            <residual_gas_saturation>0.05</residual_gas_saturation>
-                            <exponent>0.789029535864979</exponent>
-                            <minimum_relative_permeability_liquid>1e-12</minimum_relative_permeability_liquid>
-                        </property>
+                        <!--<property>
+                            <name>bulk_modulus</name>
+                            <type>Constant</type>
+                            <value>2.173913043478261e9</value>
+                        </property>//-->
                     </properties>
                 </phase>
                 <phase>
                     <type>Solid</type>
                     <properties>
-                        <property>
-                            <name>bulk_modulus</name>
-                            <type>Constant</type>
-                            <value>2.647058823529412e6</value>
-                        </property>
                         <property>
                             <name>density</name>
                             <type>Constant</type>
@@ -125,24 +125,20 @@
                     <value>0.183</value>
                 </property>
                 <property>
+                    <name>relative_permeability</name>
+                    <type>RelativePermeabilityVanGenuchten</type>
+                    <residual_liquid_saturation>0.1689</residual_liquid_saturation>
+                    <residual_gas_saturation>0.05</residual_gas_saturation>
+                    <exponent>0.789029535864979</exponent>
+                    <minimum_relative_permeability_liquid>1e-12</minimum_relative_permeability_liquid>
+                </property>
+                <property>
                     <name>saturation</name>
                     <type>SaturationVanGenuchten</type>
                     <residual_liquid_saturation>0.1689</residual_liquid_saturation>
                     <residual_gas_saturation>0.05</residual_gas_saturation>
                     <exponent>0.789029535864979</exponent>
                     <p_b>3633.33</p_b>
-                </property>
-                <property>
-                    <name>thermal_expansivity_correction</name>
-                    <type>Constant</type>
-                        <!-- (-alpha_B*3*beta_s) //-->
-                    <value>-8.337313432835821e-7</value>
-                </property>
-                <property>
-                    <name>storage_correction</name>
-                    <type>Constant</type>
-                        <!-- \alpha_B^2/K //-->
-                    <value>2.2497512437810948e-8</value>
                 </property>
                 <property>
                     <name>bishops_effective_stress</name>
@@ -155,12 +151,13 @@
 
     <time_loop>
         <processes>
-            <process ref="TRF">
+            <process ref="THERMO_HYDRO_MECHANICS">
                 <nonlinear_solver>basic_newton</nonlinear_solver>
+                <compensate_non_equilibrium_initial_residuum>true</compensate_non_equilibrium_initial_residuum>
                 <convergence_criterion>
                     <type>PerComponentDeltaX</type>
                     <norm_type>NORM2</norm_type>
-                    <abstols>1e-5 1e-2</abstols>
+                    <abstols>1e-5 1e-2 1e-5 1e-5 1e-5</abstols>
                 </convergence_criterion>
                 <time_discretization>
                     <type>BackwardEuler</type>
@@ -180,7 +177,7 @@
         </processes>
         <output>
             <type>VTK</type>
-            <prefix>TRuni_unsat_bishopstest</prefix>
+            <prefix>TRMuni_unsat</prefix>
             <timesteps>
                 <pair>
                     <repeat>100</repeat>
@@ -188,8 +185,11 @@
                 </pair>
             </timesteps>
             <variables>
+                <variable>displacement</variable>
                 <variable>pressure</variable>
                 <variable>temperature</variable>
+                <variable>sigma</variable>
+                <variable>epsilon</variable>
                 <variable>velocity</variable>
                 <variable>saturation</variable>
             </variables>
@@ -214,7 +214,7 @@
         <parameter>
             <name>pressure_ic</name>
             <type>Constant</type>
-            <values>-1.e3</values>
+            <values>-1.0e4</values>
         </parameter>
         <parameter>
             <name>dirichlet0</name>
@@ -257,11 +257,73 @@
     </curves>
     <process_variables>
         <process_variable>
+            <name>displacement</name>
+            <components>3</components>
+            <order>1</order>
+            <initial_condition>displacement0</initial_condition>
+            <boundary_conditions>
+                <boundary_condition>
+                    <mesh>single_cube_x0_surface</mesh>
+                    <type>Dirichlet</type>
+                    <component>0</component>
+                    <parameter>dirichlet0</parameter>
+                </boundary_condition>
+                <boundary_condition>
+                    <mesh>single_cube_y0_surface</mesh>
+                    <type>Dirichlet</type>
+                    <component>1</component>
+                    <parameter>dirichlet0</parameter>
+                </boundary_condition>
+                <boundary_condition>
+                    <mesh>single_cube_z0_surface</mesh>
+                    <type>Dirichlet</type>
+                    <component>2</component>
+                    <parameter>dirichlet0</parameter>
+                </boundary_condition>
+                <boundary_condition>
+                    <mesh>single_cube_x10_surface</mesh>
+                    <type>Dirichlet</type>
+                    <component>0</component>
+                    <parameter>neumann0</parameter>
+                </boundary_condition>
+                <boundary_condition>
+                    <mesh>single_cube_y10_surface</mesh>
+                    <type>Dirichlet</type>
+                    <component>1</component>
+                    <parameter>neumann0</parameter>
+                </boundary_condition>
+                <boundary_condition>
+                    <mesh>single_cube_z10_surface</mesh>
+                    <type>Neumann</type>
+                    <component>2</component>
+                    <parameter>neumann0</parameter>
+                </boundary_condition>
+            </boundary_conditions>
+        </process_variable>
+        <process_variable>
             <name>pressure</name>
             <components>1</components>
             <order>1</order>
             <initial_condition>pressure_ic</initial_condition>
             <boundary_conditions>
+                <!--boundary_condition>
+                    <mesh>single_cube_x10_surface</mesh>
+                    <type>Dirichlet</type>
+                    <component>0</component>
+                    <parameter>dirichlet0</parameter>
+                </boundary_condition>
+                <boundary_condition>
+                    <mesh>single_cube_y10_surface</mesh>
+                    <type>Dirichlet</type>
+                    <component>0</component>
+                    <parameter>dirichlet0</parameter>
+                </boundary_condition>
+                <boundary_condition>
+                    <mesh>single_cube_z10_surface</mesh>
+                    <type>Dirichlet</type>
+                    <component>0</component>
+                    <parameter>dirichlet0</parameter>
+                </boundary_condition-->
             </boundary_conditions>
         </process_variable>
         <process_variable>
@@ -320,10 +382,18 @@
     <linear_solvers>
         <linear_solver>
             <name>general_linear_solver</name>
+            <lis>-i bicgstab -p ilu -tol 1e-16 -maxiter 10000</lis>
             <eigen>
                 <solver_type>SparseLU</solver_type>
-                <scaling>1</scaling>
+                <precon_type>DIAGONAL</precon_type> 
+                <max_iteration_step>1000000</max_iteration_step>
+                <error_tolerance>1e-16</error_tolerance>
+                                <!-- <scaling>1</scaling> //-->
             </eigen>
+            <petsc>
+                <prefix>sd</prefix>
+                <parameters>-sd_ksp_type cg -sd_pc_type bjacobi -sd_ksp_rtol 1e-16 -sd_ksp_max_it 10000</parameters>
+            </petsc>
         </linear_solver>
     </linear_solvers>
 </OpenGeoSysProject>

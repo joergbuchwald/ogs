@@ -126,19 +126,13 @@
                 </property>
                 <property>
                     <name>relative_permeability</name>
-                    <type>RelativePermeabilityVanGenuchten</type>
-                    <residual_liquid_saturation>0.1689</residual_liquid_saturation>
-                    <residual_gas_saturation>0.05</residual_gas_saturation>
-                    <exponent>0.789029535864979</exponent>
-                    <minimum_relative_permeability_liquid>1e-12</minimum_relative_permeability_liquid>
+                    <type>Constant</type>
+                    <value>1</value>
                 </property>
                 <property>
                     <name>saturation</name>
-                    <type>SaturationVanGenuchten</type>
-                    <residual_liquid_saturation>0.1689</residual_liquid_saturation>
-                    <residual_gas_saturation>0.05</residual_gas_saturation>
-                    <exponent>0.789029535864979</exponent>
-                    <p_b>3633.33</p_b>
+                    <type>Constant</type>
+                    <value>1</value>
                 </property>
                 <property>
                     <name>bishops_effective_stress</name>
@@ -176,7 +170,7 @@
         </processes>
         <output>
             <type>VTK</type>
-            <prefix>TRMiso_unsat</prefix>
+            <prefix>TRMhyd_sat</prefix>
             <timesteps>
                 <pair>
                     <repeat>100</repeat>
@@ -213,7 +207,7 @@
         <parameter>
             <name>pressure_ic</name>
             <type>Constant</type>
-            <values>-1e4</values>
+            <values>0</values>
         </parameter>
         <parameter>
             <name>dirichlet0</name>
