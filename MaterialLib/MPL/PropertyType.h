@@ -69,6 +69,7 @@ enum PropertyType : int
     /// ion diffusivity in the porous medium with account of the effect of
     /// tortuosity and connectivity.
     pore_diffusion,
+    poissons_ratio,
     porosity,
     reference_density,
     reference_temperature,
@@ -84,13 +85,11 @@ enum PropertyType : int
     saturation_micro,
     specific_heat_capacity,
     storage,
-    storage_correction,
     swelling_stress_rate,
     thermal_conductivity,
     /// Thermal diffusion enhancement factor for water vapor flow
     thermal_diffusion_enhancement_factor,
     thermal_expansivity,
-    thermal_expansivity_correction,
     thermal_longitudinal_dispersivity,
     thermal_osmosis_coefficient,
     thermal_transversal_dispersivity,
@@ -103,6 +102,7 @@ enum PropertyType : int
     vapour_diffusion,
     viscosity,
     volume_fraction,
+    youngs_modulus,
     number_of_properties
 };
 
@@ -233,6 +233,10 @@ inline PropertyType convertStringToProperty(std::string const& inString)
     {
         return PropertyType::porosity;
     }
+    if (boost::iequals(inString, "poissons_ratio"))
+    {
+        return PropertyType::poissons_ratio;
+    }
     if (boost::iequals(inString, "phase_velocity"))
     {
         return PropertyType::phase_velocity;
@@ -285,10 +289,6 @@ inline PropertyType convertStringToProperty(std::string const& inString)
     {
         return PropertyType::storage;
     }
-    if (boost::iequals(inString, "storage_correction"))
-    {
-        return PropertyType::storage_correction;
-    }
     if (boost::iequals(inString, "swelling_stress_rate"))
     {
         return PropertyType::swelling_stress_rate;
@@ -304,10 +304,6 @@ inline PropertyType convertStringToProperty(std::string const& inString)
     if (boost::iequals(inString, "thermal_expansivity"))
     {
         return PropertyType::thermal_expansivity;
-    }
-    if (boost::iequals(inString, "thermal_expansivity_correction"))
-    {
-        return PropertyType::thermal_expansivity_correction;
     }
     if (boost::iequals(inString, "thermal_longitudinal_dispersivity"))
     {
@@ -353,6 +349,10 @@ inline PropertyType convertStringToProperty(std::string const& inString)
     {
         return PropertyType::volume_fraction;
     }
+    if (boost::iequals(inString, "youngs_modulus"))
+    {
+        return PropertyType::youngs_modulus;
+    }
 
     OGS_FATAL(
         "The property name '{:s}' does not correspond to any known property",
@@ -393,6 +393,7 @@ static const std::array<std::string, PropertyType::number_of_properties>
                              "permeability",
                              "phase_velocity",
                              "pore_diffusion",
+                             "poissons_ratio",
                              "porosity",
                              "reference_density",
                              "reference_temperature",
@@ -406,12 +407,10 @@ static const std::array<std::string, PropertyType::number_of_properties>
                              "saturation_micro",
                              "specific_heat_capacity",
                              "storage",
-                             "storage_correction",
                              "swelling_stress_rate",
                              "thermal_conductivity",
                              "thermal_diffusion_enhancement_factor",
                              "thermal_expansivity",
-                             "thermal_expansivity_correction",
                              "thermal_longitudinal_dispersivity",
                              "thermal_osmosis_coefficient",
                              "thermal_transversal_dispersivity",
@@ -422,7 +421,8 @@ static const std::array<std::string, PropertyType::number_of_properties>
                              "vapour_density",
                              "vapour_diffusion",
                              "viscosity",
-                             "volume_fraction"}};
+                             "volume_fraction",
+                             "youngs_modulus"}};
 
 /// This data type is based on a std::array. It can hold pointers to objects of
 /// class Property or its inheritors. The size of this array is determined by

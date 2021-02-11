@@ -14,11 +14,13 @@
 #include "MaterialLib/MPL/Medium.h"
 #include "MaterialLib/MPL/Utils/FormEffectiveThermalConductivity.h"
 #include "MaterialLib/MPL/Utils/FormEigenTensor.h"
+#include "MaterialLib/MPL/Utils/FormEigenVector.h"
 #include "MaterialLib/MPL/Utils/GetLiquidThermalExpansivity.h"
 #include "MaterialLib/PhysicalConstant.h"
 #include "MaterialLib/SolidModels/SelectSolidConstitutiveRelation.h"
 #include "NumLib/Function/Interpolation.h"
 #include "ProcessLib/Utils/SetOrGetIntegrationPointData.h"
+#include "SimplifiedMechanics.h"
 #include "WaterVaporProperty.h"
 
 namespace ProcessLib
@@ -257,30 +259,26 @@ void ThermoRichardsFlowLocalAssembler<
         auto const alpha =
             medium->property(MPL::PropertyType::biot_coefficient)
                 .template value<double>(variables, x_position, t, dt);
-        // TODO (buchwaldj)
-        // storage_correction + thermal_expansivity_correction -> MPL?
-        auto storage_correction = 0.0;
-        if (medium->hasProperty(MPL::PropertyType::storage_correction))
-        {
-            storage_correction =
-                medium->property(MPL::PropertyType::storage_correction)
-                    .template value<double>(variables, x_position, t, dt);
-        }
-        auto thermal_expansivity_correction = 0.0;
-        if (medium->hasProperty(MPL::PropertyType::storage_correction))
-        {
-            thermal_expansivity_correction =
-                medium->property(
-                        MPL::PropertyType::thermal_expansivity_correction)
-                    .template value<double>(variables, x_position, t, dt);
-        }
 
+        auto const youngs_modulus =
+            solid_phase.hasProperty(MPL::PropertyType::youngs_modulus)
+                ? MaterialPropertyLib::formEigenVector<3>(
+                      solid_phase.property(MPL::PropertyType::youngs_modulus)
+                          .value(variables, x_position, t, dt))
+                : MaterialPropertyLib::formEigenVector<3>(0.0);
+        auto const nu =
+            solid_phase.hasProperty(MPL::PropertyType::poissons_ratio)
+                ? MaterialPropertyLib::formEigenVector<3>(
+                      solid_phase.property(MPL::PropertyType::poissons_ratio)
+                          .value(variables, x_position, t, dt))
+                : MaterialPropertyLib::formEigenVector<3>(0.0);
+        auto& div_u_dot = *_process_data.simplified_mechanics;
         // TODO (buchwaldj)
         // is bulk_modulus good name for bulk modulus of solid skeleton?
-        auto const K_S =
-            solid_phase.property(MPL::PropertyType::bulk_modulus)
-                .template value<double>(variables, x_position, t, dt);
-        auto const beta_SR = (1 - alpha) / K_S;
+        // needs to be replaced by youngs modulus
+        auto const beta_S =
+            div_u_dot.bulkCompressibilityFromYoungsModulus(youngs_modulus, nu);
+        auto const beta_SR = (1 - alpha) * beta_S;
         variables[static_cast<int>(MPL::Variable::grain_compressibility)] =
             beta_SR;
 
@@ -394,12 +392,16 @@ void ThermoRichardsFlowLocalAssembler<
         const double alphaB_minus_phi = (alpha > phi) ? alpha - phi : 0.0;
         double const a0 = alphaB_minus_phi * beta_SR;
         double const specific_storage_a_p =
-            S_L * (phi * beta_LR + S_L * a0 + chi_S_L * storage_correction);
+            S_L * (phi * beta_LR + S_L * a0 +
+                   chi_S_L * alpha * alpha *
+                       div_u_dot.storageContribution(youngs_modulus, nu));
         double const specific_storage_a_S = phi - p_cap_ip * S_L * a0;
 
         double const dspecific_storage_a_p_dp_cap =
-            dS_L_dp_cap * (phi * beta_LR + 2 * S_L * a0 + storage_correction *
-                    (chi_S_L + dchi_dS_L * S_L));
+            dS_L_dp_cap *
+            (phi * beta_LR + 2 * S_L * a0 +
+             alpha * alpha * div_u_dot.storageContribution(youngs_modulus, nu) *
+                 (chi_S_L + dchi_dS_L * S_L));
         double const dspecific_storage_a_S_dp_cap =
             -a0 * (S_L + p_cap_ip * dS_L_dp_cap);
 
@@ -453,7 +455,9 @@ void ThermoRichardsFlowLocalAssembler<
             S_L * (alphaB_minus_phi *
                        solid_linear_thermal_expansion_coefficient.trace() +
                    phi * fluid_volumetric_thermal_expansion_coefficient +
-                   thermal_expansivity_correction);
+                   alpha * div_u_dot.thermalExpansivityContribution(
+                               solid_linear_thermal_expansion_coefficient,
+                               youngs_modulus, nu));
         M_pT.noalias() -=
             N_p.transpose() * rho_LR * eff_thermal_expansion * N_p * w;
 

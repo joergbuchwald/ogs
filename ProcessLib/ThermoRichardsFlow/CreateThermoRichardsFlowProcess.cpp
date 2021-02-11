@@ -21,6 +21,7 @@
 #include "ParameterLib/Utils.h"
 #include "ProcessLib/Output/CreateSecondaryVariables.h"
 #include "ProcessLib/Utils/ProcessUtils.h"
+#include "SimplifiedMechanics.h"
 #include "ThermoRichardsFlowProcess.h"
 #include "ThermoRichardsFlowProcessData.h"
 
@@ -32,12 +33,18 @@ void checkMPLProperties(
     std::map<int, std::shared_ptr<MaterialPropertyLib::Medium>> const& media)
 {
     std::array const required_medium_properties = {
+        MaterialPropertyLib::permeability,
         MaterialPropertyLib::porosity, MaterialPropertyLib::biot_coefficient,
         MaterialPropertyLib::relative_permeability,
         MaterialPropertyLib::saturation};
     std::array const required_liquid_properties = {
-        MaterialPropertyLib::viscosity, MaterialPropertyLib::density};
-    std::array const required_solid_properties = {MaterialPropertyLib::density};
+        MaterialPropertyLib::viscosity,
+        MaterialPropertyLib::thermal_expansivity,
+        MaterialPropertyLib::density,
+    };
+    std::array const required_solid_properties = {
+        MaterialPropertyLib::density,
+        MaterialPropertyLib::thermal_expansivity };
 
     // Thermal properties are not checked because they can be phase property or
     // meduim property (will be enabled later).
@@ -154,6 +161,25 @@ std::unique_ptr<Process> createThermoRichardsFlowProcess(
         mass_lumping = *mass_lumping_ptr;
     }
 
+    std::unique_ptr<MechanicsModel> simplified_mechanics =
+        std::make_unique<Rigid>();
+    if (auto const simplified_mechanics_ptr =
+            //! \ogs_file_param{prj__processes__process__THERMO_RICHARDS_MECHANICS__simplified_mechanics}
+        config.getConfigParameterOptional<std::string>("simplified_mechanics"))
+    {
+        DBUG("Using simplified_mechanics for the Richards flow equation");
+        if (*simplified_mechanics_ptr == "uniaxial")
+        {
+            DBUG("assuming local uniaxial deformation only.");
+            simplified_mechanics = std::make_unique<Uniaxial>();
+        }
+        else if (*simplified_mechanics_ptr == "hydrostatic")
+        {
+            DBUG("assuming constant hydrostatic stress locally.");
+            simplified_mechanics = std::make_unique<Hydrostatic>();
+        }
+    }
+
     bool has_water_vaporization = false;
     if (auto const has_water_vaporization_ptr =
             //! \ogs_file_param{prj__processes__process__THERMO_RICHARDS_MECHANICS__has_water_vaporization}
@@ -163,9 +189,12 @@ std::unique_ptr<Process> createThermoRichardsFlowProcess(
         has_water_vaporization = *has_water_vaporization_ptr;
     }
 
-    ThermoRichardsFlowProcessData process_data{
-        materialIDs(mesh), std::move(media_map), specific_body_force,
-        mass_lumping, has_water_vaporization};
+    ThermoRichardsFlowProcessData process_data{materialIDs(mesh),
+                                               std::move(media_map),
+                                               specific_body_force,
+                                               mass_lumping,
+                                               std::move(simplified_mechanics),
+                                               has_water_vaporization};
 
     SecondaryVariableCollection secondary_variables;
 

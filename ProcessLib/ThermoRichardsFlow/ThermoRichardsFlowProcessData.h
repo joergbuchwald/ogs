@@ -16,6 +16,7 @@
 
 #include "MaterialLib/MPL/MaterialSpatialDistributionMap.h"
 #include "ParameterLib/Parameter.h"
+#include "SimplifiedMechanics.h"
 
 namespace ProcessLib
 {
@@ -34,6 +35,7 @@ struct ThermoRichardsFlowProcessData
     Eigen::VectorXd const specific_body_force;
 
     bool const apply_mass_lumping;
+    std::unique_ptr<MechanicsModel> simplified_mechanics = nullptr;
     bool const has_water_vaporization;
 
     MeshLib::PropertyVector<double>* element_saturation = nullptr;
