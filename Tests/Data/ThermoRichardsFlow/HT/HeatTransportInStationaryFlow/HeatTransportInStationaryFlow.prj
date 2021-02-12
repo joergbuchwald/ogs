@@ -55,7 +55,7 @@
                     <type>Solid</type>
                     <properties>
                         <property>
-                            <name>bulk_modulus</name>
+                            <name>youngs_modulus</name>
                             <type>Constant</type>
                             <value>1.0e10</value>
                         </property>

@@ -43,18 +43,13 @@
                             <type>Constant</type>
                             <value>1.0e-3</value>
                         </property>
-                        <!--<property>
-                            <name>bulk_modulus</name>
-                            <type>Constant</type>
-                            <value>1.0e15</value>
-                        </property>//-->
                     </properties>
                 </phase>
                 <phase>
                     <type>Solid</type>
                     <properties>
                         <property>
-                            <name>bulk_modulus</name>
+                            <name>youngs_modulus</name>
                             <type>Constant</type>
                             <value>2.2e15</value>
                         </property>

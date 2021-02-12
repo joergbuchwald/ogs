@@ -39,12 +39,10 @@ void checkMPLProperties(
         MaterialPropertyLib::saturation};
     std::array const required_liquid_properties = {
         MaterialPropertyLib::viscosity,
-        MaterialPropertyLib::thermal_expansivity,
         MaterialPropertyLib::density,
     };
     std::array const required_solid_properties = {
-        MaterialPropertyLib::density,
-        MaterialPropertyLib::thermal_expansivity };
+        MaterialPropertyLib::density};
 
     // Thermal properties are not checked because they can be phase property or
     // meduim property (will be enabled later).

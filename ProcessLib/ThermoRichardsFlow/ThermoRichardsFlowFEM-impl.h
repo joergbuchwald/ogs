@@ -847,10 +847,22 @@ void ThermoRichardsFlowLocalAssembler<ShapeFunction, IntegrationMethod,
             medium->property(MPL::PropertyType::biot_coefficient)
                 .template value<double>(variables, x_position, t, dt);
 
-        auto const K_SR =
-            solid_phase.property(MPL::PropertyType::bulk_modulus)
-                .template value<double>(variables, x_position, t, dt);
-        auto const beta_SR = (1 - alpha) / K_SR;
+        auto const youngs_modulus =
+            solid_phase.hasProperty(MPL::PropertyType::youngs_modulus)
+                ? MaterialPropertyLib::formEigenVector<3>(
+                      solid_phase.property(MPL::PropertyType::youngs_modulus)
+                          .value(variables, x_position, t, dt))
+                : MaterialPropertyLib::formEigenVector<3>(0.0);
+        auto const nu =
+            solid_phase.hasProperty(MPL::PropertyType::poissons_ratio)
+                ? MaterialPropertyLib::formEigenVector<3>(
+                      solid_phase.property(MPL::PropertyType::poissons_ratio)
+                          .value(variables, x_position, t, dt))
+                : MaterialPropertyLib::formEigenVector<3>(0.0);
+        auto& div_u_dot = *_process_data.simplified_mechanics;
+        auto const beta_S =
+            div_u_dot.bulkCompressibilityFromYoungsModulus(youngs_modulus, nu);
+        auto const beta_SR = (1 - alpha) * beta_S;
         variables[static_cast<int>(MPL::Variable::grain_compressibility)] =
             beta_SR;
 
