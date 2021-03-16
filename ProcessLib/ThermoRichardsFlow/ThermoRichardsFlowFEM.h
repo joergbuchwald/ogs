@@ -77,6 +77,13 @@ public:
                               std::vector<double>& local_rhs_data,
                               std::vector<double>& local_Jac_data) override;
 
+    void assemble(double const t, double const dt,
+                              std::vector<double> const& local_x,
+                              std::vector<double> const& local_xdot,
+                              std::vector<double>& local_M_data,
+                              std::vector<double>& local_K_data,
+                              std::vector<double>& local_rhs_data) override;
+
     void initializeConcrete() override
     {
         unsigned const n_integration_points =

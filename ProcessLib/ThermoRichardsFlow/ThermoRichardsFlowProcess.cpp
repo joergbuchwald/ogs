@@ -218,15 +218,22 @@ void ThermoRichardsFlowProcess::setInitialConditionsConcreteProcess(
 }
 
 void ThermoRichardsFlowProcess::assembleConcreteProcess(
-    const double /*t*/, double const /*dt*/,
-    std::vector<GlobalVector*> const& /*x*/,
-    std::vector<GlobalVector*> const& /*xdot*/, int const /*process_id*/,
-    GlobalMatrix& /*M*/, GlobalMatrix& /*K*/, GlobalVector& /*b*/)
+    const double t, double const dt,
+    std::vector<GlobalVector*> const& x,
+    std::vector<GlobalVector*> const& xdot, int const process_id,
+    GlobalMatrix& M, GlobalMatrix& K, GlobalVector& b)
 {
-    OGS_FATAL(
-        "The Picard method or the Newton-Raphson method with numerical "
-        "Jacobian is not implemented for ThermoRichardsFlow with "
-        "the full monolithic coupling scheme");
+    DBUG("Assemble the equations for ThermoRichardsFlowProcess.");
+
+    std::vector<std::reference_wrapper<NumLib::LocalToGlobalIndexMap>>
+        dof_table = {std::ref(*_local_to_global_index_map)};
+    ProcessLib::ProcessVariable const& pv = getProcessVariables(process_id)[0];
+
+    // Call global assembler for each local assembly item.
+    GlobalExecutor::executeSelectedMemberDereferenced(
+        _global_assembler, &VectorMatrixAssembler::assemble, _local_assemblers,
+        pv.getActiveElementIDs(), dof_table, t, dt, x, xdot, process_id, M, K,
+        b);
 }
 
 void ThermoRichardsFlowProcess::assembleWithJacobianConcreteProcess(
