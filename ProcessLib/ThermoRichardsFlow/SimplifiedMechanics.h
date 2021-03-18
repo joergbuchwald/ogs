@@ -46,6 +46,10 @@ struct MechanicsModel
                       (E[0] * E[1] * E[2]);
         return beta_ortho;
     }
+    virtual bool custommodel()
+    {
+        return false;
+    }
 
         virtual ~MechanicsModel() = default;
 };
@@ -83,6 +87,10 @@ struct Uniaxial : MechanicsModel
                  solid_linear_thermal_expansion_coefficient(1, 1) *
                      (nu23 + nu13 * nu21) / D);
     }
+    bool custommodel() override
+    {
+        return false;
+    }
 };
 
 struct Hydrostatic : MechanicsModel
@@ -104,6 +112,10 @@ struct Hydrostatic : MechanicsModel
     {
         return -solid_linear_thermal_expansion_coefficient.trace();
     }
+    bool custommodel() override
+    {
+        return false;
+    }
 };
 
 struct Rigid : MechanicsModel
@@ -123,6 +135,36 @@ struct Rigid : MechanicsModel
         Eigen::Vector3d /*nu*/) override
     {
         return 0.0;
+    }
+    bool custommodel() override
+    {
+        return false;
+    }
+};
+
+struct Custom : MechanicsModel
+{
+    Custom() { DBUG("using custom mechanics model"); }
+
+    double storageContribution(Eigen::Vector3d /*E*/,
+                               Eigen::Vector3d /*nu*/) override
+    {
+        OGS_FATAL("bitte hier nicht");
+        return 0.0;
+    }
+
+    double thermalExpansivityContribution(
+        Eigen::
+            Matrix<double, 3, 3> /*solid_linear_thermal_expansion_coefficient*/,
+        Eigen::Vector3d /*E*/,
+        Eigen::Vector3d /*nu*/) override
+    {
+        OGS_FATAL("bitte hier nicht");
+        return 0.0;
+    }
+    bool custommodel() override
+    {
+        return true;
     }
 };
 

@@ -176,6 +176,11 @@ std::unique_ptr<Process> createThermoRichardsFlowProcess(
             DBUG("assuming constant hydrostatic stress locally.");
             simplified_mechanics = std::make_unique<Hydrostatic>();
         }
+        else if (*simplified_mechanics_ptr == "custom")
+        {
+            DBUG("using custom mechanics model.");
+            simplified_mechanics = std::make_unique<Custom>();
+        }
     }
 
     bool has_water_vaporization = false;
