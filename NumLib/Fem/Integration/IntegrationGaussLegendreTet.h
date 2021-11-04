@@ -75,7 +75,7 @@ public:
             case 3:
                 return getWeightedPoint<MathLib::GaussLegendreTet<3>>(igp);
         }
-        return WeightedPoint(std::array<double, 3>(), 0);
+        OGS_FATAL("Integration order {:d} not implemented for tetrahedrals.", order);
     }
 
     template <typename Method>
@@ -101,7 +101,7 @@ public:
             case 3:
                 return MathLib::GaussLegendreTet<3>::NPoints;
         }
-        return 0;
+        OGS_FATAL("Integration order {:d} not implemented for tetrahedrals.", order);
     }
 
 private:
