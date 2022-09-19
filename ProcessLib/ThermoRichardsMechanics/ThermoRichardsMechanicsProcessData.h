@@ -55,6 +55,9 @@ struct ThermoRichardsMechanicsProcessData
 
     const bool use_TaylorHood_elements;
 
+    bool const apply_body_force_total_stress;
+
+
     MeshLib::PropertyVector<double>* element_saturation = nullptr;
     MeshLib::PropertyVector<double>* element_porosity = nullptr;
     MeshLib::PropertyVector<double>* element_liquid_density = nullptr;

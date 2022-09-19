@@ -178,6 +178,15 @@ std::unique_ptr<Process> createThermoRichardsMechanicsProcess(
         mass_lumping = *mass_lumping_ptr;
     }
 
+    bool apply_body_force_total_stress = true;
+    if (auto const apply_body_force_total_stress_ptr =
+            //! \ogs_file_param{prj__processes__process__THERMO_RICHARDS_MECHANICS__apply_body_force_total_stress}
+        config.getConfigParameterOptional<bool>("apply_body_force_total_stress"))
+    {
+        DBUG("Apply body force total stress used if the body force is not considered in the total stress already.");
+        apply_body_force_total_stress = *apply_body_force_total_stress_ptr;
+    }
+
     const bool use_TaylorHood_elements =
         variable_p->getShapeFunctionOrder() !=
                 variable_u->getShapeFunctionOrder()
@@ -191,7 +200,8 @@ std::unique_ptr<Process> createThermoRichardsMechanicsProcess(
         initial_stress,
         specific_body_force,
         mass_lumping,
-        use_TaylorHood_elements};
+        use_TaylorHood_elements,
+        apply_body_force_total_stress};
 
     SecondaryVariableCollection secondary_variables;
 
