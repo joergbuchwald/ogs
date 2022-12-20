@@ -542,13 +542,13 @@ void ThermoRichardsFlowLocalAssembler<ShapeFunction, GlobalDim>::
             double const f_Tv_D_Tv = f_Tv * D_v * drho_wv_dT;
             double const D_pv = D_v * drho_wv_dp;
 
+            // TODO(joergbuchwald): remove gas phase
             if (gas_phase && gas_phase->hasProperty(
                                  MPL::PropertyType::specific_heat_capacity))
             {
                 GlobalDimVectorType const grad_T = dNdx * T;
-                // Vapour velocity
-                GlobalDimVectorType const q_v =
-                    -(f_Tv_D_Tv * grad_T - D_pv * grad_p_cap) / rho_LR;
+                GlobalDimVectorType const vapour_velocity =
+                    -(f_Tv_D_Tv * grad_T - D_pv * grad_p_cap) / rho_wv;
                 double const specific_heat_capacity_vapour =
                     gas_phase
                         ->property(MaterialPropertyLib::PropertyType::
@@ -560,8 +560,9 @@ void ThermoRichardsFlowLocalAssembler<ShapeFunction, GlobalDim>::
                     (rho_wv * specific_heat_capacity_vapour * (1 - S_L) * phi) *
                     N.transpose() * N;
 
-                K_TT.noalias() += N.transpose() * q_v.transpose() * dNdx *
-                                  rho_wv * specific_heat_capacity_vapour * w;
+                K_TT.noalias() += N.transpose() * vapour_velocity.transpose() *
+                                  dNdx * rho_wv *
+                                  specific_heat_capacity_vapour * w;
             }
 
             double const storage_coefficient_by_water_vapor =
@@ -617,7 +618,7 @@ void ThermoRichardsFlowLocalAssembler<ShapeFunction, GlobalDim>::
                 K_TT.noalias() +=
                     L0 * f_Tv_D_Tv * dNdx.transpose() * dNdx * w / rho_LR;
                 // temperature equation, pressure part
-                dK_TT_dp.noalias() +=
+                K_Tp.noalias() +=
                     L0 * D_pv * dNdx.transpose() * dNdx * w / rho_LR;
             }
         }
@@ -1009,14 +1010,14 @@ void ThermoRichardsFlowLocalAssembler<ShapeFunction, GlobalDim>::assemble(
             double const f_Tv_D_Tv = f_Tv * D_v * drho_wv_dT;
             double const D_pv = D_v * drho_wv_dp;
 
+            // TODO (joergbuchwald): remove gas phase
             if (gas_phase && gas_phase->hasProperty(
                                  MPL::PropertyType::specific_heat_capacity))
             {
                 GlobalDimVectorType const grad_T = dNdx * T;
                 GlobalDimVectorType const grad_p_cap = -dNdx * p_L;
-                // Vapour velocity
-                GlobalDimVectorType const q_v =
-                    -(f_Tv_D_Tv * grad_T - D_pv * grad_p_cap) / rho_LR;
+                GlobalDimVectorType const vapour_velocty =
+                    -(f_Tv_D_Tv * grad_T - D_pv * grad_p_cap) / rho_wv;
                 double const specific_heat_capacity_vapour =
                     gas_phase
                         ->property(MaterialPropertyLib::PropertyType::
@@ -1034,8 +1035,9 @@ void ThermoRichardsFlowLocalAssembler<ShapeFunction, GlobalDim>::assemble(
                 local_K
                     .template block<temperature_size, temperature_size>(
                         temperature_index, temperature_index)
-                    .noalias() += N.transpose() * q_v.transpose() * dNdx *
-                                  rho_wv * specific_heat_capacity_vapour * w;
+                    .noalias() += N.transpose() * vapour_velocty.transpose() *
+                                  dNdx * rho_wv *
+                                  specific_heat_capacity_vapour * w;
             }
 
             double const storage_coefficient_by_water_vapor =
