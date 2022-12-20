@@ -79,17 +79,17 @@ void TRMVaporDiffusionModel<DisplacementDim>::eval(
         out.J_pT_X_dNTdN = f_Tv * D_v * drho_wv_dT;
         out.K_pp_X_dNTdN = D_v * drho_wv_dp;
 
+        // TODO(joergbuchwald): remove gas phase
         if (auto const& medium = media_data.medium; medium.hasPhase("Gas"))
         {
             if (auto const& gas_phase = medium.phase("Gas");
                 gas_phase.hasProperty(
                     MPL::PropertyType::specific_heat_capacity))
             {
-                // Vapour velocity
                 out.vapor_velocity =
                     -(out.J_pT_X_dNTdN * T_data.grad_T -
                       out.K_pp_X_dNTdN * p_cap_data.grad_p_cap) /
-                    rho_L_data.rho_LR;
+                    rho_wv;
                 double const specific_heat_capacity_vapor =
                     gas_phase
                         .property(MaterialPropertyLib::PropertyType::
