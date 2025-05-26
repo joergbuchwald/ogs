@@ -50,7 +50,9 @@ void writeGrid(vtkUnstructuredGrid* grid, std::string const& output_filename)
     writer->Write();
 }
 
-Eigen::MatrixX3d readJSON(TCLAP::ValueArg<std::string> const& input_filename)
+std::tuple<Eigen::MatrixXd, Eigen::VectorXd, Eigen::VectorXd, Eigen::VectorXd,
+           Eigen::VectorXd, Eigen::VectorXd>
+readJSON(TCLAP::ValueArg<std::string> const& input_filename)
 {
     using json = nlohmann::json;
     std::ifstream f(input_filename.getValue());
@@ -70,6 +72,36 @@ Eigen::MatrixX3d readJSON(TCLAP::ValueArg<std::string> const& input_filename)
         OGS_FATAL(
             "Number of anchor start points does not match the number of end "
             "points");
+    }
+    if (number_of_anchors != data["maximum_anchor_stress"].size())
+    {
+        OGS_FATAL(
+            "Number of maximum anchor stress values does not match the "
+            "number of anchors.");
+    }
+    if (number_of_anchors != data["initial_anchor_stress"].size())
+    {
+        OGS_FATAL(
+            "Number of initial anchor stress values does not match the "
+            "number of anchors.");
+    }
+    if (number_of_anchors != data["residual_anchor_stress"].size())
+    {
+        OGS_FATAL(
+            "Number of residual anchor stress values does not match the "
+            "number of anchors.");
+    }
+    if (number_of_anchors != data["anchor_radius"].size())
+    {
+        OGS_FATAL(
+            "Number of anchor radii values does not match the number of "
+            "anchors.");
+    }
+    if (number_of_anchors != data["anchor_stiffness"].size())
+    {
+        OGS_FATAL(
+            "Number of stiffness values does not match the number of "
+            "anchors.");
     }
 
     Eigen::MatrixX3d realcoords(2 * number_of_anchors, 3);
@@ -95,8 +127,27 @@ Eigen::MatrixX3d readJSON(TCLAP::ValueArg<std::string> const& input_filename)
         realcoords.row(2 * i + 1).noalias() =
             get_coordinates("anchor_end_points", i);
     }
-
-    return realcoords;
+    Eigen::Map<Eigen::VectorXd> initial_anchor_stress(
+        data["initial_anchor_stress"].get<std::vector<double>>().data(),
+        number_of_anchors);
+    Eigen::Map<Eigen::VectorXd> maximum_anchor_stress(
+        data["maximum_anchor_stress"].get<std::vector<double>>().data(),
+        number_of_anchors);
+    Eigen::Map<Eigen::VectorXd> residual_anchor_stress(
+        data["residual_anchor_stress"].get<std::vector<double>>().data(),
+        number_of_anchors);
+    Eigen::Map<Eigen::VectorXd> anchor_radius(
+        data["anchor_radius"].get<std::vector<double>>().data(),
+        number_of_anchors);
+    Eigen::Map<Eigen::VectorXd> anchor_stiffness(
+        data["anchor_stiffness"].get<std::vector<double>>().data(),
+        number_of_anchors);
+    return {realcoords,
+            initial_anchor_stress,
+            maximum_anchor_stress,
+            residual_anchor_stress,
+            anchor_radius,
+            anchor_stiffness};
 }
 
 int main(int argc, char** argv)
@@ -155,14 +206,17 @@ int main(int argc, char** argv)
             OGS_FATAL("spdlog logger error occurred.");
         });
 
-    auto const realcoords = readJSON(json_filename_arg);
+    auto const& [realcoords, initial_anchor_stress, maximum_anchor_stress,
+                 residual_anchor_stress, anchor_radius, anchor_stiffness] =
+        readJSON(json_filename_arg);
     auto const bulk_mesh = readGrid(input_filename_arg.getValue());
 
     // Compute natural coordinates
     namespace AU = ApplicationUtils;
     AU::ComputeNaturalCoordsResult const result = AU::computeNaturalCoords(
-        bulk_mesh, realcoords, tolerance_arg.getValue(),
-        max_iter_arg.getValue());
+        bulk_mesh, realcoords, initial_anchor_stress, maximum_anchor_stress,
+        residual_anchor_stress, anchor_radius, anchor_stiffness,
+        tolerance_arg.getValue(), max_iter_arg.getValue());
     // Write output
     auto const output_mesh = AU::toVTKGrid(result);
     writeGrid(output_mesh, output_filename_arg.getValue());

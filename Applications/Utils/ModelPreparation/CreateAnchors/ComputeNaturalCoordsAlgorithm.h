@@ -27,6 +27,11 @@ struct ComputeNaturalCoordsResult
 {
     Eigen::MatrixXd natural_coords;
     Eigen::MatrixXd real_coords;
+    Eigen::VectorXd const& initial_anchor_stress;
+    Eigen::VectorXd const& maximum_anchor_stress;
+    Eigen::VectorXd const& residual_anchor_stress;
+    Eigen::VectorXd const& anchor_radius;
+    Eigen::VectorXd const& anchor_stiffness;
     Eigen::VectorX<vtkIdType> bulk_element_ids;
     Eigen::VectorX<vtkIdType> point_cloud_node_ids;
     bool success;
@@ -48,13 +53,27 @@ public:
 
     void fail() { success = false; }
 
-    ComputeNaturalCoordsResult finished()
+    ComputeNaturalCoordsResult finished(
+        Eigen::VectorXd const& initial_anchor_stress,
+        Eigen::VectorXd const& maximum_anchor_stress,
+        Eigen::VectorXd const& residual_anchor_stress,
+        Eigen::VectorXd const& anchor_radius,
+        Eigen::VectorXd const& anchor_stiffness)
     {
         auto bei = Eigen::Map<Eigen::VectorX<vtkIdType>>(
             bulk_element_ids.data(), bulk_element_ids.size());
         auto pcni = Eigen::Map<Eigen::VectorX<vtkIdType>>(
             point_cloud_node_ids.data(), point_cloud_node_ids.size());
-        return {conv(natural_coordss), conv(real_coordss), bei, pcni, success};
+        return {conv(natural_coordss),
+                conv(real_coordss),
+                initial_anchor_stress,
+                maximum_anchor_stress,
+                residual_anchor_stress,
+                anchor_radius,
+                anchor_stiffness,
+                bei,
+                pcni,
+                success};
     }
 
 private:
@@ -77,7 +96,12 @@ private:
 
 ComputeNaturalCoordsResult computeNaturalCoords(
     vtkUnstructuredGrid* const bulk_mesh, Eigen::MatrixXd const& real_coords,
-    double const tolerance, int const max_iter)
+    Eigen::VectorXd const& initial_anchor_stress,
+    Eigen::VectorXd const& maximum_anchor_stress,
+    Eigen::VectorXd const& residual_anchor_stress,
+    Eigen::VectorXd const& anchor_radius,
+    Eigen::VectorXd const& anchor_stiffness, double const tolerance,
+    int const max_iter)
 {
     // Check inputs ------------------------------------------------------------
 
@@ -150,7 +174,9 @@ ComputeNaturalCoordsResult computeNaturalCoords(
                       bulk_element_id, rc_idx);
     }
 
-    return result.finished();
+    return result.finished(initial_anchor_stress, maximum_anchor_stress,
+                           residual_anchor_stress, anchor_radius,
+                           anchor_stiffness);
 }
 
 template <typename T>
@@ -180,6 +206,35 @@ void addPointData(vtkUnstructuredGrid* grid, std::string const& name,
     }
 
     grid->GetPointData()->AddArray(array);
+}
+
+template <typename T>
+void addCellData(vtkUnstructuredGrid* grid, std::string const& name,
+                 Eigen::MatrixX<T> const& data)
+{
+    INFO("converting {}", name);
+    vtkNew<vtkAOSDataArrayTemplate<T>> array;
+    array->SetName(name.c_str());
+    array->SetNumberOfComponents(data.cols());
+    array->SetNumberOfTuples(grid->GetNumberOfCells());
+
+    if (grid->GetNumberOfCells() != data.rows())
+    {
+        OGS_FATAL(
+            "Got {} rows in the table but expected {} rows, same as number of "
+            "cells in the grid.",
+            data.rows(), grid->GetNumberOfCells());
+    }
+    for (Eigen::Index i = 0; i < data.rows(); ++i)
+    {
+        // copy to contiguous storage
+        Eigen::RowVectorX<T> const row = data.row(i);
+
+        array->SetTypedTuple(i, row.data());
+        DBUG("> {}", row);
+    }
+
+    grid->GetCellData()->AddArray(array);
 }
 
 /**
@@ -241,7 +296,14 @@ vtkSmartPointer<vtkUnstructuredGrid> toVTKGrid(
                               result.bulk_element_ids.cast<std::size_t>());
     addPointData<std::size_t>(grid, "point_cloud_node_ids",
                               result.point_cloud_node_ids.cast<std::size_t>());
-
+    addCellData<double>(grid, "initial_anchor_stress",
+                        result.initial_anchor_stress);
+    addCellData<double>(grid, "maximum_anchor_stress",
+                        result.maximum_anchor_stress);
+    addCellData<double>(grid, "residual_anchor_stress",
+                        result.residual_anchor_stress);
+    addCellData<double>(grid, "anchor_radius", result.anchor_radius);
+    addCellData<double>(grid, "anchor_stiffness", result.anchor_stiffness);
     return grid;
 }
 }  // namespace ApplicationUtils
