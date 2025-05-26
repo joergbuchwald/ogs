@@ -46,6 +46,11 @@ private:
     ParameterLib::Parameter<double> const& parameter_;
     MeshLib::PropertyVector<std::size_t> const* bulk_element_ids_ = nullptr;
     MeshLib::PropertyVector<double> const* natural_coordinates_ = nullptr;
+    MeshLib::PropertyVector<double> const* maximum_anchor_stress_ = nullptr;
+    MeshLib::PropertyVector<double> const* initial_anchor_stress_ = nullptr;
+    MeshLib::PropertyVector<double> const* residual_anchor_stress_ = nullptr;
+    MeshLib::PropertyVector<double> const* anchor_radius_ = nullptr;
+    MeshLib::PropertyVector<double> const* anchor_stiffness_ = nullptr;
 };
 
 extern template class EmbeddedAnchor<2>;
