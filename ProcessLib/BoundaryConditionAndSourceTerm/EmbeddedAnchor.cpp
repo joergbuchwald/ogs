@@ -327,6 +327,10 @@ void EmbeddedAnchor<GlobalDim>::integrate(const double t, GlobalVector const& x,
             residual_force * l_original / l_original_norm;
         GlobalDimVector const f_elastic =
             l_original / l_original_norm * (initial_force + K * strain);
+        INFO(
+            "max_force: {:g}, f_elastic: {:g}, "
+            "f_friction: {:g}",
+            max_force, f_elastic.norm(), f_friction.norm());
         GlobalDimVector const f =
             (f_elastic.norm() < max_force) ? f_elastic : f_friction;
 
