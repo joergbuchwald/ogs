@@ -87,7 +87,8 @@ std::tuple<Eigen::VectorXd, Eigen::MatrixXd> assembleLocalBJac(
     Eigen::Matrix<double, GlobalDim, GlobalDim> const& Df,
     std::vector<Eigen::RowVectorXd> const& shape_matrices,
     std::size_t const num_dof,
-    std::array<std::size_t, 2> const& nodes_per_element)
+    std::array<std::size_t, 2> const& nodes_per_element,
+    Eigen::Vector<double, GlobalDim> const& external_anchor_force)
 {
     // Signs for the two nodes alternate.
     constexpr auto even_odd_sign = [](std::size_t const n)
@@ -112,6 +113,20 @@ std::tuple<Eigen::VectorXd, Eigen::MatrixXd> assembleLocalBJac(
                 .cwiseProduct(f.transpose()
                                   .replicate(nodes_per_element[node_idx], 1)
                                   .reshaped());
+        // Add the external anchor force.
+        if (node_idx == 0)
+        {
+            // The external anchor force is only applied to the first node.
+            // The second node is not loaded.
+            local_rhs.segment(node_idx * GlobalDim * nodes_per_element[0],
+                              GlobalDim * nodes_per_element[node_idx]) +=
+                shape_matrices[node_idx]
+                    .transpose()
+                    .replicate<GlobalDim, 1>()
+                    .cwiseProduct(external_anchor_force.transpose()
+                                      .replicate(nodes_per_element[node_idx], 1)
+                                      .reshaped());
+        }
         for (std::size_t node_idx_inner = 0; node_idx_inner < 2;
              ++node_idx_inner)
         {
@@ -291,7 +306,10 @@ void EmbeddedAnchor<GlobalDim>::integrate(const double t, GlobalVector const& x,
         { return local_x(nodeLocalIndices<GlobalDim>(i)); };
         GlobalDimVector const l = l_original + u(1) - u(0);
 
-        // double const K = parameter_(t, pos)[0];
+        std::vector<double> const& external_anchor_load = parameter_(t, pos);
+        assert(external_anchor_load.size() == GlobalDim);
+        GlobalDimVector const external_anchor_force =
+            MathLib::toVector(external_anchor_load);
         double const pirsquared =
             std::numbers::pi *
             std::pow((*anchor_radius_)[anchor_element_id], 2);
@@ -304,24 +322,24 @@ void EmbeddedAnchor<GlobalDim>::integrate(const double t, GlobalVector const& x,
             pirsquared * (*residual_anchor_stress_)[anchor_element_id];
 
         double const strain = (l.norm() - l_original_norm) / l_original_norm;
-        double const max_strain = max_force / K;
 
         GlobalDimVector const f_friction =
             residual_force * l_original / l_original_norm;
         GlobalDimVector const f_elastic =
             l_original / l_original_norm * (initial_force + K * strain);
         GlobalDimVector const f =
-            (strain < max_strain) ? f_elastic : f_friction;
+            (f_elastic.norm() < max_force) ? f_elastic : f_friction;
 
         GlobalDimMatrix const Df_friction = 0.0 * l_original * l.transpose();
         GlobalDimMatrix const Df_elastic = l_original / l_original_norm * K *
                                            l.transpose() / l.norm() /
                                            l_original_norm;
         GlobalDimMatrix const Df =
-            (strain < max_strain) ? Df_elastic : Df_friction;
+            (f_elastic.norm() < max_force) ? Df_elastic : Df_friction;
 
         auto const& [local_rhs, local_Jac] = assembleLocalBJac<GlobalDim>(
-            f, Df, shape_matrices, global_indices.size(), nodes_per_element);
+            f, Df, shape_matrices, global_indices.size(), nodes_per_element,
+            external_anchor_force);
 
         b.add(global_indices, local_rhs);
         if (jac)

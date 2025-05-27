@@ -31,10 +31,10 @@ std::unique_ptr<SourceTermBase> createEmbeddedAnchor(
 
     auto const param_name =
         //! \ogs_file_param{prj__process_variables__process_variable__source_terms__source_term__Anchor__anchor_force_constant}
-        config.getConfigParameter<std::string>("anchor_force_constant");
-    DBUG("Using parameter {:s} as anchor stiffness constant.", param_name);
+        config.getConfigParameter<std::string>("external_anchor_head_load");
+    DBUG("Using parameter {:s} as external anchor force.", param_name);
 
-    auto& param = ParameterLib::findParameter<double>(param_name, parameters, 1,
+    auto& param = ParameterLib::findParameter<double>(param_name, parameters, 3,
                                                       &st_mesh);
 
     for (MeshLib::Element const* const element : st_mesh.getElements())
