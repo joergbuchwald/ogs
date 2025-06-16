@@ -127,21 +127,42 @@ readJSON(TCLAP::ValueArg<std::string> const& input_filename)
         realcoords.row(2 * i + 1).noalias() =
             get_coordinates("anchor_end_points", i);
     }
-    Eigen::Map<Eigen::VectorXd> initial_anchor_stress(
-        data["initial_anchor_stress"].get<std::vector<double>>().data(),
-        number_of_anchors);
-    Eigen::Map<Eigen::VectorXd> maximum_anchor_stress(
-        data["maximum_anchor_stress"].get<std::vector<double>>().data(),
-        number_of_anchors);
-    Eigen::Map<Eigen::VectorXd> residual_anchor_stress(
-        data["residual_anchor_stress"].get<std::vector<double>>().data(),
-        number_of_anchors);
-    Eigen::Map<Eigen::VectorXd> anchor_radius(
-        data["anchor_radius"].get<std::vector<double>>().data(),
-        number_of_anchors);
-    Eigen::Map<Eigen::VectorXd> anchor_stiffness(
-        data["anchor_stiffness"].get<std::vector<double>>().data(),
-        number_of_anchors);
+    Eigen::VectorXd initial_anchor_stress(number_of_anchors);
+    Eigen::VectorXd maximum_anchor_stress(number_of_anchors);
+    Eigen::VectorXd residual_anchor_stress(number_of_anchors);
+    Eigen::VectorXd anchor_radius(number_of_anchors);
+    Eigen::VectorXd anchor_stiffness(number_of_anchors);
+    for (size_t i = 0; i < number_of_anchors; ++i)
+    {
+        if (!data["initial_anchor_stress"][i].is_number())
+        {
+            OGS_FATAL("Non-numeric element in JSON array!");
+        }
+        initial_anchor_stress(i) =
+            data["initial_anchor_stress"][i].get<double>();
+        if (!data["maximum_anchor_stress"][i].is_number())
+        {
+            OGS_FATAL("Non-numeric element in JSON array!");
+        }
+        initial_anchor_stress(i) =
+            data["maximum_anchor_stress"][i].get<double>();
+        if (!data["residual_anchor_stress"][i].is_number())
+        {
+            OGS_FATAL("Non-numeric element in JSON array!");
+        }
+        initial_anchor_stress(i) =
+            data["residual_anchor_stress"][i].get<double>();
+        if (!data["anchor_radius"][i].is_number())
+        {
+            OGS_FATAL("Non-numeric element in JSON array!");
+        }
+        initial_anchor_stress(i) = data["anchor_radius"][i].get<double>();
+        if (!data["anchor_stiffness"][i].is_number())
+        {
+            OGS_FATAL("Non-numeric element in JSON array!");
+        }
+        initial_anchor_stress(i) = data["anchor_stiffness"][i].get<double>();
+    }
     return {realcoords,
             initial_anchor_stress,
             maximum_anchor_stress,
