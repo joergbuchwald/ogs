@@ -144,24 +144,24 @@ readJSON(TCLAP::ValueArg<std::string> const& input_filename)
         {
             OGS_FATAL("Non-numeric element in JSON array!");
         }
-        initial_anchor_stress(i) =
+        maximum_anchor_stress(i) =
             data["maximum_anchor_stress"][i].get<double>();
         if (!data["residual_anchor_stress"][i].is_number())
         {
             OGS_FATAL("Non-numeric element in JSON array!");
         }
-        initial_anchor_stress(i) =
+        residual_anchor_stress(i) =
             data["residual_anchor_stress"][i].get<double>();
         if (!data["anchor_radius"][i].is_number())
         {
             OGS_FATAL("Non-numeric element in JSON array!");
         }
-        initial_anchor_stress(i) = data["anchor_radius"][i].get<double>();
+        anchor_radius(i) = data["anchor_radius"][i].get<double>();
         if (!data["anchor_stiffness"][i].is_number())
         {
             OGS_FATAL("Non-numeric element in JSON array!");
         }
-        initial_anchor_stress(i) = data["anchor_stiffness"][i].get<double>();
+        anchor_stiffness(i) = data["anchor_stiffness"][i].get<double>();
     }
     return {realcoords,
             initial_anchor_stress,
